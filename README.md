@@ -1,25 +1,21 @@
-# ha-pioneer_alt
+# Pioneer AVR (asyncio)
 Customised Home Assistant media_player custom component for Pioneer AVRs.
+Inspired by the [original Pioneer integation](https://www.home-assistant.io/integrations/pioneer/).
 Tested on a VSX-930 (Main Zone and HDZone outputs).
 
 Added support for the following features:
+- Rewritten to support integration config flow (`Configuration` > `Integrations` > `+` to add) as well as retained `configuration.yaml` support.
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
+- Automatically poll AVR for source names - no longer need to manually code them in your config any more.
+- Uses source names instead of IDs for selecting a new source.
 - Maintain single continuous telnet session to AVR, with automatic reconnect.
-- Eliminate polling where AVR sends keepalive responses (on port 8102). 
-- Separated Pioneer API into a separate class, ready to be moved into a
-  separate module to follow current Home Assistant integration standards.
-- Automatically poll AVR for source names - no need to manually code them
-  any more.
-- Uses source names instead of source IDs for selecting a new source.
-- Added workaround for AVRs with an initial volume set on the Main Zone. The
-  initial volume is not reported correctly until a volume change is made on
-  the AVR. The workaround sends `volume_up`, `volume_down` commands to
-  correct the reported volume without affecting the initial volume setting.
+- Eliminate polling where AVR sends keepalive responses (on port 8102).
 
-NOTE: On the VSX-930, the telnet API can become very unstable when telnet
-connections are made to it repeatedly. The original component established a
-new telnet connection for each command sent to the AVR, including the commands
-used to poll status. This component reuses a single telnet connection,
-established at component start and re-established automaticlly if it
-disconnects, for both sending commands and receiving status updates that are
-then reflected in Home Assistant in real time.
+Technical details:
+- Rewrite of [pioneer_alt](https://github.com/crowbarz/ha-pioneer_alt), both the HA integration and the API, to use asyncio.
+- Now uses `asyncio` in both the Home Assistant integration and Pioneer API.
+- Separated Pioneer API into a separate class, ready to be moved into a separate module to follow current Home Assistant integration standards.
+- Added workaround (`volume_workaround`) for AVRs with an initial volume set on the Main Zone. The initial volume is not reported correctly until a volume change is made on the AVR. The workaround sends `volume_up`, `volume_down` commands to correct the reported volume without affecting the initial volume setting.
+- Support integration configuration via the UI. Continues to support configuration via YAML.
+
+**NOTE:** On the VSX-930, the telnet API can become quite unstable when telnet connections are made to it repeatedly. The original integration established a new telnet connection for each command sent to the AVR, including the commands used to poll status. This integration establishes a single telnet connection at component start and re-connects automatically if it disconnects. The connection is used for sending commands, receiving responses, and receiving status updates that are then reflected in Home Assistant in real time.
