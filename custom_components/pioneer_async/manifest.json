@@ -1,0 +1,9 @@
+{
+  "domain": "pioneer_async",
+  "name": "Pioneer AVR",
+  "config_flow": true,
+  "documentation": "https://www.home-assistant.io/integrations/pioneer_async",
+  "requirements": [],
+  "dependencies": [],
+  "codeowners": ["@crowbarz"]
+}
