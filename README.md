@@ -8,14 +8,12 @@ Added support for the following features:
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more.
 - Uses source names instead of IDs for selecting a new source.
-- Maintain single continuous telnet session to AVR, with automatic reconnect.
-- Eliminate polling where AVR sends keepalive responses (on port 8102).
 
 Technical details:
-- Rewrite of [pioneer_alt](https://github.com/crowbarz/ha-pioneer_alt), both the HA integration and the API, to use asyncio.
-- Now uses `asyncio` in both the Home Assistant integration and Pioneer API.
-- Separated Pioneer API into a separate class, ready to be moved into a separate module to follow current Home Assistant integration standards.
+- Maintain single continuous telnet session to AVR, with automatic reconnect.
+- Eliminate polling where AVR sends keepalive responses (on port 8102).
 - Added workaround (`volume_workaround`) for AVRs with an initial volume set on the Main Zone. The initial volume is not reported correctly until a volume change is made on the AVR. The workaround sends `volume_up`, `volume_down` commands to correct the reported volume without affecting the initial volume setting.
-- Support integration configuration via the UI. Continues to support configuration via YAML.
+- Rewrote [pioneer_alt](https://github.com/crowbarz/ha-pioneer_alt), both the HA integration and the API, to support asyncio throughout.
+- Separated Pioneer API into a separate class, ready to be moved into a separate module to follow current Home Assistant integration standards.
 
 **NOTE:** On the VSX-930, the telnet API can become quite unstable when telnet connections are made to it repeatedly. The original integration established a new telnet connection for each command sent to the AVR, including the commands used to poll status. This integration establishes a single telnet connection at component start and re-connects automatically if it disconnects. The connection is used for sending commands, receiving responses, and receiving status updates that are then reflected in Home Assistant in real time.
