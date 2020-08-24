@@ -110,7 +110,7 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_SCAN_INTERVAL, default=options[CONF_SCAN_INTERVAL]
                 ): int,
-                vol.Optional(CONF_TIMEOUT, default=options[CONF_TIMEOUT]): int,
+                vol.Optional(CONF_TIMEOUT, default=options[CONF_TIMEOUT]): float,
                 vol.Optional(
                     CONF_COMMAND_DELAY, default=options[CONF_COMMAND_DELAY]
                 ): float,
