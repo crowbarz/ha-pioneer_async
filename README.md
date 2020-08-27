@@ -10,7 +10,7 @@ Added support for the following features:
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
 
-`configuration.yaml` options:
+## `configuration.yaml` options
 
 - `name` _string_ (optional, default: `Pioneer AVR`): The name you would like to give to the receiver.
 - `host` _string_ REQUIRED: The IP of the Pioneer device, e.g., 192.168.0.10.
@@ -21,11 +21,11 @@ Added support for the following features:
 
   If not specified, the integration will attempt to query them from the AVR on startup if this is supported by the AVR. If no sources are specified or found, then the integration will not be able to switch sources.
 
-  **NOTE:** it is currently not possible to manually specify `sources` when the integration is added via the UI.
+  **NOTE:** It is currently not possible to manually specify `sources` when the integration is added via the UI.
 - `command_delay` _float_ (optional, default: `0.1`): Insert a delay between sequential commands that are sent to the AVR. This appears to make the AVR behave more reliably during status polls.
 - `volume_workaround` _bool_ (optional, default: `False`): On some AVRs (notably the VSX-930) where a power-on is set, the initial volume is not reported by the AVR correctly until a volume change is made. This option enables a workaround that sends `volume_up`, `volume_down` commands to the AVR on power-on to correct the reported volume without affecting the power-on volume.
 
-Additional technical details on the changes:
+## Implementation details
 
 - Maintain single continuous telnet session to AVR, with automatic reconnect.
 - Eliminate polling where AVR sends keepalive responses (on port 8102).
