@@ -504,6 +504,11 @@ class PioneerAVR:
                     self.zones.append("Z")
                     self.max_volume["Z"] = MAX_VOLUME_ZONEX
 
+    def set_source_dict(self, sources):
+        """ Manually set source id<->name translation tables. """
+        self._source_name_to_id = sources
+        self._source_id_to_name = {v: k for k, v in sources.items()}
+
     async def build_source_dict(self):
         """ Generate source id<->name translation tables. """
         timeouts = 0
@@ -530,7 +535,7 @@ class PioneerAVR:
             _LOGGER.debug(f"Source name->id: {self._source_name_to_id}")
             _LOGGER.debug(f"Source id->name: {self._source_id_to_name}")
         if not self._source_name_to_id:
-            raise RuntimeError("No input sources found on AVR")
+            _LOGGER.warning("no input sources found on AVR")
 
     def get_source_list(self):
         """ Return list of available input sources. """

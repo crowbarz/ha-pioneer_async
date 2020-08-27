@@ -23,12 +23,14 @@ import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
+    CONF_SOURCES,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
     SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
+    DEFAULT_SOURCES,
     DEFAULT_COMMAND_DELAY,
     DEFAULT_SCAN_INTERVAL,
     PIONEER_OPTIONS_UPDATE,
@@ -49,6 +51,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
         ): cv.positive_int,
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
+        vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
         vol.Optional(
             CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY
         ): cv.socket_timeout,
@@ -69,6 +72,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     timeout = config[CONF_TIMEOUT]
     scan_interval = config[CONF_SCAN_INTERVAL]
     command_delay = config[CONF_COMMAND_DELAY]
+    sources = config[CONF_SOURCES]
     volume_workaround = config[CONF_VOLUME_WORKAROUND]
     device_unique_id = host + ":" + str(port)
 
@@ -93,7 +97,10 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         )
         await pioneer.connect()
         await pioneer.query_zones()
-        await pioneer.build_source_dict()
+        if sources:
+            pioneer.set_source_dict(sources)
+        else:
+            await pioneer.build_source_dict()
 
     except Exception as e:  # pylint: disable=invalid-name
         _LOGGER.error(f"Could not open AVR connection: {type(e).__name__}: {e}")

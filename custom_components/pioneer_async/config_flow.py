@@ -107,6 +107,7 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
         }
         data_schema = vol.Schema(
             {
+                ## TODO: add sources option: how to ask the user for a dictionary in config flow?
                 vol.Optional(
                     CONF_SCAN_INTERVAL, default=options[CONF_SCAN_INTERVAL]
                 ): int,
