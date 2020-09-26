@@ -1,5 +1,5 @@
 """The Pioneer AVR integration."""
-# pylint: disable=logging-fstring-interpolation
+# pylint: disable=logging-format-interpolation
 
 import asyncio
 import logging
