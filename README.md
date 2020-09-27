@@ -9,6 +9,7 @@ Added support for the following features:
 - Rewritten to support integration config flow (`Configuration` > `Integrations` > `+` to add) as well as retained `configuration.yaml` support.
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
+- Create devices and populate with model, software version and MAC address queried from AVR (if supported).
 
 ## `configuration.yaml` options
 
