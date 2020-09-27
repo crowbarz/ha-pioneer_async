@@ -4,6 +4,7 @@
 import asyncio
 import time
 import logging
+import re
 from .util import sock_set_keepalive, get_backoff_delay, cancel_task
 
 _LOGGER = logging.getLogger(__name__)
@@ -85,6 +86,9 @@ PIONEER_COMMANDS = {
         "3": ["?ZT", "Z3F"],
         "Z": ["?ZEA", "ZEA"],
     },
+    "query_mac_addr": {"1": ["?SVB", "SVB"]},
+    "query_software_version": {"1": ["?SSI", "SSI"]},
+    "query_model": {"1": ["?RGD", "RGD"]},
 }
 
 
@@ -112,6 +116,9 @@ class PioneerAVR:
         self.volume_workaround = volume_workaround
 
         ## Public properties
+        self.model = None
+        self.software_version = None
+        self.mac_addr = None
         self.available = False
         self.zones = []
         self.power = {}
@@ -540,6 +547,45 @@ class PioneerAVR:
     def get_source_list(self):
         """ Return list of available input sources. """
         return list(self._source_name_to_id.keys())
+
+    async def query_device_info(self):
+        """ Query device information from Pioneer AVR. """
+        if self.model or self.mac_addr or self.software_version:
+            return
+
+        _LOGGER.info("Querying device information from Pioneer AVR")
+        model = None
+        mac_addr = None
+        software_version = None
+
+        ## Query model via command
+        data = await self.send_command("query_model", ignore_error=True)
+        if data:
+            matches = re.search(r"<([^>/]{5,})(/.[^>]*)?>", data)
+            if matches:
+                model = matches.group(1)
+
+        ## Query MAC address via command
+        data = await self.send_command("query_mac_addr", ignore_error=True)
+        if data:
+            mac_addr = data[0:2] + ":" + data[2:4] + ":" + data[4:6]
+            mac_addr += ":" + data[6:8] + ":" + data[8:10] + ":" + data[10:12]
+
+        ## Query software version via command
+        data = await self.send_command("query_software_version", ignore_error=True)
+        if data:
+            matches = re.search(r'SSI"([^)]*)"', data)
+            if matches:
+                software_version = matches.group(1)
+
+        self.model = model if model else "unknown"
+        self.mac_addr = mac_addr if mac_addr else "unknown"
+        self.software_version = software_version if software_version else "unknown"
+
+        # TODO: Query via HTML page if all info is not available from command
+        # http://avr/1000/system_information.asp
+        # VSX-930 will report model and software version, but not MAC address.
+        # Unknown how iControlAV5 determines this on a routed network.
 
     ## Callback functions
     def set_zone_callback(self, zone, callback):

@@ -59,8 +59,6 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     }
 )
 
-## TODO: add device
-
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Pioneer AVR platform."""
@@ -197,6 +195,26 @@ class PioneerZone(MediaPlayerEntity):
             pioneer.command_delay = data[CONF_COMMAND_DELAY]
         if CONF_VOLUME_WORKAROUND in data:
             pioneer.volume_workaround = data[CONF_VOLUME_WORKAROUND]
+
+    @property
+    def device_info(self):
+        """Return device info."""
+        name = self._name
+        if self._zone == "1":
+            name += " Main Zone"
+        return {
+            "identifiers": {(DOMAIN, self._entry.unique_id, self._zone)},
+            "manufacturer": "Pioneer",
+            "sw_version": self._pioneer.software_version,
+            "name": name,
+            "model": self._pioneer.model,
+            "via_device": (DOMAIN, self._entry.unique_id),
+        }
+
+    @property
+    def unique_id(self):
+        """Return the unique id."""
+        return self._entry.unique_id + "/" + self._zone
 
     @property
     def name(self):

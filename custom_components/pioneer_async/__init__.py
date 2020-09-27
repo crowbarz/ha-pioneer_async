@@ -10,11 +10,13 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
+    CONF_NAME,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 import homeassistant.helpers.config_validation as cv
 
@@ -54,6 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     ## Create PioneerAVR API object
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
+    name = entry.data[CONF_NAME]
     options = {**OPTIONS_DEFAULTS, **entry.options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
@@ -69,12 +72,29 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             volume_workaround=volume_workaround,
         )
         await pioneer.connect()
+        await pioneer.query_device_info()
         await pioneer.query_zones()
         await pioneer.build_source_dict()
     except (asyncio.TimeoutError, ValueError, AttributeError):
         raise ConfigEntryNotReady
 
     hass.data[DOMAIN][entry.entry_id] = pioneer
+
+    ## Set up parent device for this Pioneer AVR
+    model = pioneer.model
+    software_version = pioneer.software_version
+    mac_addr = pioneer.mac_addr
+    device_registry = await dr.async_get_registry(hass)
+
+    device_registry.async_get_or_create(
+        config_entry_id=entry.entry_id,
+        connections={(dr.CONNECTION_NETWORK_MAC, mac_addr)},
+        identifiers={(DOMAIN, entry.unique_id)},
+        manufacturer="Pioneer",
+        name=name,
+        model=model,
+        sw_version=software_version,
+    )
 
     ## Set up platforms for this Pioneer AVR
     for component in PLATFORMS:
