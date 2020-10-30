@@ -142,6 +142,8 @@ class PioneerAVR:
         self._responder_task = None
         self._reconnect_task = None
         self._updater_task = None
+        self._bouncer_task = None
+        self._power_zone_1 = None
         # self._response_commands = []
         self._source_name_to_id = {}
         self._source_id_to_name = {}
@@ -244,6 +246,7 @@ class PioneerAVR:
             await self.responder_cancel()
             await self.updater_cancel()
             await self.listener_cancel()
+            await self.bouncer_cancel()
             await self.reconnect_schedule()
 
     async def shutdown(self):
@@ -320,6 +323,14 @@ class PioneerAVR:
             ## Parse response, update cached properties
             updated_zones = self.parse_response(response)
 
+            ## Detect Main Zone power on for volume workaround
+            if self.volume_workaround and self._power_zone_1 is not None:
+                if not self._power_zone_1 and self.power["1"]:
+                    ## Main zone powered on, schedule bounce task
+                    _LOGGER.info("Scheduling main zone volume workaround")
+                    await self.bouncer_schedule()
+            self._power_zone_1 = self.power.get("1") ## cache value
+
             ## NOTE: to avoid deadlocks, do not run any operations that
             ## depend on further responses (returned by the listener) within
             ## the listener loop.
@@ -327,8 +338,8 @@ class PioneerAVR:
             if updated_zones:
                 ## Call zone callbacks for updated zones
                 self.call_zone_callbacks(updated_zones)
-                ## NOTE: updating zone 1 does not seem to reset its scan
-                ## interval.
+                ## NOTE: updating zone 1 does not reset its scan interval -
+                ##       scan interval is set to a regular timer
 
         if self.available:
             ## Trigger disconnection if not already disconnecting
@@ -813,10 +824,13 @@ class PioneerAVR:
     ## State change functions
     async def turn_on(self, zone="1"):
         """ Turn on the Pioneer AVR. """
-        response = await self.send_command("turn_on", zone)
-        if self.volume_workaround and zone == "1" and response == "PWR0":
-            await self.volume_up()
-            await self.volume_down()
+        await self.send_command("turn_on", zone)
+        ## 20201030 disabled volume workaround, need to trigger on any on event
+        ##          and not just when turned on via this module
+        # response = await self.send_command("turn_on", zone)
+        # if self.volume_workaround and zone == "1" and response == "PWR0":
+        #     await self.volume_up()
+        #     await self.volume_down()
 
     async def turn_off(self, zone="1"):
         """ Turn off the Pioneer AVR. """
@@ -851,6 +865,18 @@ class PioneerAVR:
             return await self.volume_down()
         else:
             return False
+
+    async def bouncer_schedule(self):
+        """Schedule volume bounce task. Run when zone 0 power on is detected."""
+        await self.bouncer_cancel()
+        self._bouncer_task = asyncio.create_task(self.bounce_volume())
+
+    async def bouncer_cancel(self):
+        """Cancel volume bounce task."""
+        bouncer_task = self._bouncer_task
+        if bouncer_task:
+            await cancel_task(bouncer_task, "bouncer")
+            self._bouncer_task = None
 
     async def set_volume_level(self, volume, zone="1"):
         """ Set volume level (0..185 for Zone 1, 0..81 for other Zones). """
