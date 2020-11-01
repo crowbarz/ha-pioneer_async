@@ -36,16 +36,32 @@ def get_backoff_delay(retry_count):
 async def cancel_task(task, task_name=None):
     """ Cancels a task and waits for it to finish. """
     if task:
+        current_task = asyncio.Task.current_task()
+        if current_task is not None and task == current_task:
+            _LOGGER.debug(
+                ">> cancel_task(%s): ignoring cancellation of current task", task_name
+            )
+            return
+        if not task_name:
+            task_name = task.get_name()
         if not task.done():
+            _LOGGER.debug(">> cancel_task(%s): requesting cancellation", task_name)
             task.cancel()
-            if not task_name:
-                task_name = task.get_name()
+            _LOGGER.debug(">> cancel_task(%s): waiting for task to complete", task_name)
             try:
-                _LOGGER.debug("Waiting for %s task to be cancelled", task_name)
                 await task
             except asyncio.CancelledError:
-                _LOGGER.debug("Task %s cancelled", task_name)
+                _LOGGER.debug(">> cancel_task(%s): task cancel exception", task_name)
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.debug(
+                    ">> cancel_task(%s): task returned exception: %s", task_name, exc
+                )
             else:
-                _LOGGER.debug("Task %s completed", task_name)
+                _LOGGER.debug(">> cancel_task(%s): task completed", task_name)
         else:
-            _LOGGER.debug("Task %s already completed", task_name)
+            _LOGGER.debug(">> cancel_task(%s): task already completed", task_name)
+            exc = task.exception()
+            if exc:
+                _LOGGER.debug(
+                    ">> cancel_task(%s): task returned exception: %s", task_name, exc
+                )

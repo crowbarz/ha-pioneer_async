@@ -1,6 +1,4 @@
-""" Support for Pioneer AVR. """
-# pylint: disable=logging-format-interpolation,broad-except
-
+"""Support for Pioneer AVR."""
 import logging
 import voluptuous as vol
 
@@ -79,7 +77,8 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         hass.data[DOMAIN] = {}
     if device_unique_id in hass.data[DOMAIN]:
         _LOGGER.error(
-            f'AVR "{name}" is already set up via integration, ignoring configuration.yaml'
+            'AVR "%s" is already set up via integration, ignoring configuration.yaml',
+            name,
         )
         return False
 
@@ -100,9 +99,11 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         else:
             await pioneer.build_source_dict()
 
-    except Exception as e:  # pylint: disable=invalid-name
-        _LOGGER.error(f"Could not open AVR connection: {type(e).__name__}: {e}")
-        raise PlatformNotReady
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.error(
+            "Could not open AVR connection: %s: %s", type(exc).__name__, str(exc)
+        )
+        raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
 
@@ -110,10 +111,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
 async def async_setup_entry(
     hass: HomeAssistant, entry: ConfigEntry, async_add_entities
 ):
-    """ Set up the Pioneer AVR media_player from config entry. """
-    # _LOGGER.debug(
-    #     f">> async_setup_entry({entry}, data={entry.data}, options={entry.options})"
-    # )
+    """Set up the Pioneer AVR media_player from config entry."""
+    _LOGGER.debug(
+        ">> async_setup_entry(%s, data=%s, options=%s)",
+        entry,
+        entry.data,
+        entry.options,
+    )
     pioneer = hass.data[DOMAIN][entry.entry_id]
     data = entry.data
     options = {**OPTIONS_DEFAULTS, **(entry.options if entry.options else {})}
@@ -123,8 +127,8 @@ async def async_setup_entry(
 
 
 async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config):
-    """ Add media_player entities for each zone. """
-    _LOGGER.info(f"Adding entities for zones {pioneer.zones}")
+    """Add media_player entities for each zone."""
+    _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     entities = []
     for zone in pioneer.zones:
         name = config[CONF_NAME]
@@ -132,7 +136,7 @@ async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
         entity = PioneerZone(entry, pioneer, zone, name, config)
         if entity:
-            _LOGGER.debug(f"Created entity {name} for zone {zone}")
+            _LOGGER.debug("Created entity %s for zone %s", name, zone)
             entities.append(entity)
         # if zone == "1":
         #     ## Set update callback to update Main Zone entity
@@ -140,11 +144,13 @@ async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config
     if entities:
         try:
             await pioneer.update()
-        except Exception as e:  # pylint: disable=invalid-name
+        except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.error(
-                f"Could not perform AVR initial update: {type(e).__name__}: {e}"
+                "Could not perform AVR initial update: %s: %s",
+                type(exc).__name__,
+                str(exc),
             )
-            raise PlatformNotReady
+            raise PlatformNotReady  # pylint: disable=raise-missing-from
         async_add_entities(entities, update_before_add=True)
 
 
@@ -153,7 +159,7 @@ class PioneerZone(MediaPlayerEntity):
 
     def __init__(self, entry, pioneer, zone, name, config):
         """Initialize the Pioneer zone."""
-        _LOGGER.debug(f"PioneerZone.__init({zone})")
+        _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         self._entry = entry
         self._pioneer = pioneer
         self._zone = zone
@@ -324,11 +330,11 @@ class PioneerZone(MediaPlayerEntity):
             return await self._pioneer.mute_off(self._zone)
 
     async def async_update(self):
-        """ Poll properties periodically. """
+        """Poll properties periodically."""
         return await self._pioneer.update()
 
     ## HA polling disabled, TODO: to use asyncio for polling
     # def update_callback(self):
-    #     """ Schedule full properties update of all zones. """
+    #     """Schedule full properties update of all zones."""
     #     if self._zone == "1" and self._added_to_hass:
     #         self.schedule_update_ha_state(force_refresh=True)

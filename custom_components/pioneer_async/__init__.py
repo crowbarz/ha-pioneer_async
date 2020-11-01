@@ -28,10 +28,6 @@ from .const import (
     CONF_SCAN_INTERVAL,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
-    DEFAULT_TIMEOUT,
-    DEFAULT_SCAN_INTERVAL,
-    DEFAULT_COMMAND_DELAY,
-    DEFAULT_VOLUME_WORKAROUND,
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
 )
@@ -75,8 +71,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         await pioneer.query_device_info()
         await pioneer.query_zones()
         await pioneer.build_source_dict()
-    except (asyncio.TimeoutError, ValueError, AttributeError):
-        raise ConfigEntryNotReady
+    except (asyncio.TimeoutError, ValueError, AttributeError) as exc:
+        raise ConfigEntryNotReady from exc
 
     hass.data[DOMAIN][entry.entry_id] = pioneer
 

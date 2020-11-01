@@ -1,7 +1,5 @@
 """Config flow for pioneer_async integration."""
 
-# pylint: disable=logging-format-interpolation
-
 import logging
 import voluptuous as vol
 
@@ -29,16 +27,17 @@ _LOGGER = logging.getLogger(__name__)
 
 
 async def validate_input(hass: core.HomeAssistant, data):
-    """Validate the user input allows us to connect.
+    """
+    Validate the user input allows us to connect.
 
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
-    _LOGGER.debug(f">> validate_input({data})")
+    _LOGGER.debug(">> validate_input(%s)", data)
     try:
         pioneer = PioneerAVR(data[CONF_HOST], data[CONF_PORT])
         await pioneer.connect()
     except:
-        raise CannotConnect
+        raise CannotConnect  # pylint: disable=raise-missing-from
 
     await pioneer.shutdown()
     del pioneer
@@ -91,12 +90,12 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
-        _LOGGER.debug(f">> options.__init__({config_entry})")
+        _LOGGER.debug(">> options.__init__(%s)", config_entry)
         self.config_entry = config_entry
 
     async def async_step_init(self, user_input=None):
         """Handle options flow."""
-        _LOGGER.debug(f">> options.async_step_init({user_input})")
+        _LOGGER.debug(">> options.async_step_init(%s)", user_input)
         if user_input is not None:
             return self.async_create_entry(title="", data=user_input)
 
