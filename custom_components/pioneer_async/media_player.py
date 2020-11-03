@@ -34,7 +34,7 @@ from .const import (
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
 )
-from .pioneer_avr import PioneerAVR
+from aiopioneer import PioneerAVR
 
 _LOGGER = logging.getLogger(__name__)
 

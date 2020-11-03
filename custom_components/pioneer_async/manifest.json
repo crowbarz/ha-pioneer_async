@@ -2,8 +2,8 @@
   "domain": "pioneer_async",
   "name": "Pioneer AVR",
   "config_flow": true,
-  "documentation": "https://www.home-assistant.io/integrations/pioneer_async",
-  "requirements": [],
+  "documentation": "https://github.com/crowbarz/ha-pioneer_async",
+  "requirements": ["aiopioneer==0.0.1"],
   "dependencies": [],
   "codeowners": ["@crowbarz"]
 }

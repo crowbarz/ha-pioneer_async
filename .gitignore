@@ -107,7 +107,3 @@ dmypy.json
 .pyre/
 
 # End of https://www.gitignore.io/api/python
-
-## Ignore API testing
-test_api.py
-pioneer_avr/

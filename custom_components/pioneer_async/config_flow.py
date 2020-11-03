@@ -12,7 +12,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 
-from .pioneer_avr import PioneerAVR  # pylint: disable=import-error
+from aiopioneer import PioneerAVR  # pylint: disable=import-error
 
 from .const import (
     DATA_SCHEMA,

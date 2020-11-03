@@ -20,8 +20,6 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 import homeassistant.helpers.config_validation as cv
 
-# from homeassistant.helpers.dispatcher import async_dispatcher_send
-
 from .const import (
     DOMAIN,
     PLATFORMS,
@@ -31,7 +29,7 @@ from .const import (
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
 )
-from .pioneer_avr import PioneerAVR
+from aiopioneer import PioneerAVR
 
 _LOGGER = logging.getLogger(__name__)
 
