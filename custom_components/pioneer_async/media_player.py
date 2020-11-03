@@ -104,7 +104,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         _LOGGER.error(f"Could not open AVR connection: {type(e).__name__}: {e}")
         raise PlatformNotReady
 
-    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
+    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id)
 
 
 async def async_setup_entry(
@@ -122,15 +122,18 @@ async def async_setup_entry(
     await _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config)
 
 
-async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config):
+async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config, unique_id=None):
     """ Add media_player entities for each zone. """
     _LOGGER.info(f"Adding entities for zones {pioneer.zones}")
     entities = []
+    if entry:
+        ## Defer to entry if available
+        unique_id = entry.unique_id
     for zone in pioneer.zones:
         name = config[CONF_NAME]
         if zone != "1":
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
-        entity = PioneerZone(entry, pioneer, zone, name, config)
+        entity = PioneerZone(entry, pioneer, zone, name, unique_id, config)
         if entity:
             _LOGGER.debug(f"Created entity {name} for zone {zone}")
             entities.append(entity)
@@ -151,10 +154,11 @@ async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config
 class PioneerZone(MediaPlayerEntity):
     """Representation of a Pioneer zone."""
 
-    def __init__(self, entry, pioneer, zone, name, config):
+    def __init__(self, entry, pioneer, zone, name, unique_id, config):
         """Initialize the Pioneer zone."""
         _LOGGER.debug(f"PioneerZone.__init({zone})")
         self._entry = entry
+        self._unique_id = unique_id
         self._pioneer = pioneer
         self._zone = zone
         self._name = name
@@ -173,7 +177,7 @@ class PioneerZone(MediaPlayerEntity):
             self.async_on_remove(
                 async_dispatcher_connect(
                     self.hass,
-                    f"{PIONEER_OPTIONS_UPDATE}-{self._entry.unique_id}",
+                    f"{PIONEER_OPTIONS_UPDATE}-{self._unique_id}",
                     self._async_update_options,
                 )
             )
@@ -203,18 +207,18 @@ class PioneerZone(MediaPlayerEntity):
         if self._zone == "1":
             name += " Main Zone"
         return {
-            "identifiers": {(DOMAIN, self._entry.unique_id, self._zone)},
+            "identifiers": {(DOMAIN, self._unique_id, self._zone)},
             "manufacturer": "Pioneer",
             "sw_version": self._pioneer.software_version,
             "name": name,
             "model": self._pioneer.model,
-            "via_device": (DOMAIN, self._entry.unique_id),
+            "via_device": (DOMAIN, self._unique_id),
         }
 
     @property
     def unique_id(self):
         """Return the unique id."""
-        return self._entry.unique_id + "/" + self._zone
+        return self._unique_id + "/" + self._zone
 
     @property
     def name(self):
