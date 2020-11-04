@@ -102,11 +102,12 @@ class PioneerAVR:
         timeout=2,
         scan_interval=60,
         command_delay=0.1,
-        volume_workaround=True,
+        volume_workaround=False,
+        volume_steps=False,
     ):
         """ Initialize the Pioneer AVR interface. """
         _LOGGER.debug(
-            f'PioneerAVR.__init__(host="{host}", port={port}, timeout={timeout}, command_delay={command_delay}, volume_workaround={volume_workaround})'
+            f'PioneerAVR.__init__(host="{host}", port={port}, timeout={timeout}, command_delay={command_delay}, volume_workaround={volume_workaround}, volume_steps={volume_steps})'
         )
         self._host = host
         self._port = port
@@ -114,6 +115,7 @@ class PioneerAVR:
         self.scan_interval = scan_interval
         self.command_delay = command_delay
         self.volume_workaround = volume_workaround
+        self.volume_steps = volume_steps
 
         ## Public properties
         self.model = None
@@ -860,11 +862,20 @@ class PioneerAVR:
             or (zone != "1" and volume > MAX_VOLUME_ZONEX)
         ):
             raise ValueError(f"volume {volume} out of range for zone {zone}")
-        vol_len = 3 if zone == "1" else 2
-        vol_prefix = str(volume).zfill(vol_len)
-        return await self.send_command(
-            "set_volume_level", zone, prefix=vol_prefix, ignore_error=False
-        )
+        if self.volume_steps:
+            current_volume = self.volume.get(zone)
+            steps = abs(round((volume - current_volume) / 2))
+            for x in range(steps):
+                if volume > current_volume:
+                    await self.volume_up()
+                elif volume < current_volume:
+                    await self.volume_down()
+        else:
+            vol_len = 3 if zone == "1" else 2
+            vol_prefix = str(volume).zfill(vol_len)
+            return await self.send_command(
+                "set_volume_level", zone, prefix=vol_prefix, ignore_error=False
+            )
 
     async def mute_on(self, zone="1"):
         """ Mute AVR. """
