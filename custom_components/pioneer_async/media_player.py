@@ -26,6 +26,7 @@ from .const import (
     CONF_SOURCES,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
+    CONF_VOLUME_STEPS_ONLY,
     SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -56,6 +57,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY
         ): cv.socket_timeout,
         vol.Optional(CONF_VOLUME_WORKAROUND, default=False): cv.boolean,
+        vol.Optional(CONF_VOLUME_STEPS_ONLY, default=False): cv.boolean,
     }
 )
 
@@ -72,6 +74,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     command_delay = config[CONF_COMMAND_DELAY]
     sources = config[CONF_SOURCES]
     volume_workaround = config[CONF_VOLUME_WORKAROUND]
+    volume_steps = config[CONF_VOLUME_STEPS_ONLY]
     device_unique_id = host + ":" + str(port)
 
     ## Check whether platform has already been set up via config entry
@@ -92,6 +95,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             scan_interval=scan_interval,
             command_delay=command_delay,
             volume_workaround=volume_workaround,
+            volume_steps=volume_steps,
         )
         await pioneer.connect()
         await pioneer.query_zones()
@@ -199,6 +203,8 @@ class PioneerZone(MediaPlayerEntity):
             pioneer.command_delay = data[CONF_COMMAND_DELAY]
         if CONF_VOLUME_WORKAROUND in data:
             pioneer.volume_workaround = data[CONF_VOLUME_WORKAROUND]
+        if CONF_VOLUME_STEPS_ONLY in data:
+            pioneer.volume_steps = data[CONF_VOLUME_STEPS_ONLY]
 
     @property
     def device_info(self):
