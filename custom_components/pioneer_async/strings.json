@@ -28,7 +28,8 @@
           "scan_interval": "Update frequency (seconds)",
           "timeout": "Connection/command timeout",
           "command_delay": "Delay between commands (ms)",
-          "volume_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)"
+          "volume_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
+          "volume_steps": "Force the step by step volume control if your Pioneer AVR doesn't support the volume set function"
         }
       }
     }
