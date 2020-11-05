@@ -26,7 +26,7 @@ from .const import (
     CONF_SOURCES,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
-    CONF_VOLUME_STEPS_ONLY,
+    CONF_VOLUME_STEPS,
     SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -57,7 +57,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY
         ): cv.socket_timeout,
         vol.Optional(CONF_VOLUME_WORKAROUND, default=False): cv.boolean,
-        vol.Optional(CONF_VOLUME_STEPS_ONLY, default=False): cv.boolean,
+        vol.Optional(CONF_VOLUME_STEPS, default=False): cv.boolean,
     }
 )
 
@@ -74,7 +74,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     command_delay = config[CONF_COMMAND_DELAY]
     sources = config[CONF_SOURCES]
     volume_workaround = config[CONF_VOLUME_WORKAROUND]
-    volume_steps = config[CONF_VOLUME_STEPS_ONLY]
+    volume_steps = config[CONF_VOLUME_STEPS]
     device_unique_id = host + ":" + str(port)
 
     ## Check whether platform has already been set up via config entry
@@ -108,7 +108,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         _LOGGER.error(f"Could not open AVR connection: {type(e).__name__}: {e}")
         raise PlatformNotReady
 
-    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id)
+    await _pioneer_add_entities(
+        hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id
+    )
 
 
 async def async_setup_entry(
@@ -126,7 +128,9 @@ async def async_setup_entry(
     await _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config)
 
 
-async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config, unique_id=None):
+async def _pioneer_add_entities(
+    hass, entry, async_add_entities, pioneer, config, unique_id=None
+):
     """ Add media_player entities for each zone. """
     _LOGGER.info(f"Adding entities for zones {pioneer.zones}")
     entities = []
@@ -203,8 +207,8 @@ class PioneerZone(MediaPlayerEntity):
             pioneer.command_delay = data[CONF_COMMAND_DELAY]
         if CONF_VOLUME_WORKAROUND in data:
             pioneer.volume_workaround = data[CONF_VOLUME_WORKAROUND]
-        if CONF_VOLUME_STEPS_ONLY in data:
-            pioneer.volume_steps = data[CONF_VOLUME_STEPS_ONLY]
+        if CONF_VOLUME_STEPS in data:
+            pioneer.volume_steps = data[CONF_VOLUME_STEPS]
 
     @property
     def device_info(self):
