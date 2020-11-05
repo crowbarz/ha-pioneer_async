@@ -867,9 +867,9 @@ class PioneerAVR:
             steps = abs(round((volume - current_volume) / 2))
             for x in range(steps):
                 if volume > current_volume:
-                    await self.volume_up()
+                    await self.volume_up(zone)
                 elif volume < current_volume:
-                    await self.volume_down()
+                    await self.volume_down(zone)
         else:
             vol_len = 3 if zone == "1" else 2
             vol_prefix = str(volume).zfill(vol_len)
