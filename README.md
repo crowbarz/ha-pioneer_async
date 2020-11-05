@@ -25,13 +25,13 @@ Added support for the following features:
   **NOTE:** It is currently not possible to manually specify `sources` when the integration is added via the UI.
 - `command_delay` _float_ (optional, default: `0.1`): Insert a delay between sequential commands that are sent to the AVR. This appears to make the AVR behave more reliably during status polls.
 - `volume_workaround` _bool_ (optional, default: `False`): On some AVRs (notably the VSX-930) where a power-on is set, the initial volume is not reported by the AVR correctly until a volume change is made. This option enables a workaround that sends `volume_up`, `volume_down` commands to the AVR on power-on to correct the reported volume without affecting the power-on volume.
+- `volume_steps` _bool_ (optional, default: `False`): On some AVRs (such as the VSX-S510), setting the volume level is not supported natively by the API. This option emulates setting the volume level using `volume_up` and `volume_down` commands.
 
 ## Implementation details
 
+- Implemented in asyncio.
 - Maintain single continuous telnet session to AVR, with automatic reconnect.
 - Eliminate polling where AVR sends keepalive responses (on port 8102).
-- Added workaround (`volume_workaround`) for AVRs with an initial volume set on the Main Zone.
-- Rewrote [pioneer_alt](https://github.com/crowbarz/ha-pioneer_alt), this integration's predecessor, to support asyncio in both the HA integration and the API.
-- Extracted the Pioneer API components into a separate class, ready to be moved into a separate module to follow current Home Assistant integration standards.
+- Uses [crowbarz/aiopioneer](https://github.com/crowbarz/aiopioneer) to communicate with the Pioneer API.
 
 **NOTE:** On the VSX-930, the telnet API can become quite unstable when telnet connections are made to it repeatedly. The original integration established a new telnet connection for each command sent to the AVR, including the commands used to poll status. This integration establishes a single telnet connection at component start and re-connects automatically if it disconnects. The connection is used for sending commands, receiving responses, and receiving status updates that are then reflected in Home Assistant in real time.
