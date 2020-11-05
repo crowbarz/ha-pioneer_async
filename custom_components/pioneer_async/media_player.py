@@ -24,6 +24,7 @@ from .const import (
     CONF_SOURCES,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
+    CONF_VOLUME_STEPS,
     SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
@@ -54,6 +55,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
             CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY
         ): cv.socket_timeout,
         vol.Optional(CONF_VOLUME_WORKAROUND, default=False): cv.boolean,
+        vol.Optional(CONF_VOLUME_STEPS, default=False): cv.boolean,
     }
 )
 
@@ -70,6 +72,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     command_delay = config[CONF_COMMAND_DELAY]
     sources = config[CONF_SOURCES]
     volume_workaround = config[CONF_VOLUME_WORKAROUND]
+    volume_steps = config[CONF_VOLUME_STEPS]
     device_unique_id = host + ":" + str(port)
 
     ## Check whether platform has already been set up via config entry
@@ -91,6 +94,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             scan_interval=scan_interval,
             command_delay=command_delay,
             volume_workaround=volume_workaround,
+            volume_steps=volume_steps,
         )
         await pioneer.connect()
         await pioneer.query_zones()
@@ -105,7 +109,9 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         )
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
-    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
+    await _pioneer_add_entities(
+        hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id
+    )
 
 
 async def async_setup_entry(
@@ -126,15 +132,20 @@ async def async_setup_entry(
     await _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config)
 
 
-async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config):
+async def _pioneer_add_entities(
+    hass, entry, async_add_entities, pioneer, config, unique_id=None
+):
     """Add media_player entities for each zone."""
     _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     entities = []
+    if entry:
+        ## Defer to entry if available
+        unique_id = entry.unique_id
     for zone in pioneer.zones:
         name = config[CONF_NAME]
         if zone != "1":
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
-        entity = PioneerZone(entry, pioneer, zone, name, config)
+        entity = PioneerZone(entry, pioneer, zone, name, unique_id, config)
         if entity:
             _LOGGER.debug("Created entity %s for zone %s", name, zone)
             entities.append(entity)
@@ -157,10 +168,11 @@ async def _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config
 class PioneerZone(MediaPlayerEntity):
     """Representation of a Pioneer zone."""
 
-    def __init__(self, entry, pioneer, zone, name, config):
+    def __init__(self, entry, pioneer, zone, name, unique_id, config):
         """Initialize the Pioneer zone."""
         _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         self._entry = entry
+        self._unique_id = unique_id
         self._pioneer = pioneer
         self._zone = zone
         self._name = name
@@ -179,7 +191,7 @@ class PioneerZone(MediaPlayerEntity):
             self.async_on_remove(
                 async_dispatcher_connect(
                     self.hass,
-                    f"{PIONEER_OPTIONS_UPDATE}-{self._entry.unique_id}",
+                    f"{PIONEER_OPTIONS_UPDATE}-{self._unique_id}",
                     self._async_update_options,
                 )
             )
@@ -201,6 +213,8 @@ class PioneerZone(MediaPlayerEntity):
             pioneer.command_delay = data[CONF_COMMAND_DELAY]
         if CONF_VOLUME_WORKAROUND in data:
             pioneer.volume_workaround = data[CONF_VOLUME_WORKAROUND]
+        if CONF_VOLUME_STEPS in data:
+            pioneer.volume_steps = data[CONF_VOLUME_STEPS]
 
     @property
     def device_info(self):
@@ -209,18 +223,18 @@ class PioneerZone(MediaPlayerEntity):
         if self._zone == "1":
             name += " Main Zone"
         return {
-            "identifiers": {(DOMAIN, self._entry.unique_id, self._zone)},
+            "identifiers": {(DOMAIN, self._unique_id, self._zone)},
             "manufacturer": "Pioneer",
             "sw_version": self._pioneer.software_version,
             "name": name,
             "model": self._pioneer.model,
-            "via_device": (DOMAIN, self._entry.unique_id),
+            "via_device": (DOMAIN, self._unique_id),
         }
 
     @property
     def unique_id(self):
         """Return the unique id."""
-        return self._entry.unique_id + "/" + self._zone
+        return self._unique_id + "/" + self._zone
 
     @property
     def name(self):

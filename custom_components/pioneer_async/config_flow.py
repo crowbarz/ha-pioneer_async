@@ -20,6 +20,7 @@ from .const import (
     CONF_UNIQUE_ID,
     CONF_COMMAND_DELAY,
     CONF_VOLUME_WORKAROUND,
+    CONF_VOLUME_STEPS,
 )
 from .const import DOMAIN  # pylint: disable=unused-import
 
@@ -118,6 +119,9 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
                 ): vol.Coerce(float),
                 vol.Optional(
                     CONF_VOLUME_WORKAROUND, default=options[CONF_VOLUME_WORKAROUND]
+                ): bool,
+                vol.Optional(
+                    CONF_VOLUME_STEPS, default=options[CONF_VOLUME_STEPS]
                 ): bool,
             }
         )
