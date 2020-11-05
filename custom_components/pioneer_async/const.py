@@ -56,17 +56,6 @@ DATA_SCHEMA = vol.Schema(
     }
 )
 
-## NOTE: not used, defined directly in config_flow.py
-OPTIONS_SCHEMA = vol.Schema(
-    {
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): int,
-        vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): float,
-        vol.Optional(CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY): float,
-        vol.Optional(CONF_VOLUME_WORKAROUND, default=DEFAULT_VOLUME_WORKAROUND): bool,
-        vol.Optional(CONF_VOLUME_STEPS, default=DEFAULT_VOLUME_STEPS): bool,
-    }
-)
-
 OPTIONS_DEFAULTS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL,
     CONF_TIMEOUT: DEFAULT_TIMEOUT,
