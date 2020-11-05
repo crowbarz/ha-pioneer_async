@@ -20,6 +20,7 @@ from homeassistant.const import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
+VERSION = "0.2.0"
 
 SUPPORT_PIONEER = (
     SUPPORT_TURN_ON
