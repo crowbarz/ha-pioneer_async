@@ -37,11 +37,11 @@ async def validate_input(hass: core.HomeAssistant, data):
     try:
         pioneer = PioneerAVR(data[CONF_HOST], data[CONF_PORT])
         await pioneer.connect()
-    except:
+        await pioneer.shutdown()
+        del pioneer
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.debug("exception caught: %s", str(exc))
         raise CannotConnect  # pylint: disable=raise-missing-from
-
-    await pioneer.shutdown()
-    del pioneer
 
     # Return info that you want to store in the config entry.
     device_unique_id = data[CONF_HOST] + ":" + str(data[CONF_PORT])
