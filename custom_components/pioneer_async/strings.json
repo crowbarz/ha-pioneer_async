@@ -1,37 +1,37 @@
 {
-  "title": "Pioneer AVR",
-  "config": {
-    "step": {
-      "user": {
-        "title": "AVR details",
-        "description": "Enter the details for the Pioneer AVR:",
-        "data": {
-          "name": "Device Name",
-          "host": "Host",
-          "port": "Port"
+    "title": "Pioneer AVR",
+    "config": {
+        "step": {
+            "user": {
+                "title": "AVR details",
+                "description": "Enter the details for the Pioneer AVR:",
+                "data": {
+                    "name": "Device Name",
+                    "host": "Host",
+                    "port": "Port"
+                }
+            }
+        },
+        "error": {
+            "cannot_connect": "Cannot connect to AVR",
+            "unknown": "Unknown error occurred"
+        },
+        "abort": {
+            "already_configured": "Integration is already configured",
+            "unknown": "Unknown error occurred"
         }
-      }
     },
-    "error": {
-      "cannot_connect": "Cannot connect to AVR",
-      "unknown": "Unknown error occurred"
-    },
-    "abort": {
-      "already_configured": "Integration is already configured",
-      "unknown": "Unknown error occurred"
-    }
-  },
-  "options": {
-    "step": {
-      "init": {
-        "data": {
-          "scan_interval": "Update frequency (seconds)",
-          "timeout": "Connection/command timeout",
-          "command_delay": "Delay between commands (ms)",
-          "volume_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
-          "volume_steps": "Emulate volume level set by stepping volume up/down (for VSX-S510)"
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "scan_interval": "Update frequency (seconds)",
+                    "timeout": "Connection/command timeout",
+                    "command_delay": "Delay between commands (ms)",
+                    "volume_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
+                    "volume_steps": "Emulate volume level set by stepping volume up/down (for VSX-S510)"
+                }
+            }
         }
-      }
     }
-  }
 }
