@@ -18,7 +18,6 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady, PlatformNotReady
 from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.dispatcher import async_dispatcher_send
-import homeassistant.helpers.config_validation as cv
 
 from .const import (
     DOMAIN,
