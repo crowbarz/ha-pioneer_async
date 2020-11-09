@@ -23,12 +23,11 @@ from .const import (
     DOMAIN,
     PLATFORMS,
     CONF_SCAN_INTERVAL,
-    CONF_COMMAND_DELAY,
-    CONF_VOLUME_WORKAROUND,
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
 )
 from aiopioneer import PioneerAVR
+from aiopioneer.param import PARAMS_ALL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -37,7 +36,7 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
 async def async_setup(hass: HomeAssistant, config: dict):
     """Set up the pioneer_async component."""
-    # _LOGGER.debug(f">> async_setup()")
+    _LOGGER.debug(">> async_setup()")
 
     ## Mark integration as set up via config entry
     hass.data.setdefault(DOMAIN, {})
@@ -46,23 +45,26 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Pioneer AVR from a config entry."""
+    _LOGGER.debug(">> async_setup_entry(entry_data=%s)", entry.data)
+
     ## Create PioneerAVR API object
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
     name = entry.data[CONF_NAME]
-    options = {**OPTIONS_DEFAULTS, **entry.options}
+
+    entry_options = entry.options if entry.options else {}
+    options = {**OPTIONS_DEFAULTS, **entry_options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
-    command_delay = options[CONF_COMMAND_DELAY]
-    volume_workaround = options[CONF_VOLUME_WORKAROUND]
+    params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
+
     try:
         pioneer = PioneerAVR(
             host,
             port,
             timeout,
             scan_interval=scan_interval,
-            command_delay=command_delay,
-            volume_workaround=volume_workaround,
+            params=params,
         )
         await pioneer.connect()
         await pioneer.query_device_info()
@@ -109,7 +111,7 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
-    # _LOGGER.debug(f">> async_unload_entry({entry})")
+    _LOGGER.debug(">> async_unload_entry()")
     unload_ok = all(
         await asyncio.gather(
             *[

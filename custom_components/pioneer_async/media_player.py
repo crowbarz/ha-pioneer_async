@@ -22,24 +22,25 @@ import homeassistant.helpers.config_validation as cv
 from .const import (
     DOMAIN,
     CONF_SOURCES,
-    CONF_COMMAND_DELAY,
-    CONF_VOLUME_WORKAROUND,
-    CONF_VOLUME_STEPS,
+    CONF_PARAMS,
     SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
     DEFAULT_SOURCES,
-    DEFAULT_COMMAND_DELAY,
     DEFAULT_SCAN_INTERVAL,
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
+    OPTIONS_ALL,
 )
 from aiopioneer import PioneerAVR
+from aiopioneer.param import PARAMS_ALL
 
 _LOGGER = logging.getLogger(__name__)
 
 PARALLEL_UPDATES = 0
+
+PARAM_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
 
 PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
     {
@@ -51,28 +52,23 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         ): cv.positive_int,
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
         vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
-        vol.Optional(
-            CONF_COMMAND_DELAY, default=DEFAULT_COMMAND_DELAY
-        ): cv.socket_timeout,
-        vol.Optional(CONF_VOLUME_WORKAROUND, default=False): cv.boolean,
-        vol.Optional(CONF_VOLUME_STEPS, default=False): cv.boolean,
+        vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
     }
 )
 
 
 async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
     """Set up the Pioneer AVR platform."""
-    # _LOGGER.debug(">> async_setup_platform()")
+    _LOGGER.debug(">> async_setup_platform(%s)", config)
 
     name = config[CONF_NAME]
     host = config[CONF_HOST]
     port = config[CONF_PORT]
     timeout = config[CONF_TIMEOUT]
     scan_interval = config[CONF_SCAN_INTERVAL]
-    command_delay = config[CONF_COMMAND_DELAY]
     sources = config[CONF_SOURCES]
-    volume_workaround = config[CONF_VOLUME_WORKAROUND]
-    volume_steps = config[CONF_VOLUME_STEPS]
+    params = dict(config[CONF_PARAMS])
+
     device_unique_id = host + ":" + str(port)
 
     ## Check whether platform has already been set up via config entry
@@ -92,9 +88,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
             port,
             timeout,
             scan_interval=scan_interval,
-            command_delay=command_delay,
-            volume_workaround=volume_workaround,
-            volume_steps=volume_steps,
+            params=params,
         )
         await pioneer.connect()
         await pioneer.query_device_info()
@@ -120,16 +114,18 @@ async def async_setup_entry(
 ):
     """Set up the Pioneer AVR media_player from config entry."""
     _LOGGER.debug(
-        ">> async_setup_entry(%s, data=%s, options=%s)",
-        entry,
+        ">> async_setup_entry(data=%s, options=%s)",
         entry.data,
         entry.options,
     )
     pioneer = hass.data[DOMAIN][entry.entry_id]
     data = entry.data
-    options = {**OPTIONS_DEFAULTS, **(entry.options if entry.options else {})}
+    entry_options = entry.options if entry.options else {}
+    options = {
+        **OPTIONS_DEFAULTS,
+        **{k: entry_options[k] for k in OPTIONS_ALL if k in entry_options},
+    }
     config = {**data, **options}
-
     await _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config)
 
 
@@ -204,18 +200,13 @@ class PioneerZone(MediaPlayerEntity):
 
     async def _async_update_options(self, data):
         """Change options when the options flow does."""
-        # _LOGGER.debug(f">> _async_update_options({data}")
+        _LOGGER.debug(">> _async_update_options(data=%s)", data)
         pioneer = self._pioneer
-        if CONF_TIMEOUT in data:
-            await pioneer.set_timeout(data[CONF_TIMEOUT])
-        if CONF_SCAN_INTERVAL in data:
-            await pioneer.set_scan_interval(data[CONF_SCAN_INTERVAL])
-        if CONF_COMMAND_DELAY in data:
-            pioneer.command_delay = data[CONF_COMMAND_DELAY]
-        if CONF_VOLUME_WORKAROUND in data:
-            pioneer.volume_workaround = data[CONF_VOLUME_WORKAROUND]
-        if CONF_VOLUME_STEPS in data:
-            pioneer.volume_steps = data[CONF_VOLUME_STEPS]
+        options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
+        params = {k: data[k] for k in PARAMS_ALL if k in data}
+        await pioneer.set_timeout(options[CONF_TIMEOUT])
+        await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
+        pioneer.set_user_params(params)
 
     @property
     def device_info(self):

@@ -3,7 +3,11 @@
   "name": "Pioneer AVR",
   "config_flow": true,
   "documentation": "https://github.com/crowbarz/ha-pioneer_async",
-  "requirements": ["aiopioneer==0.0.4"],
+  "requirements": [
+    "aiopioneer==0.1"
+  ],
   "dependencies": [],
-  "codeowners": ["@crowbarz"]
+  "codeowners": [
+    "@crowbarz"
+  ]
 }

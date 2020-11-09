@@ -12,12 +12,12 @@
                 }
             }
         },
-        "error": {
-            "cannot_connect": "Cannot connect to AVR",
-            "unknown": "Unknown error occurred"
-        },
         "abort": {
             "already_configured": "Integration is already configured",
+            "unknown": "Unknown error occurred"
+        },
+        "error": {
+            "cannot_connect": "Cannot connect to AVR",
             "unknown": "Unknown error occurred"
         }
     },
@@ -28,8 +28,15 @@
                     "scan_interval": "Update frequency (seconds)",
                     "timeout": "Connection/command timeout",
                     "command_delay": "Delay between commands (ms)",
-                    "volume_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
-                    "volume_steps": "Emulate volume level set by stepping volume up/down (for VSX-S510)"
+                    "max_source_id": "Maximum source ID that automatic source identification will check",
+                    "max_volume": "Maximum volume units for Main Zone",
+                    "max_volume_zonex": "Maximum volume units for Zones other than the Main Zone",
+                    "volume_bounce_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
+                    "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510)",
+                    "volume_step_delta": "Volume units changed per volume step command",
+                    "debug_listener": "Enable debug messages for listener task",
+                    "debug_responder": "Enable debug messages for responder task",
+                    "debug_updater": "Enable debug messages for updater task"
                 }
             }
         }
