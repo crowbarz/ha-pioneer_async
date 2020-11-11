@@ -20,7 +20,7 @@ from homeassistant.const import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
-VERSION = "0.2.0"
+VERSION = "0.3"
 
 SUPPORT_PIONEER = (
     SUPPORT_TURN_ON
@@ -37,9 +37,6 @@ DEFAULT_PORT = 8102  # Some Pioneer AVRs use 23
 DEFAULT_SCAN_INTERVAL = 60
 DEFAULT_TIMEOUT = 2
 DEFAULT_SOURCES = {}
-DEFAULT_COMMAND_DELAY = 0.1
-DEFAULT_VOLUME_WORKAROUND = False
-DEFAULT_VOLUME_STEPS = False
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"
