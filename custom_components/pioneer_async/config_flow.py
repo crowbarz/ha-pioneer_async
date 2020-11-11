@@ -19,7 +19,7 @@ from aiopioneer.param import (
     PARAM_MAX_SOURCE_ID,
     PARAM_MAX_VOLUME,
     PARAM_MAX_VOLUME_ZONEX,
-    PARAM_VOLUME_BOUNCE_WORKAROUND,
+    PARAM_POWER_ON_VOLUME_BOUNCE,
     PARAM_VOLUME_STEP_ONLY,
     PARAM_VOLUME_STEP_DELTA,
     PARAM_DEBUG_LISTENER,
@@ -152,8 +152,8 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
                     PARAM_MAX_VOLUME_ZONEX, default=options[PARAM_MAX_VOLUME_ZONEX]
                 ): int,
                 vol.Optional(
-                    PARAM_VOLUME_BOUNCE_WORKAROUND,
-                    default=options[PARAM_VOLUME_BOUNCE_WORKAROUND],
+                    PARAM_POWER_ON_VOLUME_BOUNCE,
+                    default=options[PARAM_POWER_ON_VOLUME_BOUNCE],
                 ): bool,
                 vol.Optional(
                     PARAM_VOLUME_STEP_ONLY, default=options[PARAM_VOLUME_STEP_ONLY]

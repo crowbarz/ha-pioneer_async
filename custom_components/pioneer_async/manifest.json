@@ -4,7 +4,7 @@
   "config_flow": true,
   "documentation": "https://github.com/crowbarz/ha-pioneer_async",
   "requirements": [
-    "aiopioneer==0.1"
+    "aiopioneer==0.1.1"
   ],
   "dependencies": [],
   "codeowners": [

@@ -31,7 +31,7 @@
                     "max_source_id": "Maximum source ID that automatic source identification will check",
                     "max_volume": "Maximum volume units for Main Zone",
                     "max_volume_zonex": "Maximum volume units for Zones other than the Main Zone",
-                    "volume_bounce_workaround": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
+                    "power_on_volume_bounce": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510)",
                     "volume_step_delta": "Volume units changed per volume step command",
                     "debug_listener": "Enable debug messages for listener task",
