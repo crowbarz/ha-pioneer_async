@@ -53,8 +53,8 @@ The default parameters listed below are for AVR models that do not match any cus
 | `max_volume` | int | `185` | Maximum volume for the Main Zone.
 | `max_volume_zonex` | int | `185` | Maximum volume for zones other than the Main Zone.
 | `power_on_volume_bounce` | bool | `false` | On some AVRs (eg. VSX-930) where a power-on is set, the initial volume is not reported by the AVR correctly until a volume change is made. This option enables a workaround that sends a volume up and down command to the AVR on power-on to correct the reported volume without affecting the power-on volume.
-| `volume_step` | bool | `false` | On some AVRs (eg. VSX-S510), setting the volume level is not supported natively by the API. This option emulates setting the volume level using volume up and down commands.
-| `volume_step_delta` | int | `1` | The number of units that each volume up/down commands changes the volume by. Used when `volume_step` is `true`.
+| `volume_step_only` | bool | `false` | On some AVRs (eg. VSX-S510), setting the volume level is not supported natively by the API. This option emulates setting the volume level using volume up and down commands.
+| `volume_step_delta` | int | `1` | The number of units that each volume up/down commands changes the volume by. Used when `volume_step_only` is `true`.
 | `debug_listener` | bool | `false` | Enables additional debug logging for the listener task. See [Enabling debugging](#enabling-debugging) for details.
 | `debug_responder` | bool | `false` | Enables additional debug logging for the responder task. See [Enabling debugging](#enabling-debugging) for details.
 | `debug_updater` | bool | `false` | Enables additional debug logging for the updater task. See [Enabling debugging](#enabling-debugging) for details.
@@ -65,7 +65,7 @@ The default parameters listed below are for AVR models that do not match any cus
 ## Breaking changes
 
 - **0.3**\
-  `command_delay`, `volume_workaround` and `volume_steps` have been moved into the [`params` object](#params-object). Additionally, `volume_steps` has been renamed `volume_step` and `volume_workaround` has been renamed to `power_on_volume_bounce`. You will need to update your `configuration.yaml` accordingly.
+  `command_delay`, `volume_workaround` and `volume_steps` have been moved into the [`params` object](#params-object). Additionally, `volume_steps` has been renamed `volume_step_only` and `volume_workaround` has been renamed to `power_on_volume_bounce`. You will need to update your `configuration.yaml` accordingly.
 
 ## Implementation details
 
