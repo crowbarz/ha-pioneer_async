@@ -17,6 +17,7 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
+from datetime import timedelta
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
@@ -34,7 +35,7 @@ SUPPORT_PIONEER = (
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
 DEFAULT_PORT = 8102  # Some Pioneer AVRs use 23
-DEFAULT_SCAN_INTERVAL = 60
+DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_TIMEOUT = 2
 DEFAULT_SOURCES = {}
 

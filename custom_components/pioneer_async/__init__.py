@@ -22,7 +22,6 @@ from homeassistant.helpers.dispatcher import async_dispatcher_send
 from .const import (
     DOMAIN,
     PLATFORMS,
-    CONF_SCAN_INTERVAL,
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
 )
