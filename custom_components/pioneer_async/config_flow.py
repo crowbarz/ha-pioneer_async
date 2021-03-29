@@ -2,6 +2,7 @@
 
 import logging
 import voluptuous as vol
+from datetime import timedelta
 
 from homeassistant import config_entries, core, exceptions
 from homeassistant.const import (
@@ -130,6 +131,8 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
             **default_params,
             **entry_options,
         }
+        if type(options[CONF_SCAN_INTERVAL]) is timedelta:
+            options[CONF_SCAN_INTERVAL] = options[CONF_SCAN_INTERVAL].total_seconds()
 
         ## Build options schema
         data_schema = vol.Schema(

@@ -25,8 +25,8 @@
         "step": {
             "init": {
                 "data": {
-                    "scan_interval": "Update frequency (seconds)",
-                    "timeout": "Connection/command timeout",
+                    "scan_interval": "Update frequency (s)",
+                    "timeout": "Connection/command timeout (s)",
                     "command_delay": "Delay between commands (ms)",
                     "max_source_id": "Maximum source ID that automatic source identification will check",
                     "max_volume": "Maximum volume units for Main Zone",
