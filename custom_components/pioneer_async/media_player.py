@@ -47,9 +47,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
         vol.Required(CONF_HOST): cv.string,
         vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
-        vol.Optional(
-            CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL
-        ): cv.time_period,
+        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period,
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
         vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
         vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
@@ -266,7 +264,11 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def source(self):
         """Return the current input source."""
-        return self._pioneer.source.get(self._zone)
+        source_id = self._pioneer.source.get(self._zone)
+        if source_id:
+            return self._pioneer.get_source_name(source_id)
+        else:
+            return None
 
     @property
     def source_list(self):
@@ -276,7 +278,7 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def media_title(self):
         """Title of current playing media."""
-        return self._pioneer.source.get(self._zone)
+        return self.source
 
     @property
     def device_state_attributes(self):
