@@ -27,6 +27,7 @@
                 "data": {
                     "scan_interval": "Update frequency (s)",
                     "timeout": "Connection/command timeout (s)",
+                    "sources": "Source name to AVR source ID mapping (JSON)",
                     "command_delay": "Delay between commands (ms)",
                     "max_source_id": "Maximum source ID that automatic source identification will check",
                     "max_volume": "Maximum volume units for Main Zone",
@@ -39,6 +40,9 @@
                     "debug_updater": "Enable debug messages for updater task"
                 }
             }
+        },
+        "error": {
+            "invalid_sources": "Invalid JSON dictionary specified for source name mapping"
         }
     }
 }

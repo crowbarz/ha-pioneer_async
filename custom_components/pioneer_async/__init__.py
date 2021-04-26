@@ -3,6 +3,7 @@
 
 import asyncio
 import logging
+import json
 
 import voluptuous as vol
 
@@ -24,6 +25,7 @@ from .const import (
     PLATFORMS,
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
+    CONF_SOURCES,
 )
 from aiopioneer import PioneerAVR
 from aiopioneer.param import PARAMS_ALL
@@ -44,7 +46,12 @@ async def async_setup(hass: HomeAssistant, config: dict):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Set up Pioneer AVR from a config entry."""
-    _LOGGER.debug(">> async_setup_entry(entry_data=%s)", entry.data)
+    _LOGGER.debug(
+        ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+        entry.entry_id,
+        entry.data,
+        entry.options,
+    )
 
     ## Create PioneerAVR API object
     host = entry.data[CONF_HOST]
@@ -55,6 +62,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     options = {**OPTIONS_DEFAULTS, **entry_options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
+    try:
+        sources = json.loads(options[CONF_SOURCES])
+    except:
+        _LOGGER.error("invalid sources specified: %s", options[CONF_SOURCES])
+        sources = {}
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
 
     try:
@@ -68,7 +80,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         await pioneer.connect()
         await pioneer.query_device_info()
         await pioneer.query_zones()
-        await pioneer.build_source_dict()
+        if sources:
+            pioneer.set_source_dict(sources)
+        else:
+            await pioneer.build_source_dict()
     except (asyncio.TimeoutError, ValueError, AttributeError) as exc:
         raise ConfigEntryNotReady from exc
 

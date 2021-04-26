@@ -1,6 +1,7 @@
 """Support for Pioneer AVR."""
 import logging
 import voluptuous as vol
+import json
 
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -72,12 +73,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     ## Check whether platform has already been set up via config entry
     if DOMAIN not in hass.data:
         hass.data[DOMAIN] = {}
-    if device_unique_id in hass.data[DOMAIN]:
-        _LOGGER.error(
-            'AVR "%s" is already set up via integration, ignoring configuration.yaml',
-            name,
-        )
-        return False
+    for pioneer in hass.data[DOMAIN].values():
+        if pioneer.get_unique_id() == device_unique_id:
+            _LOGGER.error(
+                'AVR "%s" is already set up via UI, ignoring configuration.yaml',
+                name,
+            )
+            return False
 
     try:
         ## Open AVR connection
@@ -112,7 +114,8 @@ async def async_setup_entry(
 ):
     """Set up the Pioneer AVR media_player from config entry."""
     _LOGGER.debug(
-        ">> async_setup_entry(data=%s, options=%s)",
+        ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+        entry.entry_id,
         entry.data,
         entry.options,
     )
@@ -205,6 +208,12 @@ class PioneerZone(MediaPlayerEntity):
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
         pioneer.set_user_params(params)
+        sources = json.loads(options[CONF_SOURCES])
+        if sources:
+            pioneer.set_source_dict(sources)
+        else:
+            await pioneer.build_source_dict()
+        self.schedule_update_ha_state(force_refresh=True)
 
     @property
     def device_info(self):

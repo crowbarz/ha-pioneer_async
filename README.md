@@ -11,7 +11,13 @@ Added support for the following features:
 - Uses the [`aiopioneer`](http://github.com/crowbarz/aiopioneer) package to communicate with the AVR via its API.
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
-- Create devices and populate with model, software version and MAC address queried from AVR (if supported).
+- Create devices and populate with model, software version and MAC address queried from AVR (if supported) when configured via the UI.
+
+## Configuration
+
+This integration may be configured via the UI (`Configuration > Integrations > Add Integration`) or via `configuration.yaml`. It is recommended that all AVRs are configured using the same configuration method.
+
+Unlike other integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
 
 ## `configuration.yaml` options
 
@@ -24,20 +30,20 @@ Configure these settings under `media_player`:
 | `port` | integer | `8102` | The port on which the Pioneer device listens. This may be `23` if your AVR doesn't respond on port `8102`.
 | `scan_interval` | time_period | `60s` | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, these also reset the idle timer and prevent a full poll from being performed.
 | `timeout` | float | `2.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
-| `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below.
+| `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below. To remove custom sources in the UI and query them from the AVR instead, enter `{}`.
 | `params` | object | `{}` | A mapping of parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
-
-**NOTE:** It is currently not possible to manually specify `sources` when the integration is added via the UI.
 
 **NOTE:** See [Breaking Changes](#breaking-changes) if you are upgrading from version 0.2 or earlier as configuration options have changed.
 
 ## AVR sources
 
-If the `sources` property is not specified, then the integration will attempt to query them from the AVR on startup and use the friendly names configured on the AVR. This functionality is not supported by all AVR models. If the integration does not detect sources, then a mapping can be manually configured in the `sources` property.
+If the `sources` property is not specified, then the integration will attempt to query them from the AVR on startup and when options are updated, and use the friendly names configured on the AVR. This functionality is not supported by all AVR models. If the integration does not detect sources, or only a subset of sources should be selectable, then a mapping can be manually configured via the `sources` property.
 
-The mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters so must be defined as strings (ie. between quotation marks) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
+The mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters. The IDs must be defined as strings (ie. between quotation marks) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
 
-Example source mapping: `{ TV: '05', Cable: '06' }`
+Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
+
+**NOTE:** Remember to use JSON syntax when entering sources in the UI, for example: `{ "TV": "05", "Cable": "06" }`
 
 ## `params` object
 
@@ -64,6 +70,8 @@ The default parameters listed below are for AVR models that do not match any cus
 
 ## Breaking changes
 
+- **0.4**\
+  The AVR source query no longer skips source names that have not been renamed. This will result in additional sources being selectable. Specify sources manually to only allow certain sources to be selected.
 - **0.3**\
   `command_delay`, `volume_workaround` and `volume_steps` have been moved into the [`params` object](#params-object). Additionally, `volume_steps` has been renamed `volume_step_only` and `volume_workaround` has been renamed to `power_on_volume_bounce`. You will need to update your `configuration.yaml` accordingly.
 

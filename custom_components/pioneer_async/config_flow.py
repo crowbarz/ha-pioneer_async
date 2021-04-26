@@ -1,6 +1,8 @@
 """Config flow for pioneer_async integration."""
 
+from datetime import timedelta
 import logging
+import json
 import voluptuous as vol
 from datetime import timedelta
 
@@ -31,6 +33,7 @@ from aiopioneer.param import (
 
 from .const import (
     DATA_SCHEMA,
+    CONF_SOURCES,
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
@@ -91,10 +94,10 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(config_entry):
         """Get the options flow for this handler."""
-        return PioneerAVROptionsFlowHandler(config_entry)
+        return OptionsFlowHandler(config_entry)
 
 
-class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
+class OptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for Harmony."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
@@ -109,6 +112,8 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
         entry = self.config_entry
         pioneer = self.hass.data[DOMAIN][entry.entry_id]
         default_params = pioneer.get_default_params()
+        errors = {}
+
         if user_input is not None:
             ## Save options and params for non-default values only
             options = {
@@ -122,7 +127,25 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
                 if k in user_input and user_input[k] != default_params[k]
             }
             _LOGGER.debug("options=%s, params=%s", options, params)
-            return self.async_create_entry(title="", data={**options, **params})
+
+            try:
+                ## Validate sources is a dict of names to numeric IDs
+                if CONF_SOURCES in options:
+                    sources = json.loads(options[CONF_SOURCES])
+                    for (source_name, source_id) in sources.items():
+                        if not (
+                            type(source_name) is str
+                            and len(source_id) == 2
+                            and source_id[0].isdigit()
+                            and source_id[1].isdigit()
+                        ):
+                            raise Exception
+
+            except:
+                errors[CONF_SOURCES] = "invalid_sources"
+
+            if not errors:
+                return self.async_create_entry(title="", data={**options, **params})
 
         ## Get current set of options
         entry_options = entry.options if entry.options else {}
@@ -144,6 +167,7 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(CONF_TIMEOUT, default=options[CONF_TIMEOUT]): vol.Coerce(
                     float
                 ),
+                vol.Optional(CONF_SOURCES, default=options[CONF_SOURCES]): str,
                 vol.Optional(
                     PARAM_COMMAND_DELAY, default=options[PARAM_COMMAND_DELAY]
                 ): vol.Coerce(float),
@@ -176,7 +200,9 @@ class PioneerAVROptionsFlowHandler(config_entries.OptionsFlow):
             }
         )
 
-        return self.async_show_form(step_id="init", data_schema=data_schema)
+        return self.async_show_form(
+            step_id="init", data_schema=data_schema, errors=errors
+        )
 
 
 class CannotConnect(exceptions.HomeAssistantError):
