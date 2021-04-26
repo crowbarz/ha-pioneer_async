@@ -132,6 +132,8 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ## Validate sources is a dict of names to numeric IDs
                 if CONF_SOURCES in options:
                     sources = json.loads(options[CONF_SOURCES])
+                    if type(sources) is not dict:
+                        raise Exception
                     for (source_name, source_id) in sources.items():
                         if not (
                             type(source_name) is str
