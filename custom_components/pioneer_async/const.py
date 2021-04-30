@@ -41,6 +41,9 @@ DEFAULT_SOURCES = {}
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"
+CONF_IGNORE_ZONE_2 = "ignore_zone_2"
+CONF_IGNORE_ZONE_3 = "ignore_zone_3"
+CONF_IGNORE_ZONE_Z = "ignore_zone_Z"
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
 
@@ -56,5 +59,8 @@ OPTIONS_DEFAULTS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL.total_seconds(),
     CONF_TIMEOUT: DEFAULT_TIMEOUT,
     CONF_SOURCES: "{}",
+    CONF_IGNORE_ZONE_2: False,
+    CONF_IGNORE_ZONE_3: False,
+    CONF_IGNORE_ZONE_Z: False,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()

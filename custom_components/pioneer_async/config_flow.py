@@ -17,7 +17,7 @@ from homeassistant.core import callback
 
 from aiopioneer import PioneerAVR
 from aiopioneer.param import (
-    # PARAM_IGNORED_ZONES,
+    PARAM_IGNORED_ZONES,
     PARAM_COMMAND_DELAY,
     PARAM_MAX_SOURCE_ID,
     PARAM_MAX_VOLUME,
@@ -34,6 +34,9 @@ from aiopioneer.param import (
 from .const import (
     DATA_SCHEMA,
     CONF_SOURCES,
+    CONF_IGNORE_ZONE_2,
+    CONF_IGNORE_ZONE_3,
+    CONF_IGNORE_ZONE_Z,
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
@@ -126,6 +129,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 for k in PARAMS_ALL
                 if k in user_input and user_input[k] != default_params[k]
             }
+
+            ## Coalesce ignore_zone options into param
+            ignored_zones = []
+            if options.get(CONF_IGNORE_ZONE_2):
+                ignored_zones.append("2")
+            if options.get(CONF_IGNORE_ZONE_3):
+                ignored_zones.append("3")
+            if options.get(CONF_IGNORE_ZONE_Z):
+                ignored_zones.append("Z")
+            if ignored_zones:
+                params[PARAM_IGNORED_ZONES] = ignored_zones
+
             _LOGGER.debug("options=%s, params=%s", options, params)
 
             try:
@@ -198,6 +213,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     PARAM_DEBUG_UPDATER, default=options[PARAM_DEBUG_UPDATER]
+                ): bool,
+                vol.Optional(
+                    CONF_IGNORE_ZONE_2, default=options[CONF_IGNORE_ZONE_2]
+                ): bool,
+                vol.Optional(
+                    CONF_IGNORE_ZONE_3, default=options[CONF_IGNORE_ZONE_3]
+                ): bool,
+                vol.Optional(
+                    CONF_IGNORE_ZONE_Z, default=options[CONF_IGNORE_ZONE_Z]
                 ): bool,
             }
         )

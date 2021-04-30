@@ -205,14 +205,16 @@ class PioneerZone(MediaPlayerEntity):
         pioneer = self._pioneer
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
-        await pioneer.set_timeout(options[CONF_TIMEOUT])
-        await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
-        pioneer.set_user_params(params)
         sources = json.loads(options[CONF_SOURCES])
+        pioneer.set_user_params(params)
+        await pioneer.update_zones()
         if sources:
             pioneer.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
+        await pioneer.set_timeout(options[CONF_TIMEOUT])
+        await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
+        ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
 
     @property
@@ -251,7 +253,7 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def available(self):
         """Returns whether the device is available."""
-        return self._pioneer.available
+        return self._pioneer.available and self._zone in self._pioneer.zones
 
     @property
     def volume_level(self):

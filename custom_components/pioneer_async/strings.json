@@ -27,7 +27,7 @@
                 "data": {
                     "scan_interval": "Update frequency (s)",
                     "timeout": "Connection/command timeout (s)",
-                    "sources": "Source name to AVR source ID mapping (JSON)",
+                    "sources": "Source name to AVR source ID mapping (JSON, use empty dict to query from AVR)",
                     "command_delay": "Delay between commands (ms)",
                     "max_source_id": "Maximum source ID that automatic source identification will check",
                     "max_volume": "Maximum volume units for Main Zone",
@@ -35,6 +35,9 @@
                     "power_on_volume_bounce": "Main Zone power on volume reporting workaround\n(required on VSX-930 with initial volume set)",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510)",
                     "volume_step_delta": "Volume units changed per volume step command",
+                    "ignore_zone_2": "Don't create entity for Zone 2 (on next restart)",
+                    "ignore_zone_3": "Don't create entity for Zone 3 (on next restart)",
+                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart)",
                     "debug_listener": "Enable debug messages for listener task",
                     "debug_responder": "Enable debug messages for responder task",
                     "debug_updater": "Enable debug messages for updater task"
