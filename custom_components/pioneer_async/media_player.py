@@ -207,13 +207,17 @@ class PioneerZone(MediaPlayerEntity):
         params = {k: data[k] for k in PARAMS_ALL if k in data}
         sources = json.loads(options[CONF_SOURCES])
         pioneer.set_user_params(params)
-        await pioneer.update_zones()
         if sources:
             pioneer.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
+        ## NOTE: trigger zone update only after scan_interval update due to
+        ##       wait_for missing cancellation when awaited coroutine
+        ##       has already completed: https://bugs.python.org/issue42130
+        ##       Mitigated also by using safe_wait_for()
+        await pioneer.update_zones()
         ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
 
