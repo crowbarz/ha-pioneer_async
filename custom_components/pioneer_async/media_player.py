@@ -208,6 +208,7 @@ class PioneerZone(MediaPlayerEntity):
         sources = json.loads(options[CONF_SOURCES])
         current_params = pioneer.get_params()
         pioneer.set_user_params(params)
+        new_params = pioneer.get_params()
         if sources:
             pioneer.set_source_dict(sources)
         else:
@@ -218,7 +219,7 @@ class PioneerZone(MediaPlayerEntity):
         ##       wait_for missing cancellation when awaited coroutine
         ##       has already completed: https://bugs.python.org/issue42130
         ##       Mitigated also by using safe_wait_for()
-        if params.get(PARAM_IGNORED_ZONES) != current_params.get(PARAM_IGNORED_ZONES):
+        if new_params[PARAM_IGNORED_ZONES] != current_params[PARAM_IGNORED_ZONES]:
             await pioneer.update_zones()
         ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
