@@ -206,15 +206,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     PARAM_VOLUME_STEP_DELTA, default=options[PARAM_VOLUME_STEP_DELTA]
                 ): int,
                 vol.Optional(
-                    PARAM_DEBUG_LISTENER, default=options[PARAM_DEBUG_LISTENER]
-                ): bool,
-                vol.Optional(
-                    PARAM_DEBUG_RESPONDER, default=options[PARAM_DEBUG_RESPONDER]
-                ): bool,
-                vol.Optional(
-                    PARAM_DEBUG_UPDATER, default=options[PARAM_DEBUG_UPDATER]
-                ): bool,
-                vol.Optional(
                     CONF_IGNORE_ZONE_2, default=options[CONF_IGNORE_ZONE_2]
                 ): bool,
                 vol.Optional(
@@ -222,6 +213,15 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     CONF_IGNORE_ZONE_Z, default=options[CONF_IGNORE_ZONE_Z]
+                ): bool,
+                vol.Optional(
+                    PARAM_DEBUG_LISTENER, default=options[PARAM_DEBUG_LISTENER]
+                ): bool,
+                vol.Optional(
+                    PARAM_DEBUG_RESPONDER, default=options[PARAM_DEBUG_RESPONDER]
+                ): bool,
+                vol.Optional(
+                    PARAM_DEBUG_UPDATER, default=options[PARAM_DEBUG_UPDATER]
                 ): bool,
             }
         )
