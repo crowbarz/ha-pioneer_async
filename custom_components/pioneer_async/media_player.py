@@ -35,7 +35,7 @@ from .const import (
     OPTIONS_ALL,
 )
 from aiopioneer import PioneerAVR
-from aiopioneer.param import PARAMS_ALL
+from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -206,6 +206,7 @@ class PioneerZone(MediaPlayerEntity):
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
         sources = json.loads(options[CONF_SOURCES])
+        current_params = pioneer.get_params()
         pioneer.set_user_params(params)
         if sources:
             pioneer.set_source_dict(sources)
@@ -217,7 +218,8 @@ class PioneerZone(MediaPlayerEntity):
         ##       wait_for missing cancellation when awaited coroutine
         ##       has already completed: https://bugs.python.org/issue42130
         ##       Mitigated also by using safe_wait_for()
-        await pioneer.update_zones()
+        if params.get(PARAM_IGNORED_ZONES) != current_params.get(PARAM_IGNORED_ZONES):
+            await pioneer.update_zones()
         ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
 
