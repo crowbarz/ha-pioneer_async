@@ -301,15 +301,17 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def device_state_attributes(self):
         """Return device specific state attributes."""
-        attrs = {}
-        volume = self._pioneer.volume.get(self._zone)
-        max_volume = self._pioneer.max_volume.get(self._zone)
+        pioneer = self._pioneer
+        attrs = {"sources_json": json.dumps(pioneer.get_source_dict())}
+        volume = pioneer.volume.get(self._zone)
+        max_volume = pioneer.max_volume.get(self._zone)
         if volume is not None and max_volume is not None:
             if self._zone == "1":
                 volume_db = volume / 2 - 80.5
             else:
                 volume_db = volume - 81
             attrs = {
+                **attrs,
                 "device_volume": volume,
                 "device_max_volume": max_volume,
                 "device_volume_db": volume_db,
