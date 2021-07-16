@@ -84,7 +84,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
             pioneer.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
-    except (asyncio.TimeoutError, ValueError, AttributeError) as exc:
+    except (OSError, asyncio.TimeoutError, ValueError, AttributeError) as exc:
         raise ConfigEntryNotReady from exc
 
     hass.data[DOMAIN][entry.entry_id] = pioneer
