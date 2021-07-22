@@ -14,8 +14,9 @@ from homeassistant.const import (
     STATE_OFF,
     STATE_ON,
     STATE_UNKNOWN,
+    EVENT_HOMEASSISTANT_CLOSE,
 )
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, Event
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
@@ -60,7 +61,6 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     """Set up the Pioneer AVR platform."""
     _LOGGER.debug(">> async_setup_platform(%s)", config)
 
-    name = config[CONF_NAME]
     host = config[CONF_HOST]
     port = config[CONF_PORT]
     timeout = config[CONF_TIMEOUT]
@@ -68,21 +68,13 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     sources = config[CONF_SOURCES]
     params = dict(config[CONF_PARAMS])
 
-    device_unique_id = host + ":" + str(port)
+    ## Check whether Pioneer AVR has already been set up
+    device_unique_id = check_device_unique_id(hass, host, port, configure=True)
+    if device_unique_id is None:
+        return False
 
-    ## Check whether platform has already been set up via config entry
-    if DOMAIN not in hass.data:
-        hass.data[DOMAIN] = {}
-    for pioneer in hass.data[DOMAIN].values():
-        if pioneer.get_unique_id() == device_unique_id:
-            _LOGGER.error(
-                'AVR "%s" is already set up via UI, ignoring configuration.yaml',
-                name,
-            )
-            return False
-
+    ## Open AVR connection
     try:
-        ## Open AVR connection
         pioneer = PioneerAVR(
             host,
             port,
@@ -108,42 +100,51 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id
     )
 
+    ## Create shutdown event listener
+    await async_setup_shutdown_listener(hass, pioneer)
+
 
 async def async_setup_entry(
-    hass: HomeAssistant, entry: ConfigEntry, async_add_entities
+    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
 ):
     """Set up the Pioneer AVR media_player from config entry."""
     _LOGGER.debug(
         ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
-        entry.entry_id,
-        entry.data,
-        entry.options,
+        config_entry.entry_id,
+        config_entry.data,
+        config_entry.options,
     )
-    pioneer = hass.data[DOMAIN][entry.entry_id]
-    data = entry.data
-    entry_options = entry.options if entry.options else {}
+    pioneer = hass.data[DOMAIN][config_entry.entry_id]
+    data = config_entry.data
+    entry_options = config_entry.options if config_entry.options else {}
     options = {
         **OPTIONS_DEFAULTS,
         **{k: entry_options[k] for k in OPTIONS_ALL if k in entry_options},
     }
     config = {**data, **options}
-    await _pioneer_add_entities(hass, entry, async_add_entities, pioneer, config)
+    await _pioneer_add_entities(hass, config_entry, async_add_entities, pioneer, config)
 
 
 async def _pioneer_add_entities(
-    hass, entry, async_add_entities, pioneer, config, unique_id=None
+    hass,
+    config_entry: ConfigEntry,
+    async_add_entities,
+    pioneer: PioneerAVR,
+    config,
+    unique_id=None,
 ):
     """Add media_player entities for each zone."""
     _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     entities = []
-    if entry:
+    if config_entry:
         ## Defer to entry if available
-        unique_id = entry.unique_id
+        unique_id = config_entry.unique_id
+        # unique_id = config_entry.entry_id
     for zone in pioneer.zones:
         name = config[CONF_NAME]
         if zone != "1":
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
-        entity = PioneerZone(entry, pioneer, zone, name, unique_id, config)
+        entity = PioneerZone(config_entry, pioneer, zone, name, unique_id, config)
         if entity:
             _LOGGER.debug("Created entity %s for zone %s", name, zone)
             entities.append(entity)
@@ -161,6 +162,48 @@ async def _pioneer_add_entities(
             )
             raise PlatformNotReady  # pylint: disable=raise-missing-from
         async_add_entities(entities, update_before_add=True)
+    else:
+        _LOGGER.error("No zones found on AVR")
+        raise PlatformNotReady  # pylint: disable=raise-missing-from
+
+
+def get_device_unique_id(host: str, port: int) -> str:
+    """Get unique ID for Pioneer AVR."""
+    return host + ":" + str(port)
+
+
+def check_device_unique_id(
+    hass: HomeAssistant, host: str, port: int, configure=False
+) -> str:
+    """Check whether Pioneer AVR has already been set up."""
+    device_unique_id = get_device_unique_id(host, port)
+    hass.data.setdefault(DOMAIN, {})
+    if device_unique_id in hass.data[DOMAIN]:
+        if configure:
+            _LOGGER.error('AVR "%s" is already configured', device_unique_id)
+        return None
+    if configure:
+        hass.data[DOMAIN][device_unique_id] = None  ## flag as configured
+    return device_unique_id
+
+def clear_device_unique_id(hass: HomeAssistant, host: str, port: int) -> None:
+    """Clear Pioneer AVR setup."""
+    device_unique_id = get_device_unique_id(host, port)
+    if device_unique_id in hass.data[DOMAIN]:
+        hass.data[DOMAIN].pop(device_unique_id)
+    else:
+        _LOGGER.error('Clear requested for unconfigured AVR "%s"', device_unique_id)
+
+
+async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR):
+    """Set up listener to shutdown Pioneer AVR on HA shutdown."""
+
+    async def _shutdown_listener(event: Event) -> None:
+        """Handle Home Assistant shutdown."""
+        _LOGGER.debug(">> async_shutdown()")
+        await pioneer.shutdown()
+
+    return hass.bus.async_listen_once(EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener)
 
 
 class PioneerZone(MediaPlayerEntity):
@@ -177,10 +220,10 @@ class PioneerZone(MediaPlayerEntity):
 
         self._added_to_hass = False
 
-    async def async_added_to_hass(self):
+    async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
-        # _LOGGER.debug(f">> async_added_to_hass({self._zone})")
-        await super().async_added_to_hass()
+        _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
+        # await super().async_added_to_hass()
 
         self._added_to_hass = True
         self._pioneer.set_zone_callback(self._zone, self.schedule_update_ha_state)
@@ -194,14 +237,9 @@ class PioneerZone(MediaPlayerEntity):
                 )
             )
 
-    async def shutdown(self):
-        """Close connection on shutdown."""
-        # _LOGGER.debug(f">> shutdown({self._zone}")
-        ## Shutdown of PioneerAVR will be done at integration level
-
     async def _async_update_options(self, data):
         """Change options when the options flow does."""
-        _LOGGER.debug(">> _async_update_options(data=%s)", data)
+        _LOGGER.debug(">> PioneerZone._async_update_options(data=%s)", data)
         pioneer = self._pioneer
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
@@ -231,7 +269,7 @@ class PioneerZone(MediaPlayerEntity):
         if self._zone == "1":
             name += " Main Zone"
         return {
-            "identifiers": {(DOMAIN, self._unique_id, self._zone)},
+            "identifiers": {(DOMAIN, f"{self._unique_id}-{self._zone}-device")},
             "manufacturer": "Pioneer",
             "sw_version": self._pioneer.software_version,
             "name": name,
@@ -242,7 +280,7 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def unique_id(self):
         """Return the unique id."""
-        return self._unique_id + "/" + self._zone
+        return f"{self._unique_id}-{self._zone}"
 
     @property
     def name(self):
@@ -359,10 +397,5 @@ class PioneerZone(MediaPlayerEntity):
 
     async def async_update(self):
         """Poll properties periodically."""
+        _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
         return await self._pioneer.update()
-
-    ## HA polling disabled, TODO: to use asyncio for polling
-    # def update_callback(self):
-    #     """Schedule full properties update of all zones."""
-    #     if self._zone == "1" and self._added_to_hass:
-    #         self.schedule_update_ha_state(force_refresh=True)

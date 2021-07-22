@@ -41,6 +41,7 @@ from .const import (
     OPTIONS_ALL,
 )
 from .const import DOMAIN  # pylint: disable=unused-import
+from .media_player import check_device_unique_id, get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -52,8 +53,12 @@ async def validate_input(hass: core.HomeAssistant, data):
     Data has the keys from DATA_SCHEMA with values provided by the user.
     """
     _LOGGER.debug(">> validate_input(%s)", data)
+    host = data[CONF_HOST]
+    port = data[CONF_PORT]
+    if check_device_unique_id(hass, host, port) is None:
+        raise AlreadyConfigured
     try:
-        pioneer = PioneerAVR(data[CONF_HOST], data[CONF_PORT])
+        pioneer = PioneerAVR(host, port)
         await pioneer.connect()
         await pioneer.query_device_info()
         await pioneer.shutdown()
@@ -79,10 +84,14 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is not None:
             try:
                 data = await validate_input(self.hass, user_input)
-                unique_id = data[CONF_HOST] + ":" + str(data[CONF_PORT])
-                await self.async_set_unique_id(unique_id)
+                device_unique_id = get_device_unique_id(
+                    data[CONF_HOST], data[CONF_PORT]
+                )
+                await self.async_set_unique_id(device_unique_id)
                 self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=unique_id, data=data)
+                return self.async_create_entry(title=device_unique_id, data=data)
+            except AlreadyConfigured:
+                errors["base"] = "already_configured"
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as exc:  # pylint: disable=broad-except
@@ -233,3 +242,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
 class CannotConnect(exceptions.HomeAssistantError):
     """Error to indicate we cannot connect."""
+
+
+class AlreadyConfigured(exceptions.HomeAssistantError):
+    """Error to indicate host:port is already configured."""

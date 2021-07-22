@@ -17,6 +17,7 @@
             "unknown": "Unknown error occurred"
         },
         "error": {
+            "already_configured": "Integration is already configured",
             "cannot_connect": "Cannot connect to AVR",
             "unknown": "Unknown error occurred"
         }
