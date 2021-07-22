@@ -27,7 +27,11 @@ from .const import (
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
 )
-from .media_player import async_setup_shutdown_listener, check_device_unique_id, clear_device_unique_id
+from .media_player import (
+    async_setup_shutdown_listener,
+    check_device_unique_id,
+    clear_device_unique_id,
+)
 
 from aiopioneer import PioneerAVR
 from aiopioneer.param import PARAMS_ALL
@@ -52,8 +56,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     name = config_entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    device_unique_id = check_device_unique_id(hass, host, port, configure=True)
-    if device_unique_id is None:
+    if check_device_unique_id(hass, host, port, configure=True) is None:
         return False
 
     ## Compile options and params
@@ -124,7 +127,7 @@ async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
 
     ## Send signal to platform to update options
     async_dispatcher_send(
-        hass, f"{PIONEER_OPTIONS_UPDATE}-{config_entry.unique_id}", config_entry.options
+        hass, f"{PIONEER_OPTIONS_UPDATE}-{config_entry.entry_id}", config_entry.options
     )
 
 

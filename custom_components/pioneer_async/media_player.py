@@ -69,8 +69,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     params = dict(config[CONF_PARAMS])
 
     ## Check whether Pioneer AVR has already been set up
-    device_unique_id = check_device_unique_id(hass, host, port, configure=True)
-    if device_unique_id is None:
+    if check_device_unique_id(hass, host, port, configure=True) is None:
         return False
 
     ## Open AVR connection
@@ -96,9 +95,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
         )
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
-    await _pioneer_add_entities(
-        hass, None, async_add_entities, pioneer, config, unique_id=device_unique_id
-    )
+    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
 
     ## Create shutdown event listener
     await async_setup_shutdown_listener(hass, pioneer)
@@ -126,25 +123,21 @@ async def async_setup_entry(
 
 
 async def _pioneer_add_entities(
-    hass,
+    hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities,
     pioneer: PioneerAVR,
     config,
-    unique_id=None,
 ):
     """Add media_player entities for each zone."""
     _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     entities = []
-    if config_entry:
-        ## Defer to entry if available
-        unique_id = config_entry.unique_id
-        # unique_id = config_entry.entry_id
     for zone in pioneer.zones:
         name = config[CONF_NAME]
         if zone != "1":
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
-        entity = PioneerZone(config_entry, pioneer, zone, name, unique_id, config)
+        device_unique_id = get_device_unique_id(config[CONF_HOST], config[CONF_PORT])
+        entity = PioneerZone(config_entry, pioneer, zone, name, device_unique_id)
         if entity:
             _LOGGER.debug("Created entity %s for zone %s", name, zone)
             entities.append(entity)
@@ -186,6 +179,7 @@ def check_device_unique_id(
         hass.data[DOMAIN][device_unique_id] = None  ## flag as configured
     return device_unique_id
 
+
 def clear_device_unique_id(hass: HomeAssistant, host: str, port: int) -> None:
     """Clear Pioneer AVR setup."""
     device_unique_id = get_device_unique_id(host, port)
@@ -209,11 +203,18 @@ async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR
 class PioneerZone(MediaPlayerEntity):
     """Representation of a Pioneer zone."""
 
-    def __init__(self, entry, pioneer, zone, name, unique_id, config):
+    def __init__(
+        self,
+        config_entry: ConfigEntry,
+        pioneer: PioneerAVR,
+        zone: str,
+        name: str,
+        device_unique_id: str,
+    ):
         """Initialize the Pioneer zone."""
         _LOGGER.debug("PioneerZone.__init__(%s)", zone)
-        self._entry = entry
-        self._unique_id = unique_id
+        self._config_entry = config_entry
+        self._device_unique_id = device_unique_id
         self._pioneer = pioneer
         self._zone = zone
         self._name = name
@@ -223,16 +224,15 @@ class PioneerZone(MediaPlayerEntity):
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
         _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
-        # await super().async_added_to_hass()
 
         self._added_to_hass = True
         self._pioneer.set_zone_callback(self._zone, self.schedule_update_ha_state)
-        if self._entry and self._zone == "1":
+        if self._config_entry and self._zone == "1":
             ## Add update options dispatcher connection on Main Zone entity
             self.async_on_remove(
                 async_dispatcher_connect(
                     self.hass,
-                    f"{PIONEER_OPTIONS_UPDATE}-{self._unique_id}",
+                    f"{PIONEER_OPTIONS_UPDATE}-{self._config_entry.entry_id}",
                     self._async_update_options,
                 )
             )
@@ -269,18 +269,23 @@ class PioneerZone(MediaPlayerEntity):
         if self._zone == "1":
             name += " Main Zone"
         return {
-            "identifiers": {(DOMAIN, f"{self._unique_id}-{self._zone}-device")},
+            "identifiers": {(DOMAIN, f"{self._device_unique_id}-{self._zone}")},
             "manufacturer": "Pioneer",
             "sw_version": self._pioneer.software_version,
             "name": name,
             "model": self._pioneer.model,
-            "via_device": (DOMAIN, self._unique_id),
+            "via_device": (DOMAIN, self._device_unique_id),
         }
 
     @property
     def unique_id(self):
         """Return the unique id."""
-        return f"{self._unique_id}-{self._zone}"
+        ## Defer to entry_id if config_entry available
+        ## https://developers.home-assistant.io/docs/entity_registry_index/
+        if self._config_entry:
+            return f"{self._config_entry.entry_id}-{self._zone}"
+        else:
+            return f"{self._device_unique_id}-{self._zone}"
 
     @property
     def name(self):
