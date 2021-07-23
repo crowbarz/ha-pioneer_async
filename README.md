@@ -74,6 +74,14 @@ The default parameters listed below are for AVR models that do not match any cus
 
 ## Breaking changes
 
+- **0.6**\
+  Zone entity unique IDs have changed to conform to [unique ID requirements](https://developers.home-assistant.io/docs/entity_registry_index/). Due to a bug with integration removal in previous versions, the entity IDs of your zones will probably change after upgrading to this version if you added the integration via the UI. To restore your entity IDs, perform the following steps:
+  1. remove the integration via the UI (saving configuration settings).
+  2. restart Home Assistant.
+  3. in Home Assistant, navigate to `Configuration` > `Entities` and search for your Pioneer AVR zone entities. They should show a red exclamation mark in the `Status` column.
+  4. select all the entities and click `Remove Entity`.
+  5. reinstall the integration via the UI and restore configuration settings.
+
 - **0.5**\
   `volume_step_only` logic has been rewritten to step the volume until the actual volume reaches (or exceeds) the desired volume. It will stop stepping and log a warning if after the step command the volume does not change or changes in the wrong direction.
 - **0.4**\
