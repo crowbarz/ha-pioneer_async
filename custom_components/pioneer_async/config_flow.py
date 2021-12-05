@@ -4,16 +4,6 @@ from datetime import timedelta
 import logging
 import json
 import voluptuous as vol
-from datetime import timedelta
-
-from homeassistant import config_entries, core, exceptions
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_PORT,
-    CONF_SCAN_INTERVAL,
-    CONF_TIMEOUT,
-)
-from homeassistant.core import callback
 
 from aiopioneer import PioneerAVR
 from aiopioneer.param import (
@@ -31,6 +21,15 @@ from aiopioneer.param import (
     PARAM_DEBUG_UPDATER,
     PARAMS_ALL,
 )
+
+from homeassistant import config_entries, core, exceptions
+from homeassistant.const import (
+    CONF_HOST,
+    CONF_PORT,
+    CONF_SCAN_INTERVAL,
+    CONF_TIMEOUT,
+)
+from homeassistant.core import callback
 
 from .const import (
     DATA_SCHEMA,
@@ -157,18 +156,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ## Validate sources is a dict of names to numeric IDs
                 if CONF_SOURCES in options:
                     sources = json.loads(options[CONF_SOURCES])
-                    if type(sources) is not dict:
+                    if not isinstance(sources, dict):
                         raise Exception
                     for (source_name, source_id) in sources.items():
                         if not (
-                            type(source_name) is str
+                            isinstance(source_name, str)
                             and len(source_id) == 2
                             and source_id[0].isdigit()
                             and source_id[1].isdigit()
                         ):
                             raise Exception
 
-            except:
+            except:  # pylint: disable=bare-except
                 errors[CONF_SOURCES] = "invalid_sources"
 
             if not errors:
@@ -181,19 +180,19 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             **default_params,
             **entry_options,
         }
-        if type(options[CONF_SCAN_INTERVAL]) is timedelta:
+        if isinstance(options[CONF_SCAN_INTERVAL], timedelta):
             options[CONF_SCAN_INTERVAL] = options[CONF_SCAN_INTERVAL].total_seconds()
 
         ## Build options schema
         data_schema = vol.Schema(
             {
-                ## TODO: add sources option: how to ask the user for a dictionary in config flow?
                 vol.Optional(
                     CONF_SCAN_INTERVAL, default=options[CONF_SCAN_INTERVAL]
                 ): int,
                 vol.Optional(CONF_TIMEOUT, default=options[CONF_TIMEOUT]): vol.Coerce(
                     float
                 ),
+                ## sources option specified as a JSON string
                 vol.Optional(CONF_SOURCES, default=options[CONF_SOURCES]): str,
                 vol.Optional(
                     PARAM_COMMAND_DELAY, default=options[PARAM_COMMAND_DELAY]
