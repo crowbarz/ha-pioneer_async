@@ -9,7 +9,7 @@ Added support for the following features:
 
 - Supports integration config flow (`Configuration` > `Integrations` > `+` to add) as well as configuration via `configuration.yaml`.
 - Uses the [`aiopioneer`](http://github.com/crowbarz/aiopioneer) package to communicate with the AVR via its API.
-- Auto-detect and create entities for Zones 1, 2, 3 and HDZONE.
+- Auto-detect and create entities for Zones 1, 2, 3 and HDZone.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
 - Create devices and populate with model, software version and MAC address queried from AVR (if supported) when configured via the UI.
 
@@ -51,26 +51,9 @@ Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
 
 ## `params` object
 
-The `params` object is passed onto the Pioneer AVR API to modify its functionality.
+The `params` object is passed onto the Pioneer AVR API to modify its functionality. Parameters can be configured via the `Configure` button when the integration is added via the UI, or configured in `configuration.yaml` otherwise. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the available options.
 
-The default parameters listed below are for AVR models that do not match any custom profile. Custom profiles change the defaults based on the model identifier retrieved from the AVR, and are defined in [`aiopioneer/param.py`](https://github.com/crowbarz/aiopioneer/blob/main/aiopioneer/param.py).
-
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| `ignored_zones` | list | `[]` | List of zones to ignore even if they are auto-discovered. Specify Zone IDs as strings: "1", "2", "3" and "Z".
-| `command_delay` | float | `0.1` | Insert a delay between sequential commands that are sent to the AVR. This appears to make the AVR behave more reliably during status polls. Increase this value if debug logging shows that your AVR times out between commands.
-| `max_source_id` | int | `60` | Maximum source ID that the source discovery queries. Reduce this if your AVR returns errors.
-| `max_volume` | int | `185` | Maximum volume for the Main Zone.
-| `max_volume_zonex` | int | `185` | Maximum volume for zones other than the Main Zone.
-| `power_on_volume_bounce` | bool | `false` | On some AVRs (eg. VSX-930) where a power-on is set, the initial volume is not reported by the AVR correctly until a volume change is made. This option enables a workaround that sends a volume up and down command to the AVR on power-on to correct the reported volume without affecting the power-on volume.
-| `volume_step_only` | bool | `false` | On some AVRs (eg. VSX-S510), setting the volume level is not supported natively by the API. This option emulates setting the volume level using volume up and down commands.
-| `volume_step_delta` | int | `1` | _Deprecated in 0.5._ The number of units that each volume up/down commands changes the volume by. Used when `volume_step_only` is `true`.
-| `debug_listener` | bool | `false` | Enables additional debug logging for the listener task. See [Enabling debugging](#enabling-debugging) for details.
-| `debug_responder` | bool | `false` | Enables additional debug logging for the responder task. See [Enabling debugging](#enabling-debugging) for details.
-| `debug_updater` | bool | `false` | Enables additional debug logging for the updater task. See [Enabling debugging](#enabling-debugging) for details.
-| `debug_command` | bool | `false` | Enables additional debug logging for commands sent and responses received. See [Enabling debugging](#enabling-debugging) for details.
-
-**NOTE**: Changing ignored zones via UI options does not add entities for new zones or fully remove entities for removed zones until the integration is restarted.
+**NOTE**: Changing `ignored_zones` or `ignore_volume_check` via the UI requires Home Assistant to be restarted before fully taking effect.
 
 ## Breaking changes
 
