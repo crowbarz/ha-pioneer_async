@@ -25,6 +25,7 @@ from aiopioneer.param import (
     PARAM_POWER_ON_VOLUME_BOUNCE,
     PARAM_VOLUME_STEP_ONLY,
     PARAM_VOLUME_STEP_DELTA,
+    PARAM_IGNORE_VOLUME_CHECK,
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_RESPONDER,
     PARAM_DEBUG_UPDATER,
@@ -214,6 +215,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     PARAM_VOLUME_STEP_DELTA, default=options[PARAM_VOLUME_STEP_DELTA]
                 ): int,
+                vol.Optional(
+                    PARAM_IGNORE_VOLUME_CHECK,
+                    default=options[PARAM_IGNORE_VOLUME_CHECK],
+                ): bool,
                 vol.Optional(
                     CONF_IGNORE_ZONE_2, default=options[CONF_IGNORE_ZONE_2]
                 ): bool,
