@@ -342,7 +342,7 @@ class PioneerZone(MediaPlayerEntity):
         return self.source
 
     @property
-    def device_state_attributes(self):
+    def extra_state_attributes(self):
         """Return device specific state attributes."""
         pioneer = self._pioneer
         attrs = {"sources_json": json.dumps(pioneer.get_source_dict())}
