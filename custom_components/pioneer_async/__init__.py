@@ -106,6 +106,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         name=name,
         model=model,
         sw_version=software_version,
+        configuration_url=f"http://{host}",
     )
 
     ## Set up platforms for Pioneer AVR
