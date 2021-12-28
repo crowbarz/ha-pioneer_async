@@ -7,6 +7,9 @@ import json
 
 import voluptuous as vol
 
+from aiopioneer import PioneerAVR
+from aiopioneer.param import PARAMS_ALL
+
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -32,9 +35,6 @@ from .media_player import (
     check_device_unique_id,
     clear_device_unique_id,
 )
-
-from aiopioneer import PioneerAVR
-from aiopioneer.param import PARAMS_ALL
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -66,7 +66,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     timeout = options[CONF_TIMEOUT]
     try:
         sources = json.loads(options[CONF_SOURCES])
-    except:
+    except:  ## pylint: disable=bare-except
         _LOGGER.warning("ignoring invalid sources: %s", options[CONF_SOURCES])
         sources = {}
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}

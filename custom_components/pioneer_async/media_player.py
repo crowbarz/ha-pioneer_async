@@ -1,7 +1,10 @@
 """Support for Pioneer AVR."""
 import logging
-import voluptuous as vol
 import json
+import voluptuous as vol
+
+from aiopioneer import PioneerAVR
+from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
 from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
 from homeassistant.config_entries import ConfigEntry
@@ -35,8 +38,6 @@ from .const import (
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
-from aiopioneer import PioneerAVR
-from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -57,7 +58,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
     """Set up the Pioneer AVR platform."""
     _LOGGER.debug(">> async_setup_platform(%s)", config)
 
@@ -123,7 +124,7 @@ async def async_setup_entry(
 
 
 async def _pioneer_add_entities(
-    hass: HomeAssistant,
+    _hass: HomeAssistant,
     config_entry: ConfigEntry,
     async_add_entities,
     pioneer: PioneerAVR,
@@ -192,7 +193,7 @@ def clear_device_unique_id(hass: HomeAssistant, host: str, port: int) -> None:
 async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR):
     """Set up listener to shutdown Pioneer AVR on HA shutdown."""
 
-    async def _shutdown_listener(event: Event) -> None:
+    async def _shutdown_listener(_event: Event) -> None:
         """Handle Home Assistant shutdown."""
         _LOGGER.debug(">> async_shutdown()")
         await pioneer.shutdown()

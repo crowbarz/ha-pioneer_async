@@ -1,5 +1,7 @@
 """Constants for the pioneer_async integration."""
 
+from datetime import timedelta
+
 import voluptuous as vol
 
 from homeassistant.components.media_player.const import (
@@ -17,7 +19,6 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
-from datetime import timedelta
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
