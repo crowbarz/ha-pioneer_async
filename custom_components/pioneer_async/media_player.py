@@ -133,6 +133,7 @@ async def _pioneer_add_entities(
     """Add media_player entities for each zone."""
     _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     entities = []
+    main_entity = None
     for zone in pioneer.zones:
         name = config[CONF_NAME]
         if zone != "1":
@@ -141,24 +142,32 @@ async def _pioneer_add_entities(
         entity = PioneerZone(config_entry, pioneer, zone, name, device_unique_id)
         if entity:
             _LOGGER.debug("Created entity %s for zone %s", name, zone)
-            entities.append(entity)
-        # if zone == "1":
-        #     ## Set update callback to update Main Zone entity
-        #     pioneer.set_update_callback(entity.update_callback)
-    if entities:
-        try:
-            await pioneer.update()
-        except Exception as exc:  # pylint: disable=broad-except
-            _LOGGER.error(
-                "Could not perform AVR initial update: %s: %s",
-                type(exc).__name__,
-                str(exc),
-            )
-            raise PlatformNotReady  # pylint: disable=raise-missing-from
-        async_add_entities(entities, update_before_add=True)
-    else:
-        _LOGGER.error("No zones found on AVR")
+            if zone == "1":
+                main_entity = entity
+            #     ## Set update callback to update Main Zone entity
+            #     pioneer.set_update_callback(entity.update_callback)
+            else:
+                entities.append(entity)
+    if not main_entity:
+        _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
+
+    try:
+        await pioneer.update()
+    except Exception as exc:  # pylint: disable=broad-except
+        _LOGGER.error(
+            "Could not perform AVR initial update: %s: %s",
+            type(exc).__name__,
+            str(exc),
+        )
+        raise PlatformNotReady  # pylint: disable=raise-missing-from
+
+    ## Register additional zone entities with main zone entity
+    if entities:
+        main_entity.register_zone_entities(entities)
+
+    entities.insert(0, main_entity)
+    async_add_entities(entities, update_before_add=True)
 
 
 def get_device_unique_id(host: str, port: int) -> str:
@@ -221,6 +230,7 @@ class PioneerZone(MediaPlayerEntity):
         self._name = name
 
         self._added_to_hass = False
+        self._zone_entities = None
 
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
@@ -260,8 +270,16 @@ class PioneerZone(MediaPlayerEntity):
         ##       Mitigated also by using safe_wait_for()
         if new_params[PARAM_IGNORED_ZONES] != current_params[PARAM_IGNORED_ZONES]:
             await pioneer.update_zones()
+
         ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
+        if self._zone_entities:
+            for entity in self._zone_entities:
+                entity.schedule_update_ha_state(force_refresh=True)
+
+    def register_zone_entities(self, entities):
+        """Register additional zone entities to trigger update."""
+        self._zone_entities = entities
 
     @property
     def device_info(self):
@@ -402,6 +420,6 @@ class PioneerZone(MediaPlayerEntity):
             return await self._pioneer.mute_off(self._zone)
 
     async def async_update(self):
-        """Poll properties periodically."""
+        """Poll properties on demand."""
         _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
         return await self._pioneer.update()
