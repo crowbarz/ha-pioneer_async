@@ -186,6 +186,7 @@ def check_device_unique_id(
             _LOGGER.error('AVR "%s" is already configured', device_unique_id)
         return None
     if configure:
+        _LOGGER.debug('Configuring AVR "%s"', device_unique_id)
         hass.data[DOMAIN][device_unique_id] = None  ## flag as configured
     return device_unique_id
 

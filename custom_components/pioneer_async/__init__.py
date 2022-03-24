@@ -44,7 +44,7 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Set up Pioneer AVR from a config entry."""
     _LOGGER.debug(
-        ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+        ">> init/async_setup_entry(entry_id=%s, data=%s, options=%s)",
         config_entry.entry_id,
         config_entry.data,
         config_entry.options,
@@ -58,6 +58,7 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     ## Check whether Pioneer AVR has already been set up
     if check_device_unique_id(hass, host, port, configure=True) is None:
         return False
+        ## TODO: Throw appropriate exception here
 
     ## Compile options and params
     entry_options = config_entry.options if config_entry.options else {}
