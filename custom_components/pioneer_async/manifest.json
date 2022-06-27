@@ -1,7 +1,7 @@
 {
   "domain": "pioneer_async",
   "name": "Pioneer AVR",
-  "version": "0.6.1",
+  "version": "0.6.3",
   "config_flow": true,
   "documentation": "https://github.com/crowbarz/ha-pioneer_async",
   "requirements": [ "aiopioneer==0.1.8" ],
