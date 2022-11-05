@@ -15,13 +15,13 @@ Added support for the following features:
 
 ## Installation
 
-This custom integration can be installed via HACS by adding this repository manually (documentation to come).
+This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
 
 ## Configuration
 
-This integration may be configured via the UI (`Configuration > Integrations > Add Integration`) or via `configuration.yaml`. It is recommended that all AVRs are configured using the same configuration method.
+This integration may be configured via the UI (`Configuration > Integrations > Add Integration`) or through YAML in `configuration.yaml`. It is recommended that all AVRs are configured using the same configuration method.
 
-Unlike other integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
+Unlike other similar integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
 
 ## `configuration.yaml` options
 
@@ -29,31 +29,48 @@ Configure these settings under `media_player`:
 
 | Name | Type | Default | Description
 | ---- | ---- | ------- | -----------
+| `platform` | string | | Set to `pioneer_async` to use this integration for the `media_player` entity.
 | `name` | string | `Pioneer AVR` | The friendly name that you would like to give to the receiver.
 | `host` | string | **Required** | The DNS name or IP of the Pioneer device, eg., `192.168.0.10`.
 | `port` | integer | `8102` | The port on which the Pioneer device listens. This may be `23` if your AVR doesn't respond on port `8102`.
 | `scan_interval` | time_period | `60s` | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling.
-| `timeout` | float | `2.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
+| `timeout` | float | `5.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
 | `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below. To remove custom sources in the UI and query them from the AVR instead, enter `{}`.
 | `params` | object | `{}` | A mapping of parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
 
 **NOTE:** See [Breaking Changes](#breaking-changes) if you are upgrading from version 0.2 or earlier as configuration options have changed.
 
-## AVR sources
+### AVR sources
 
 If the `sources` property is not specified, then the integration will attempt to query them from the AVR on startup and when options are updated, and use the friendly names configured on the AVR. This functionality is not supported by all AVR models. If the integration does not detect sources, or only a subset of sources should be selectable, then a mapping can be manually configured via the `sources` property.
 
-The mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters. The IDs must be defined as strings (ie. between quotation marks) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
+The configured mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters in length. The IDs must be defined as YAML strings (ie. between single or double quotes) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
 
 Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
 
 **NOTE:** Remember to use JSON syntax when entering sources in the UI, for example: `{ "TV": "05", "Cable": "06" }`
 
-## `params` object
+### `params` object
 
-The `params` object is passed onto the Pioneer AVR API to modify its functionality. Parameters can be configured via the `Configure` button when the integration is added via the UI, or configured in `configuration.yaml` otherwise. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the available options.
+The `params` object is passed onto the Pioneer AVR API to modify its functionality. Parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the available options.
 
 **NOTE**: Changing `ignored_zones` or `ignore_volume_check` via the UI requires Home Assistant to be restarted before fully taking effect.
+
+### Example YAML configuration
+
+```yaml
+# Example configuration.yaml entry
+media_player:
+  - platform: pioneer_async
+    name: Pioneer AVR
+    host: avr
+    port: 8102
+    scan_interval: 60
+    timeout: 5.0
+    sources: { TV: '05', Cable: '06' }
+    params:
+      ignore_volume_check: true
+```
 
 ## Breaking changes
 
