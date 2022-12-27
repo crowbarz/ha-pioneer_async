@@ -20,6 +20,10 @@ from homeassistant.const import (
     CONF_SCAN_INTERVAL,
 )
 
+from homeassistant.components.media_player import (
+    MediaPlayerDeviceClass,
+)
+
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
 VERSION = "0.3"
@@ -65,3 +69,5 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_ZONE_Z: False,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
+
+CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
