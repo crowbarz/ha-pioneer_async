@@ -37,6 +37,7 @@ from .const import (
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
+    CLASS_PIONEER,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -341,6 +342,11 @@ class PioneerZone(MediaPlayerEntity):
     def supported_features(self):
         """Flag media player features that are supported."""
         return SUPPORT_PIONEER
+
+    @property
+    def device_class(self):
+        """Return device_class attribute."""
+        return CLASS_PIONEER
 
     @property
     def source(self):
