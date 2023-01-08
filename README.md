@@ -23,6 +23,8 @@ This integration may be configured via the UI (`Configuration > Integrations > A
 
 Unlike other similar integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
 
+Be aware that some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. This integration uses a single connection, and each instance of the Pioneer iControlAV5 application will use another connection. (eg. if iControlAV5 is open on two phones, then two connections will be used.)
+
 ## `configuration.yaml` options
 
 Configure these settings under `media_player`:
