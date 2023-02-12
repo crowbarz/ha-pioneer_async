@@ -14,7 +14,7 @@ from aiopioneer.param import (
     PARAM_MAX_VOLUME_ZONEX,
     PARAM_POWER_ON_VOLUME_BOUNCE,
     PARAM_VOLUME_STEP_ONLY,
-    PARAM_VOLUME_STEP_DELTA,
+    # PARAM_VOLUME_STEP_DELTA,
     PARAM_IGNORE_VOLUME_CHECK,
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_RESPONDER,
@@ -121,6 +121,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         """Handle options flow."""
         _LOGGER.debug(">> options.async_step_init(%s)", user_input)
 
+        ## TODO: check if initialise via config entry and fail if not
         entry = self.config_entry
         pioneer = self.hass.data[DOMAIN][entry.entry_id]
         default_params = pioneer.get_default_params()
@@ -211,9 +212,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     PARAM_VOLUME_STEP_ONLY, default=options[PARAM_VOLUME_STEP_ONLY]
                 ): bool,
-                vol.Optional(
-                    PARAM_VOLUME_STEP_DELTA, default=options[PARAM_VOLUME_STEP_DELTA]
-                ): int,
+                # vol.Optional(
+                #     PARAM_VOLUME_STEP_DELTA, default=options[PARAM_VOLUME_STEP_DELTA]
+                # ): int,
                 vol.Optional(
                     PARAM_IGNORE_VOLUME_CHECK,
                     default=options[PARAM_IGNORE_VOLUME_CHECK],
