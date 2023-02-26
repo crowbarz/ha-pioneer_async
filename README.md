@@ -38,7 +38,7 @@ Configure these settings under `media_player`:
 | `scan_interval` | time_period | `60s` | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling.
 | `timeout` | float | `5.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
 | `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below. To remove custom sources in the UI and query them from the AVR instead, enter `{}`.
-| `params` | object | `{}` | A mapping of parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
+| `params` | object | `{}` | A mapping of configuration parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
 
 **NOTE:** See [Breaking Changes](#breaking-changes) if you are upgrading from version 0.2 or earlier as configuration options have changed.
 
@@ -54,7 +54,9 @@ Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
 
 ### `params` object
 
-The `params` object is passed onto the Pioneer AVR API to modify its functionality. Parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the available options.
+The `params` object contains configuration parameters that are passed onto the Pioneer AVR API to modify its functionality. Configuration parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the configuration parameters that can be set.
+
+Most configuration parameters are configurable from the UI.
 
 **NOTE**: Changing `ignored_zones` or `ignore_volume_check` via the UI requires Home Assistant to be restarted before fully taking effect.
 
@@ -78,6 +80,8 @@ media_player:
 
 - **0.7**\
   The `device_class` for the zone entities has been updated to `receiver`. If any zone entities are exported to Google Assistant, this change currently (2023-01-08) removes the Google Home UI that was previously shown for this entity when using the default `device_class` of `tv`. You can restore the old behaviour by overriding `device_class` for the entity to `tv`, see [Customising Entities](https://www.home-assistant.io/docs/configuration/customizing-devices/) for details on how to do this.
+
+  The `volume_step_delta` config property has been deprecated upstream in [crowbarz/aiopioneer](https://github.com/crowbarz/aiopioneer) and is no longer configurable from this integration.
 
 - **0.6**\
   Zone entity unique IDs have changed to conform to [unique ID requirements](https://developers.home-assistant.io/docs/entity_registry_index/). Due to a bug with integration removal in previous versions, the entity IDs of your zones will probably change after upgrading to this version if you added the integration via the UI. To restore your entity IDs, perform the following steps:
@@ -107,4 +111,4 @@ media_player:
 
 The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
 
-The [`debug_*`](#params-object) parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
+The [`debug_*`](#params-object) configuration parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
