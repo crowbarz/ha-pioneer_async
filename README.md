@@ -54,7 +54,7 @@ Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
 
 ### `params` object
 
-The `params` object contains configuration parameters that are passed onto the Pioneer AVR API to modify its functionality. Configuration parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/README.md) for the configuration parameters that can be set.
+The `params` object contains configuration parameters that are passed onto the Pioneer AVR API to modify its functionality. Configuration parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/blob/main/README.md) for the configuration parameters that can be set.
 
 Most configuration parameters are configurable from the UI.
 
