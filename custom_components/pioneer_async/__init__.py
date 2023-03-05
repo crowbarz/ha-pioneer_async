@@ -20,7 +20,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import (
@@ -30,11 +30,8 @@ from .const import (
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
 )
-from .media_player import (
-    async_setup_shutdown_listener,
-    check_device_unique_id,
-    clear_device_unique_id,
-)
+from .device import check_device_unique_id, clear_device_unique_id
+from .media_player import async_setup_shutdown_listener
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -56,9 +53,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    if check_device_unique_id(hass, host, port, configure=True) is None:
+    if check_device_unique_id(hass, host, port, entry, configure=True) is None:
         return False
-        ## TODO: Throw appropriate exception here
 
     ## Compile options and params
     entry_options = entry.options if entry.options else {}
@@ -97,17 +93,17 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ) as exc:
         raise ConfigEntryNotReady from exc
 
+    hass.data.setdefault(DOMAIN, {})
     hass.data[DOMAIN][entry.entry_id] = pioneer
 
     ## Set up parent device for Pioneer AVR
     model = pioneer.model
     software_version = pioneer.software_version
     mac_addr = pioneer.mac_addr
-    device_registry = dr.async_get(hass)
 
-    device_registry.async_get_or_create(
+    device_registry.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
-        connections={(dr.CONNECTION_NETWORK_MAC, mac_addr)},
+        connections={(device_registry.CONNECTION_NETWORK_MAC, mac_addr)},
         identifiers={(DOMAIN, entry.unique_id)},
         manufacturer="Pioneer",
         name=name,

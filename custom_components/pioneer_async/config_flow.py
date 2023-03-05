@@ -1,8 +1,10 @@
 """Config flow for pioneer_async integration."""
+from __future__ import annotations
 
 from datetime import timedelta
 import logging
 import json
+from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
@@ -31,9 +33,10 @@ from homeassistant.const import (
     CONF_TIMEOUT,
 )
 from homeassistant.core import callback
+from homeassistant.data_entry_flow import FlowResult
 
 from .const import (
-    DATA_SCHEMA,
+    LOGIN_SCHEMA,
     CONF_SOURCES,
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
@@ -42,89 +45,29 @@ from .const import (
     OPTIONS_ALL,
 )
 from .const import DOMAIN  # pylint: disable=unused-import
-from .media_player import check_device_unique_id, get_device_unique_id
+from .device import check_device_unique_id, get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def validate_input(hass: core.HomeAssistant, data):
-    """
-    Validate the user input allows us to connect.
-
-    Data has the keys from DATA_SCHEMA with values provided by the user.
-    """
-    _LOGGER.debug(">> validate_input(%s)", data)
-    host = data[CONF_HOST]
-    port = data[CONF_PORT]
-    if check_device_unique_id(hass, host, port) is None:
-        raise AlreadyConfigured
-    try:
-        pioneer = PioneerAVR(host, port)
-        await pioneer.connect()
-        await pioneer.query_device_info()
-        await pioneer.shutdown()
-        del pioneer
-    except Exception as exc:  # pylint: disable=broad-except
-        _LOGGER.debug("exception caught: %s", str(exc))
-        raise CannotConnect  # pylint: disable=raise-missing-from
-
-    # Return info that you want to store in the config entry.
-    return data
-
-
-class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
-    """Handle Pioneer AVR config flow."""
-
-    VERSION = 1
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
-
-    async def async_step_user(self, user_input=None):
-        """Handle the initial step."""
-        _LOGGER.debug(">> config.async_step_user(%s)", user_input)
-        errors = {}
-        if user_input is not None:
-            try:
-                data = await validate_input(self.hass, user_input)
-                device_unique_id = get_device_unique_id(
-                    data[CONF_HOST], data[CONF_PORT]
-                )
-                await self.async_set_unique_id(device_unique_id)
-                self._abort_if_unique_id_configured()
-                return self.async_create_entry(title=device_unique_id, data=data)
-            except AlreadyConfigured:
-                errors["base"] = "already_configured"
-            except CannotConnect:
-                errors["base"] = "cannot_connect"
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("Unexpected exception: %s", str(exc))
-                errors["base"] = "unknown"
-
-        return self.async_show_form(
-            step_id="user", data_schema=DATA_SCHEMA, errors=errors
-        )
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(config_entry):
-        """Get the options flow for this handler."""
-        return OptionsFlowHandler(config_entry)
-
-
-class OptionsFlowHandler(config_entries.OptionsFlow):
+class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for Harmony."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry):
         """Initialize options flow."""
         _LOGGER.debug(">> options.__init__()")
         self.config_entry = config_entry
+        self.options = config_entry.options
 
     async def async_step_init(self, user_input=None):
-        """Handle options flow."""
+        """Handle options flow for Pioneer AVR."""
         _LOGGER.debug(">> options.async_step_init(%s)", user_input)
 
-        ## TODO: check if initialise via config entry and fail if not
         entry = self.config_entry
-        pioneer = self.hass.data[DOMAIN][entry.entry_id]
+        pioneer = self.hass.data[DOMAIN].get(entry.entry_id)
+        if not pioneer:
+            return self.async_abort(reason="not_set_up")
+
         default_params = pioneer.get_default_params()
         errors = {}
 
@@ -252,3 +195,75 @@ class CannotConnect(exceptions.HomeAssistantError):
 
 class AlreadyConfigured(exceptions.HomeAssistantError):
     """Error to indicate host:port is already configured."""
+
+
+async def validate_input(hass: core.HomeAssistant, data):
+    """
+    Validate the user input allows us to connect.
+
+    Data has the keys from LOGIN_SCHEMA with values provided by the user.
+    """
+    _LOGGER.debug(">> validate_input(%s)", data)
+    host = data[CONF_HOST]
+    port = data[CONF_PORT]
+    if check_device_unique_id(hass, host, port) is None:
+        raise AlreadyConfigured
+    try:
+        pioneer = PioneerAVR(host, port)
+        await pioneer.connect()
+    except Exception as exc:  # pylint: disable=broad-except
+        raise CannotConnect from exc  # pylint: disable=raise-missing-from
+
+    try:
+        await pioneer.query_device_info()
+        await pioneer.shutdown()
+        del pioneer
+    except Exception as exc:  # pylint: disable=broad-except
+        raise Exception(
+            f"exception caught: {exc}"
+        ) from exc  # pylint: disable=raise-missing-from
+
+    # Return info that you want to store in the config entry.
+    return data
+
+
+class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+    """Handle Pioneer AVR config flow."""
+
+    VERSION = 1
+    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> PioneerOptionsFlowHandler:
+        """Get the options flow for this handler."""
+        return PioneerOptionsFlowHandler(config_entry)
+
+    async def async_step_user(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the initial step."""
+        _LOGGER.debug(">> config.async_step_user(%s)", user_input)
+        errors = {}
+        if user_input is not None:
+            try:
+                data = await validate_input(self.hass, user_input)
+                device_unique_id = get_device_unique_id(
+                    data[CONF_HOST], data[CONF_PORT]
+                )
+                await self.async_set_unique_id(device_unique_id)
+                self._abort_if_unique_id_configured()
+                return self.async_create_entry(title=device_unique_id, data=data)
+            except AlreadyConfigured:
+                errors["base"] = "already_configured"
+            except CannotConnect:
+                errors["base"] = "cannot_connect"
+            except Exception as exc:  # pylint: disable=broad-except
+                _LOGGER.error("Unexpected exception: %s", str(exc))
+                errors["base"] = "unknown"
+
+        return self.async_show_form(
+            step_id="user", data_schema=LOGIN_SCHEMA, errors=errors
+        )

@@ -52,7 +52,7 @@ CONF_IGNORE_ZONE_Z = "ignore_zone_Z"
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
 
-DATA_SCHEMA = vol.Schema(
+LOGIN_SCHEMA = vol.Schema(
     {
         vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
         vol.Required(CONF_HOST, default=DEFAULT_HOST): str,

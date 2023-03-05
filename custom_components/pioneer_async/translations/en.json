@@ -6,13 +6,14 @@
                 "title": "AVR details",
                 "description": "Enter the details for the Pioneer AVR:",
                 "data": {
-                    "host": "Host",
                     "name": "Device Name",
+                    "host": "Host",
                     "port": "Port"
                 }
             }
         },
         "abort": {
+            "not_set_up": "Integration is not set up",
             "already_configured": "Integration is already configured",
             "unknown": "Unknown error occurred"
         },
