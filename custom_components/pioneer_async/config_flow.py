@@ -16,6 +16,7 @@ from aiopioneer.param import (
     PARAM_VOLUME_STEP_ONLY,
     # PARAM_VOLUME_STEP_DELTA,
     PARAM_IGNORE_VOLUME_CHECK,
+    PARAM_DISABLE_AUTO_QUERY,
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_RESPONDER,
     PARAM_DEBUG_UPDATER,
@@ -159,7 +160,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     sources = json.loads(options[CONF_SOURCES])
                     if not isinstance(sources, dict):
                         raise Exception
-                    for (source_name, source_id) in sources.items():
+                    for source_name, source_id in sources.items():
                         if not (
                             isinstance(source_name, str)
                             and len(source_id) == 2
@@ -212,9 +213,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     PARAM_VOLUME_STEP_ONLY, default=options[PARAM_VOLUME_STEP_ONLY]
                 ): bool,
-                # vol.Optional(
-                #     PARAM_VOLUME_STEP_DELTA, default=options[PARAM_VOLUME_STEP_DELTA]
-                # ): int,
                 vol.Optional(
                     PARAM_IGNORE_VOLUME_CHECK,
                     default=options[PARAM_IGNORE_VOLUME_CHECK],
@@ -227,6 +225,9 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): bool,
                 vol.Optional(
                     CONF_IGNORE_ZONE_Z, default=options[CONF_IGNORE_ZONE_Z]
+                ): bool,
+                vol.Optional(
+                    PARAM_DISABLE_AUTO_QUERY, default=options[PARAM_DISABLE_AUTO_QUERY]
                 ): bool,
                 vol.Optional(
                     PARAM_DEBUG_LISTENER, default=options[PARAM_DEBUG_LISTENER]
