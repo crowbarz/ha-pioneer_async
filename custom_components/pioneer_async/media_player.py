@@ -39,6 +39,7 @@ from .const import (
     OPTIONS_ALL,
     CLASS_PIONEER,
 )
+from .device import get_device_unique_id, check_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -169,36 +170,6 @@ async def _pioneer_add_entities(
 
     entities.insert(0, main_entity)
     async_add_entities(entities, update_before_add=True)
-
-
-def get_device_unique_id(host: str, port: int) -> str:
-    """Get unique ID for Pioneer AVR."""
-    return host + ":" + str(port)
-
-
-def check_device_unique_id(
-    hass: HomeAssistant, host: str, port: int, configure=False
-) -> str:
-    """Check whether Pioneer AVR has already been set up."""
-    device_unique_id = get_device_unique_id(host, port)
-    hass.data.setdefault(DOMAIN, {})
-    if device_unique_id in hass.data[DOMAIN]:
-        if configure:
-            _LOGGER.error('AVR "%s" is already configured', device_unique_id)
-        return None
-    if configure:
-        _LOGGER.debug('Configuring AVR "%s"', device_unique_id)
-        hass.data[DOMAIN][device_unique_id] = None  ## flag as configured
-    return device_unique_id
-
-
-def clear_device_unique_id(hass: HomeAssistant, host: str, port: int) -> None:
-    """Clear Pioneer AVR setup."""
-    device_unique_id = get_device_unique_id(host, port)
-    if device_unique_id in hass.data[DOMAIN]:
-        hass.data[DOMAIN].pop(device_unique_id)
-    else:
-        _LOGGER.error('Clear requested for unconfigured AVR "%s"', device_unique_id)
 
 
 async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR):

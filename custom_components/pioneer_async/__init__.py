@@ -20,7 +20,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
-from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
 from .const import (
@@ -30,38 +30,34 @@ from .const import (
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
 )
-from .media_player import (
-    async_setup_shutdown_listener,
-    check_device_unique_id,
-    clear_device_unique_id,
-)
+from .device import check_device_unique_id, clear_device_unique_id
+from .media_player import async_setup_shutdown_listener
 
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
 
-async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Pioneer AVR from a config entry."""
     _LOGGER.debug(
         ">> init/async_setup_entry(entry_id=%s, data=%s, options=%s)",
-        config_entry.entry_id,
-        config_entry.data,
-        config_entry.options,
+        entry.entry_id,
+        entry.data,
+        entry.options,
     )
 
     ## Create PioneerAVR API object
-    host = config_entry.data[CONF_HOST]
-    port = config_entry.data[CONF_PORT]
-    name = config_entry.data[CONF_NAME]
+    host = entry.data[CONF_HOST]
+    port = entry.data[CONF_PORT]
+    name = entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    if check_device_unique_id(hass, host, port, configure=True) is None:
+    if check_device_unique_id(hass, host, port, entry, configure=True) is None:
         return False
-        ## TODO: Throw appropriate exception here
 
     ## Compile options and params
-    entry_options = config_entry.options if config_entry.options else {}
+    entry_options = entry.options if entry.options else {}
     options = {**OPTIONS_DEFAULTS, **entry_options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
@@ -97,18 +93,18 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     ) as exc:
         raise ConfigEntryNotReady from exc
 
-    hass.data[DOMAIN][config_entry.entry_id] = pioneer
+    hass.data.setdefault(DOMAIN, {})
+    hass.data[DOMAIN][entry.entry_id] = pioneer
 
     ## Set up parent device for Pioneer AVR
     model = pioneer.model
     software_version = pioneer.software_version
     mac_addr = pioneer.mac_addr
-    device_registry = dr.async_get(hass)
 
-    device_registry.async_get_or_create(
-        config_entry_id=config_entry.entry_id,
-        connections={(dr.CONNECTION_NETWORK_MAC, mac_addr)},
-        identifiers={(DOMAIN, config_entry.unique_id)},
+    device_registry.async_get(hass).async_get_or_create(
+        config_entry_id=entry.entry_id,
+        connections={(device_registry.CONNECTION_NETWORK_MAC, mac_addr)},
+        identifiers={(DOMAIN, entry.unique_id)},
         manufacturer="Pioneer",
         name=name,
         model=model,
@@ -117,48 +113,46 @@ async def async_setup_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     )
 
     ## Set up platforms for Pioneer AVR
-    await hass.config_entries.async_forward_entry_setups(config_entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     ## Create update listener
-    config_entry.add_update_listener(_update_listener)
+    entry.add_update_listener(_update_listener)
 
     ## Create shutdown event listener
     shutdown_listener = await async_setup_shutdown_listener(hass, pioneer)
     if shutdown_listener:
-        config_entry.async_on_unload(shutdown_listener)
+        entry.async_on_unload(shutdown_listener)
 
     return True
 
 
-async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
+async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
     """Handle options update."""
 
     ## Send signal to platform to update options
     async_dispatcher_send(
-        hass, f"{PIONEER_OPTIONS_UPDATE}-{config_entry.entry_id}", config_entry.options
+        hass, f"{PIONEER_OPTIONS_UPDATE}-{entry.entry_id}", entry.options
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
     """Unload a config entry."""
     _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)
-    pioneer = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer = hass.data[DOMAIN][entry.entry_id]
     pioneer.clear_zone_callbacks()
 
     ## Unload platforms for Pioneer AVR
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        config_entry, PLATFORMS
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     ## Shutdown Pioneer AVR for removal
     await pioneer.shutdown()
 
     if unload_ok:
-        hass.data[DOMAIN].pop(config_entry.entry_id)
-        host = config_entry.data[CONF_HOST]
-        port = config_entry.data[CONF_PORT]
+        hass.data[DOMAIN].pop(entry.entry_id)
+        host = entry.data[CONF_HOST]
+        port = entry.data[CONF_PORT]
         clear_device_unique_id(hass, host, port)
     else:
         _LOGGER.warning("unload_entry unload failed")
