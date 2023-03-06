@@ -26,7 +26,7 @@ from homeassistant.components.media_player import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
-VERSION = "0.7.1"
+VERSION = "0.7.2"
 
 SUPPORT_PIONEER = (
     SUPPORT_TURN_ON
