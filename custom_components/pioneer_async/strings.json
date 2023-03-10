@@ -12,14 +12,11 @@
                 }
             }
         },
-        "abort": {
-            "not_set_up": "Integration is not set up",
-            "already_configured": "Integration is already configured",
-            "unknown": "Unknown error occurred"
-        },
         "error": {
-            "already_configured": "Integration is already configured",
-            "cannot_connect": "Cannot connect to AVR",
+            "cannot_connect": "Cannot connect to AVR"
+        },
+        "abort": {
+            "already_configured": "Specified device is already configured",
             "unknown": "Unknown error occurred"
         }
     },
@@ -50,6 +47,9 @@
         },
         "error": {
             "invalid_sources": "Invalid JSON dictionary specified for source name mapping"
+        },
+        "abort": {
+            "not_set_up": "Integration is not set up"
         }
     }
 }

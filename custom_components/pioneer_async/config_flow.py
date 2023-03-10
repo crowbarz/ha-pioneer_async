@@ -257,12 +257,12 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                 self._abort_if_unique_id_configured()
                 return self.async_create_entry(title=device_unique_id, data=data)
             except AlreadyConfigured:
-                errors["base"] = "already_configured"
+                return self.async_abort(reason="already_configured")
             except CannotConnect:
                 errors["base"] = "cannot_connect"
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("Unexpected exception: %s", str(exc))
-                errors["base"] = "unknown"
+                return self.async_abort(reason="unknown")
 
         return self.async_show_form(
             step_id="user", data_schema=LOGIN_SCHEMA, errors=errors
