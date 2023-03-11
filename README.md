@@ -1,4 +1,12 @@
 <!-- markdownlint-disable MD033 -->
+[![hacs][hacsbadge]][hacs]
+[![License][license-shield]]([lisense])
+[![hacs][releases-shield]][releases]
+
+![Project Maintenance][maintenance-shield]
+[![GitHub Activity][commits-shield]][commits]
+plus [![GitHub Activity][commits-shield2]][commits2] for AIOPioneer
+
 # Pioneer AVR (asyncio)
 
 Home Assistant `media_player` custom integration for Pioneer AVRs.
@@ -16,6 +24,10 @@ Added support for the following features:
 ## Installation
 
 This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
+
+In the Home Assistant UI go to "Configuration" -> "Integrations" click "+" and search for "Pioneer AVR" 
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.][mybadge]][mylink]
 
 ## Configuration
 
@@ -123,3 +135,19 @@ media_player:
 The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
 
 The [`debug_*`](#params-object) configuration parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
+
+[hacslink]: https://hacs.xyz
+[hacs]: https://github.com/custom-components/hacs?style=for-the-badge
+[hacsbadge]: https://img.shields.io/badge/HACS-Custom-orange.svg?style=for-the-badge
+[license-shield]: https://img.shields.io/github/license/crowbarz/ha-pioneer_async.svg?style=for-the-badge
+[license]: LICENSE
+[mybadge]: https://my.home-assistant.io/badges/config_flow_start.svg
+[mylink]: https://my.home-assistant.io/redirect/hacs_repository/?owner=crowbarz&repository=ha-pioneer_async&category=Media+Player
+[commits]: https://github.com/crowbarz/ha-pioneer_async/commits
+[commits-shield]: https://img.shields.io/github/commit-activity/y/crowbarz/ha-pioneer_async?style=for-the-badge
+[commits2]: https://github.com/crowbarz/aiopioneer/commits
+[commits-shield2]: https://img.shields.io/github/commit-activity/y/crowbarz/aiopioneer?style=for-the-badge
+
+[maintenance-shield]: https://img.shields.io/maintenance/yes/2023.svg?style=for-the-badge
+[releases-shield]: https://img.shields.io/github/v/release/crowbarz/ha-pioneer_async.svg?style=for-the-badge
+[releases]: https://github.com/crowbarz/ha-pioneer_async/releases
