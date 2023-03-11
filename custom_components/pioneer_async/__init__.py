@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    if check_device_unique_id(hass, host, port, entry, configure=True) is None:
+    if check_device_unique_id(hass, host, port, entry.entry_id, configure=True) is None:
         return False
 
     ## Compile options and params
