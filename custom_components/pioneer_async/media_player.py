@@ -14,8 +14,6 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
-    STATE_OFF,
-    STATE_ON,
     STATE_UNKNOWN,
     EVENT_HOMEASSISTANT_CLOSE,
 )
@@ -28,7 +26,6 @@ from .const import (
     DOMAIN,
     CONF_SOURCES,
     CONF_PARAMS,
-    SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
