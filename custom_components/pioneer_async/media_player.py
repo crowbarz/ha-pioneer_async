@@ -331,7 +331,7 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def source_list(self):
         """List of available input sources."""
-        return self._pioneer.get_source_list()
+        return self._pioneer.get_source_list(zone=self._zone)
 
     @property
     def media_title(self):
