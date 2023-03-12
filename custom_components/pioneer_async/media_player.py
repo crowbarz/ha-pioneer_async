@@ -6,7 +6,7 @@ import voluptuous as vol
 from aiopioneer import PioneerAVR
 from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerEntity
+from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerState, MediaPlayerEntity, MediaPlayerEntityFeature
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -290,7 +290,7 @@ class PioneerZone(MediaPlayerEntity):
         state = self._pioneer.power.get(self._zone)
         if state is None:
             return STATE_UNKNOWN
-        return STATE_ON if state else STATE_OFF
+        return MediaPlayerState.ON if state else MediaPlayerState.OFF
 
     @property
     def available(self):
@@ -312,12 +312,39 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def supported_features(self):
         """Flag media player features that are supported."""
-        return SUPPORT_PIONEER
+        ## Automatically detect what features are supported by what parameters are available
+        features = 0
+        if self._pioneer.power.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.TURN_ON.value
+            features += MediaPlayerEntityFeature.TURN_OFF.value
+        if self._pioneer.volume.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.VOLUME_SET.value
+            features += MediaPlayerEntityFeature.VOLUME_STEP.value
+        if self._pioneer.mute.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.VOLUME_MUTE.value
+        if self._pioneer.source.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.SELECT_SOURCE.value
+
+        ## Sound mode is only available on main zone, also it does not return an output if the AVR is off so add this manually until we figure out a better way
+        if self._zone == "1":
+            features += MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
+        return features
 
     @property
     def device_class(self):
         """Return device_class attribute."""
         return CLASS_PIONEER
+
+    @property
+    def sound_mode(self):
+        """Return the current sound mode."""
+        ## Sound modes only supported on zones with speakers, return null if nothing found
+        return self._pioneer.listening_mode.get(self._zone, None)
+    
+    @property
+    def sound_mode_list(self):
+        """Returns all valid sound modes from aiopioneer."""
+        return self._pioneer.get_sound_modes(self._zone)
 
     @property
     def source(self):
@@ -396,6 +423,11 @@ class PioneerZone(MediaPlayerEntity):
             return await self._pioneer.mute_on(self._zone)
         else:
             return await self._pioneer.mute_off(self._zone)
+        
+    async def async_select_sound_mode(self, sound_mode):
+        """Select the sound mode."""
+        ## aiopioneer will translate sound modes
+        return await self._pioneer.set_listening_mode(sound_mode, self._zone)
 
     async def async_update(self):
         """Poll properties on demand."""
