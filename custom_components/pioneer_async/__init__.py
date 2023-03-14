@@ -64,7 +64,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     try:
         sources = json.loads(options[CONF_SOURCES])
     except:  ## pylint: disable=bare-except
-        _LOGGER.warning("Ignoring invalid sources: %s", options[CONF_SOURCES])
+        _LOGGER.warning("ignoring invalid sources: %s", options[CONF_SOURCES])
         sources = {}
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
 
@@ -155,6 +155,6 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         port = entry.data[CONF_PORT]
         clear_device_unique_id(hass, host, port)
     else:
-        _LOGGER.warning("Unload_entry unload failed")
+        _LOGGER.warning("unload_entry unload failed")
 
     return unload_ok
