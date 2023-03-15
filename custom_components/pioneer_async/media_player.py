@@ -24,8 +24,6 @@ from homeassistant.const import (
     CONF_PORT,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
-    STATE_OFF,
-    STATE_ON,
     STATE_UNKNOWN,
     EVENT_HOMEASSISTANT_CLOSE,
 )
@@ -40,7 +38,6 @@ from .const import (
     DOMAIN,
     CONF_SOURCES,
     CONF_PARAMS,
-    SUPPORT_PIONEER,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
@@ -76,7 +73,7 @@ async def async_setup_platform(
     hass: HomeAssistant,
     config: ConfigType,
     async_add_entities: AddEntitiesCallback,
-    discovery_info: DiscoveryInfoType | None = None,
+    _discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Pioneer AVR platform."""
     _LOGGER.debug(">> async_setup_platform(%s)", config)
@@ -309,7 +306,7 @@ class PioneerZone(MediaPlayerEntity):
         state = self._pioneer.power.get(self._zone)
         if state is None:
             return STATE_UNKNOWN
-        return STATE_ON if state else STATE_OFF
+        return MediaPlayerState.ON if state else MediaPlayerState.OFF
 
     @property
     def available(self) -> bool:
@@ -331,12 +328,40 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def supported_features(self) -> MediaPlayerEntityFeature:
         """Flag media player features that are supported."""
-        return SUPPORT_PIONEER
+        ## Automatically detect what features are supported by what parameters are available
+        features = 0
+        if self._pioneer.power.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.TURN_ON.value
+            features += MediaPlayerEntityFeature.TURN_OFF.value
+        if self._pioneer.volume.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.VOLUME_SET.value
+            features += MediaPlayerEntityFeature.VOLUME_STEP.value
+        if self._pioneer.mute.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.VOLUME_MUTE.value
+        if self._pioneer.source.get(self._zone) is not None:
+            features += MediaPlayerEntityFeature.SELECT_SOURCE.value
+
+        ## Sound mode is only available on main zone, also it does not return an
+        ## output if the AVR is off so add this manually until we figure out a better way
+        if self._zone == "1":
+            features += MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
+        return features
 
     @property
     def device_class(self) -> MediaPlayerDeviceClass:
         """Return device_class attribute."""
         return CLASS_PIONEER
+
+    @property
+    def sound_mode(self) -> str | None:
+        """Return the current sound mode."""
+        ## Sound modes only supported on zones with speakers, return null if nothing found
+        return self._pioneer.listening_mode.get(self._zone, None)
+
+    @property
+    def sound_mode_list(self) -> list[str]:
+        """Returns all valid sound modes from aiopioneer."""
+        return self._pioneer.get_sound_modes(self._zone)
 
     @property
     def source(self) -> str | None:
@@ -415,6 +440,11 @@ class PioneerZone(MediaPlayerEntity):
             return await self._pioneer.mute_on(self._zone)
         else:
             return await self._pioneer.mute_off(self._zone)
+
+    async def async_select_sound_mode(self, sound_mode):
+        """Select the sound mode."""
+        ## aiopioneer will translate sound modes
+        return await self._pioneer.set_listening_mode(sound_mode, self._zone)
 
     async def async_update(self) -> None:
         """Poll properties on demand."""

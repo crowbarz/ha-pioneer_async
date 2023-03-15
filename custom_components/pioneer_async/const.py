@@ -4,14 +4,6 @@ from datetime import timedelta
 
 import voluptuous as vol
 
-from homeassistant.components.media_player.const import (
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_SET,
-    SUPPORT_VOLUME_STEP,
-)
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
@@ -27,15 +19,6 @@ from homeassistant.components.media_player import (
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
 VERSION = "0.7.2"
-
-SUPPORT_PIONEER = (
-    SUPPORT_TURN_ON
-    | SUPPORT_TURN_OFF
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_VOLUME_STEP
-)
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
