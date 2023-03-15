@@ -135,7 +135,7 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug(">> async_unload_entry()")
 

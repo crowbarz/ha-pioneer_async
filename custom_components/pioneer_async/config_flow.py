@@ -53,13 +53,13 @@ _LOGGER = logging.getLogger(__name__)
 class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     """Handle a option flow for Harmony."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry):
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         """Initialize options flow."""
         _LOGGER.debug(">> options.__init__()")
         self.config_entry = config_entry
         self.options = config_entry.options
 
-    async def async_step_init(self, user_input=None):
+    async def async_step_init(self, user_input=None) -> FlowResult:
         """Handle options flow for Pioneer AVR."""
         _LOGGER.debug(">> options.async_step_init(%s)", user_input)
 
