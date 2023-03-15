@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    if check_device_unique_id(hass, host, port, entry, configure=True) is None:
+    if check_device_unique_id(hass, host, port, entry.entry_id, configure=True) is None:
         return False
 
     ## Compile options and params
@@ -135,7 +135,7 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug(">> async_unload_entry()")
 

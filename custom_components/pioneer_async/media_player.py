@@ -1,12 +1,22 @@
 """Support for Pioneer AVR."""
 import logging
 import json
+from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
-from homeassistant.components.media_player import PLATFORM_SCHEMA, MediaPlayerState, MediaPlayerEntity, MediaPlayerEntityFeature
+from homeassistant.components.media_player import (
+    PLATFORM_SCHEMA,
+    MediaPlayerDeviceClass,
+    MediaPlayerEntity,
+)
+from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.components.media_player.const import (
+    MediaPlayerEntityFeature,
+    MediaPlayerState,
+)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
@@ -21,6 +31,8 @@ from homeassistant.core import HomeAssistant, Event
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 
 from .const import (
     DOMAIN,
@@ -57,7 +69,12 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
 )
 
 
-async def async_setup_platform(hass, config, async_add_entities, _discovery_info=None):
+async def async_setup_platform(
+    hass: HomeAssistant,
+    config: ConfigType,
+    async_add_entities: AddEntitiesCallback,
+    _discovery_info: DiscoveryInfoType | None = None,
+) -> None:
     """Set up the Pioneer AVR platform."""
     _LOGGER.debug(">> async_setup_platform(%s)", config)
 
@@ -102,8 +119,10 @@ async def async_setup_platform(hass, config, async_add_entities, _discovery_info
 
 
 async def async_setup_entry(
-    hass: HomeAssistant, config_entry: ConfigEntry, async_add_entities
-):
+    hass: HomeAssistant,
+    config_entry: ConfigEntry,
+    async_add_entities: AddEntitiesCallback,
+) -> None:
     """Set up the Pioneer AVR media_player from config entry."""
     _LOGGER.debug(
         ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
@@ -190,7 +209,7 @@ class PioneerZone(MediaPlayerEntity):
         zone: str,
         name: str,
         device_unique_id: str,
-    ):
+    ) -> None:
         """Initialize the Pioneer zone."""
         _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         self._config_entry = config_entry
@@ -252,7 +271,7 @@ class PioneerZone(MediaPlayerEntity):
         self._zone_entities = entities
 
     @property
-    def device_info(self):
+    def device_info(self) -> DeviceInfo:
         """Return device info."""
         name = self._name
         if self._zone == "1":
@@ -267,7 +286,7 @@ class PioneerZone(MediaPlayerEntity):
         }
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return the unique id."""
         ## Defer to entry_id if config_entry available
         ## https://developers.home-assistant.io/docs/entity_registry_index/
@@ -277,12 +296,12 @@ class PioneerZone(MediaPlayerEntity):
             return f"{self._device_unique_id}-{self._zone}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the zone."""
         return self._name
 
     @property
-    def state(self):
+    def state(self) -> MediaPlayerState:
         """Return the state of the zone."""
         state = self._pioneer.power.get(self._zone)
         if state is None:
@@ -290,24 +309,24 @@ class PioneerZone(MediaPlayerEntity):
         return MediaPlayerState.ON if state else MediaPlayerState.OFF
 
     @property
-    def available(self):
+    def available(self) -> bool:
         """Returns whether the device is available."""
         return self._pioneer.available and self._zone in self._pioneer.zones
 
     @property
-    def volume_level(self):
+    def volume_level(self) -> float:
         """Volume level of the media player (0..1)."""
         volume = self._pioneer.volume.get(self._zone)
         max_volume = self._pioneer.max_volume.get(self._zone)
-        return volume / max_volume if (volume and max_volume) else 0
+        return volume / max_volume if (volume and max_volume) else float(0)
 
     @property
-    def is_volume_muted(self):
+    def is_volume_muted(self) -> bool:
         """Boolean if volume is currently muted."""
         return self._pioneer.mute.get(self._zone, False)
 
     @property
-    def supported_features(self):
+    def supported_features(self) -> MediaPlayerEntityFeature:
         """Flag media player features that are supported."""
         ## Automatically detect what features are supported by what parameters are available
         features = 0
@@ -322,29 +341,30 @@ class PioneerZone(MediaPlayerEntity):
         if self._pioneer.source.get(self._zone) is not None:
             features += MediaPlayerEntityFeature.SELECT_SOURCE.value
 
-        ## Sound mode is only available on main zone, also it does not return an output if the AVR is off so add this manually until we figure out a better way
+        ## Sound mode is only available on main zone, also it does not return an
+        ## output if the AVR is off so add this manually until we figure out a better way
         if self._zone == "1":
             features += MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
         return features
 
     @property
-    def device_class(self):
+    def device_class(self) -> MediaPlayerDeviceClass:
         """Return device_class attribute."""
         return CLASS_PIONEER
 
     @property
-    def sound_mode(self):
+    def sound_mode(self) -> str | None:
         """Return the current sound mode."""
         ## Sound modes only supported on zones with speakers, return null if nothing found
         return self._pioneer.listening_mode.get(self._zone, None)
-    
+
     @property
-    def sound_mode_list(self):
+    def sound_mode_list(self) -> list[str]:
         """Returns all valid sound modes from aiopioneer."""
         return self._pioneer.get_sound_modes(self._zone)
 
     @property
-    def source(self):
+    def source(self) -> str | None:
         """Return the current input source."""
         source_id = self._pioneer.source.get(self._zone)
         if source_id:
@@ -353,17 +373,17 @@ class PioneerZone(MediaPlayerEntity):
             return None
 
     @property
-    def source_list(self):
+    def source_list(self) -> list[str]:
         """List of available input sources."""
         return self._pioneer.get_source_list(zone=self._zone)
 
     @property
-    def media_title(self):
+    def media_title(self) -> str:
         """Title of current playing media."""
         return self.source
 
     @property
-    def extra_state_attributes(self):
+    def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         pioneer = self._pioneer
         attrs = {"sources_json": json.dumps(pioneer.get_source_dict())}
@@ -383,50 +403,50 @@ class PioneerZone(MediaPlayerEntity):
         return attrs
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """Polling not required: API will trigger refresh via callbacks."""
         return False
 
-    async def async_turn_on(self):
+    async def async_turn_on(self) -> None:
         """Turn the media player on."""
         return await self._pioneer.turn_on(self._zone)
 
-    async def async_turn_off(self):
+    async def async_turn_off(self) -> None:
         """Turn off media player."""
         return await self._pioneer.turn_off(self._zone)
 
-    async def async_select_source(self, source):
+    async def async_select_source(self, source: str) -> None:
         """Select input source."""
         return await self._pioneer.select_source(source, self._zone)
 
-    async def async_volume_up(self):
+    async def async_volume_up(self) -> None:
         """Volume up media player."""
         return await self._pioneer.volume_up(self._zone)
 
-    async def async_volume_down(self):
+    async def async_volume_down(self) -> None:
         """Volume down media player."""
         return await self._pioneer.volume_down(self._zone)
 
-    async def async_set_volume_level(self, volume):
+    async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
         max_volume = self._pioneer.max_volume.get(self._zone)
         return await self._pioneer.set_volume_level(
             round(volume * max_volume), self._zone
         )
 
-    async def async_mute_volume(self, mute):
+    async def async_mute_volume(self, mute: bool) -> None:
         """Mute (true) or unmute (false) media player."""
         if mute:
             return await self._pioneer.mute_on(self._zone)
         else:
             return await self._pioneer.mute_off(self._zone)
-        
+
     async def async_select_sound_mode(self, sound_mode):
         """Select the sound mode."""
         ## aiopioneer will translate sound modes
         return await self._pioneer.set_listening_mode(sound_mode, self._zone)
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         """Poll properties on demand."""
         _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
         return await self._pioneer.update()
