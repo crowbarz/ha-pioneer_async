@@ -387,6 +387,8 @@ class PioneerZone(MediaPlayerEntity):
         """Return device specific state attributes."""
         pioneer = self._pioneer
         attrs = {"sources_json": json.dumps(pioneer.get_source_dict())}
+
+        ## Return max volume attributes
         volume = pioneer.volume.get(self._zone)
         max_volume = pioneer.max_volume.get(self._zone)
         if volume is not None and max_volume is not None:
@@ -400,6 +402,24 @@ class PioneerZone(MediaPlayerEntity):
                 "device_max_volume": max_volume,
                 "device_volume_db": volume_db,
             }
+
+        ## Return Pioneer attributes for main zone
+        if self._zone == "1":
+            if pioneer.amp:
+                attrs = {**attrs, "amp": pioneer.amp}
+            if pioneer.tuner:
+                attrs = {**attrs, "tuner": pioneer.tuner}
+            if pioneer.channel_levels:
+                attrs = {**attrs, "channel_levels": pioneer.channel_levels}
+            if pioneer.dsp:
+                attrs = {**attrs, "dsp": pioneer.dsp}
+            if pioneer.video:
+                attrs = {**attrs, "video": pioneer.video}
+            if pioneer.audio:
+                attrs = {**attrs, "audio": pioneer.audio}
+            if pioneer.system:
+                attrs = {**attrs, "system": pioneer.system}
+
         return attrs
 
     @property
