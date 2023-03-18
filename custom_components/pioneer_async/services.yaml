@@ -1,0 +1,313 @@
+set_panel_lock:
+  description: Set AVR panel lock
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    panel_lock:
+      description: Panel lock setting
+      required: true
+      example: "0"
+      default: "0"
+      selector:
+        select:
+          options:  # aiopioneer.const.PANEL_LOCK
+            - label: "OFF"
+              value: "0"
+            - label: "PANEL ONLY"
+              value: "1"
+            - label: "PANEL + VOLUME"
+              value: "2"
+
+set_remote_lock:
+  description: Set AVR remote lock
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    remote_lock:
+      description: Enable remote lock
+      required: true
+      example: false
+      selector:
+        boolean:
+
+set_dimmer:
+  description: Set AVR display dimmer
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    dimmer:
+      description: Dimmer mode
+      required: true
+      example: "0"
+      default: "0"
+      selector:
+        select:
+          options:  # aiopioneer.const.DIMMER_MODES
+            - label: "Brightness"
+              value: "0"
+            - label: "Bright"
+              value: "1"
+            - label: "Dark"
+              value: "2"
+            - label: "FL OFF"
+              value: "3"
+            - label: "DIMMER (cyclic)"
+              value: "9"
+
+set_tone_settings:
+  description: Set AVR tone settings for zone
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    tone:
+      description: Tone mode
+      required: true
+      example: "0"
+      selector:
+        select:
+          options:  # aiopioneer.const.TONE_MODES
+            - label: "Bypass"
+              value: "0"
+            - label: "ON"
+              value: "1"
+            - label: "TONE (Cyclic)"
+              value: "9"
+    treble:
+      description: Tone treble value (-6dB -- 6dB)
+      required: true
+      example: 0
+      default: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+          unit_of_measurement: dB
+    bass:
+      description: Tone bass value (-6dB -- 6dB)
+      required: true
+      example: 0
+      default: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+          unit_of_measurement: dB
+
+# set_amp_settings:
+#   description: Set AVR amplifier function settings for zone
+#   fields:
+#     entity_id:
+#       description: Entity for AVR zone to modify
+#       required: true
+#       example: media_player.pioneer_avr
+#       selector:
+#         entity:
+#           integration: pioneer_async
+
+set_fm_tuner_frequency:
+  description: Set AVR AM tuner frequency
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    frequency:
+      description: Tuner frequency (87.5 MHz -- 108.0 MHz)
+      required: true
+      example: 106.1
+      selector:
+        number:
+          min: 87.5
+          max: 108.0
+          step: 0.1
+          default: 87.5
+          unit_of_measurement: MHz
+          mode: box
+
+set_am_tuner_frequency:
+  description: Set AVR AM tuner frequency
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    frequency:
+      description: Tuner frequency (530 - 1700KHz)
+      required: true
+      example: 988
+      selector:
+        number:
+          min: 530
+          max: 1700
+          default: 530
+          step: 1  # 10KHz in the Americas, 9KHz ROW
+          unit_of_measurement: kHz
+          mode: box
+
+set_tuner_preset:
+  description: Set AVR tuner preset
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    class:
+      description: Tuner preset class (A - G)
+      required: true
+      example: "C"
+      default: "A"
+      selector:
+        select:
+          options:
+            - "A"
+            - "B"
+            - "C"
+            - "D"
+            - "E"
+            - "F"
+            - "G"
+    preset:
+      description: Tuner preset ID
+      required: true
+      example: 5
+      default: 1
+      selector:
+        number:
+          min: 1
+          max: 9
+          step: 1
+
+set_channel_levels:
+  description: Set AVR level (gain) for an amplifier channel
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    channel:
+      description: Tuner amp channel
+      required: true
+      example: "L"
+      selector:
+        select:
+          options:
+            - label: "Front Left"
+              value: "L"
+            - label: "Front Right"
+              value: "R"
+            - label: "Center"
+              value: "C"
+            - label: "Surround Left"
+              value: "SL"
+            - label: "Surround Right"
+              value: "SR"
+            - label: "Surround Back Left"
+              value: "SBL"
+            - label: "Surround Back Right"
+              value: "SBR"
+            - label: "Subwoofer"
+              value: "SW"
+            - label: "Front Height Left"
+              value: "LH"
+            - label: "Front Height Right"
+              value: "RH"
+            - label: "Front Wide Left"
+              value: "LW"
+            - label: "Front Wide Right"
+              value: "RW"
+            - label: "Top Middle Left"
+              value: "TML"
+            - label: "Top Middle Right"
+              value: "TMR"
+            - label: "Top Forward Left"
+              value: "TFL"
+            - label: "Top Forward Right"
+              value: "TFR"
+            - label: "Top Backward Left"
+              value: "TRL"
+            - label: "Top Backward Right"
+              value: "TRR"
+            - label: "SubWoofer 1"
+              value: "SW1"
+            - label: "SubWoofer 2"
+              value: "SW2"
+            - label: "INPUT LEVEL ADJUST(ALL ch Level)"
+              value: "ALL"
+    level:
+      description: Tuner amp channel level
+      required: true
+      example: 0.0
+      default: 0.0
+      selector:
+        number:
+          min: -12.0
+          max: 12.0
+          step: 0.5
+          unit_of_measurement: dB
+
+# set_video_settings:
+#   description: Set video settings for zone
+#   fields:
+#     entity_id:
+#       description: Entity for AVR zone to modify
+#       required: true
+#       example: media_player.pioneer_avr
+#       selector:
+#         entity:
+#           integration: pioneer_async
+
+# set_dsp_settings:
+#   description: Set AVR DSP settings for the amplifier
+#   fields:
+#     entity_id:
+#       description: Entity for AVR zone to modify
+#       required: true
+#       example: media_player.pioneer_avr
+#       selector:
+#         entity:
+#           integration: pioneer_async
+
+# media_control:
+#   description: TODO: implement using standard media functions
+#   fields:
+#     entity_id:
+#       description: Entity for AVR zone to modify
+#       required: true
+#       example: media_player.pioneer_avr
+#       selector:
+#         entity:
+#           integration: pioneer_async

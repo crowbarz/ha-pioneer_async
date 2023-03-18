@@ -9,9 +9,9 @@ from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
 from homeassistant.components.media_player import (
     PLATFORM_SCHEMA,
-    MediaPlayerDeviceClass,
     MediaPlayerEntity,
 )
+from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.components.media_player.const import (
     MediaPlayerEntityFeature,
@@ -47,7 +47,31 @@ from .const import (
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
     CLASS_PIONEER,
+    SERVICE_SET_PANEL_LOCK,
+    SERVICE_SET_REMOTE_LOCK,
+    SERVICE_SET_DIMMER,
+    SERVICE_SET_TONE_SETTINGS,
+    # SERVICE_SET_AMP_SETTINGS,
+    SERVICE_SET_FM_TUNER_FREQUENCY,
+    SERVICE_SET_AM_TUNER_FREQUENCY,
+    SERVICE_SET_TUNER_PRESET,
+    SERVICE_SET_CHANNEL_LEVELS,
+    # SERVICE_SET_VIDEO_SETTINGS,
+    # SERVICE_SET_DSP_SETTINGS,
+    ATTR_ENTITY_ID,
+    ATTR_PANEL_LOCK,
+    ATTR_REMOTE_LOCK,
+    ATTR_DIMMER,
+    ATTR_TONE,
+    ATTR_TREBLE,
+    ATTR_BASS,
+    ATTR_FREQUENCY,
+    ATTR_CLASS,
+    ATTR_PRESET,
+    ATTR_CHANNEL,
+    ATTR_LEVEL,
 )
+
 from .device import get_device_unique_id, check_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
@@ -67,6 +91,66 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
     }
 )
+
+PIONEER_SET_PANEL_LOCK_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_PANEL_LOCK): cv.string,
+}
+
+PIONEER_SET_REMOTE_LOCK_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_REMOTE_LOCK): cv.boolean,
+}
+
+PIONEER_SERVICE_SET_DIMMER_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_DIMMER): cv.string,
+}
+
+PIONEER_SET_TONE_SETTINGS_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_TONE): cv.string,
+    vol.Required(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+    vol.Required(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+}
+
+# PIONEER_SET_AMP_SETTINGS_SCHEMA = {
+#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+# }
+
+PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_FREQUENCY): vol.All(
+        vol.Coerce(float), vol.Range(min=87.5, max=108)
+    ),
+}
+
+PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_FREQUENCY): vol.All(
+        vol.Coerce(int), vol.Range(min=530, max=1700)
+    ),
+}
+
+PIONEER_SET_TUNER_PRESET_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_CLASS): cv.string,
+    vol.Required(ATTR_PRESET): vol.All(vol.Coerce(int), vol.Range(min=1, max=9)),
+}
+
+PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_CHANNEL): cv.string,
+    vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(float), vol.Range(min=-12, max=12)),
+}
+
+# PIONEER_SET_VIDEO_SETTINGS_SCHEMA = {
+#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+# }
+
+# PIONEER_SET_DSP_SETTINGS_SCHEMA = {
+#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+# }
 
 
 async def async_setup_platform(
@@ -187,6 +271,48 @@ async def _pioneer_add_entities(
     entities.insert(0, main_entity)
     async_add_entities(entities, update_before_add=True)
 
+    platform = entity_platform.async_get_current_platform()
+
+    platform.async_register_entity_service(
+        SERVICE_SET_PANEL_LOCK, PIONEER_SET_PANEL_LOCK_SCHEMA, "set_panel_lock"
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_REMOTE_LOCK, PIONEER_SET_REMOTE_LOCK_SCHEMA, "set_remote_lock"
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_DIMMER, PIONEER_SERVICE_SET_DIMMER_SCHEMA, "set_dimmer"
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_TONE_SETTINGS, PIONEER_SET_TONE_SETTINGS_SCHEMA, "set_tone_settings"
+    )
+    # platform.async_register_entity_service(
+    #     SERVICE_SET_AMP_SETTINGS, PIONEER_SET_AMP_SETTINGS_SCHEMA, "set_amp_settings"
+    # )
+    platform.async_register_entity_service(
+        SERVICE_SET_FM_TUNER_FREQUENCY,
+        PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA,
+        "set_fm_tuner_frequency",
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_AM_TUNER_FREQUENCY,
+        PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA,
+        "set_am_tuner_frequency",
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_TUNER_PRESET, PIONEER_SET_TUNER_PRESET_SCHEMA, "set_tuner_preset"
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_CHANNEL_LEVELS,
+        PIONEER_SET_CHANNEL_LEVELS_SCHEMA,
+        "set_channel_levels",
+    )
+    # platform.async_register_entity_service(
+    #     SERVICE_SET_VIDEO_SETTINGS, PIONEER_SET_VIDEO_SETTINGS_SCHEMA, "set_video_settings"
+    # )
+    # platform.async_register_entity_service(
+    #     SERVICE_SET_DSP_SETTINGS, PIONEER_SET_DSP_SETTINGS_SCHEMA, "set_dsp_settings"
+    # )
+
 
 async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR):
     """Set up listener to shutdown Pioneer AVR on HA shutdown."""
@@ -202,6 +328,9 @@ async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR
 class PioneerZone(MediaPlayerEntity):
     """Representation of a Pioneer zone."""
 
+    _attr_should_poll = False
+    _attr_device_class = CLASS_PIONEER
+
     def __init__(
         self,
         config_entry: ConfigEntry,
@@ -216,7 +345,7 @@ class PioneerZone(MediaPlayerEntity):
         self._device_unique_id = device_unique_id
         self._pioneer = pioneer
         self._zone = zone
-        self._name = name
+        self._attr_name = name
 
         self._added_to_hass = False
         self._zone_entities = None
@@ -273,7 +402,7 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
-        name = self._name
+        name = self._attr_name
         if self._zone == "1":
             name += " Main Zone"
         return {
@@ -294,11 +423,6 @@ class PioneerZone(MediaPlayerEntity):
             return f"{self._config_entry.entry_id}-{self._zone}"
         else:
             return f"{self._device_unique_id}-{self._zone}"
-
-    @property
-    def name(self) -> str:
-        """Return the name of the zone."""
-        return self._name
 
     @property
     def state(self) -> MediaPlayerState:
@@ -346,11 +470,6 @@ class PioneerZone(MediaPlayerEntity):
         if self._zone == "1":
             features += MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
         return features
-
-    @property
-    def device_class(self) -> MediaPlayerDeviceClass:
-        """Return device_class attribute."""
-        return CLASS_PIONEER
 
     @property
     def sound_mode(self) -> str | None:
@@ -424,11 +543,6 @@ class PioneerZone(MediaPlayerEntity):
 
         return attrs
 
-    @property
-    def should_poll(self) -> bool:
-        """Polling not required: API will trigger refresh via callbacks."""
-        return False
-
     async def async_turn_on(self) -> None:
         """Turn the media player on."""
         return await self._pioneer.turn_on(self._zone)
@@ -463,7 +577,7 @@ class PioneerZone(MediaPlayerEntity):
         else:
             return await self._pioneer.mute_off(self._zone)
 
-    async def async_select_sound_mode(self, sound_mode):
+    async def async_select_sound_mode(self, sound_mode) -> None:
         """Select the sound mode."""
         ## aiopioneer will translate sound modes
         return await self._pioneer.set_listening_mode(sound_mode, self._zone)
@@ -472,3 +586,83 @@ class PioneerZone(MediaPlayerEntity):
         """Poll properties on demand."""
         _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
         return await self._pioneer.update()
+
+    async def set_panel_lock(self, panel_lock: str) -> None:
+        """Set AVR panel lock."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_panel_lock(%s, panel_lock=%s)",
+            self._zone,
+            panel_lock,
+        )
+        return await self._pioneer.set_panel_lock(panel_lock)
+
+    async def set_remote_lock(self, remote_lock: bool):
+        """Set AVR remote lock."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_remote_lock(%s, remote_lock=%s)",
+            self._zone,
+            remote_lock,
+        )
+        return await self._pioneer.set_remote_lock(remote_lock)
+
+    async def set_dimmer(self, dimmer: str):
+        """Set AVR display dimmer."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_dimmer(%s, dimmer=%s)",
+            self._zone,
+            dimmer,
+        )
+        return await self._pioneer.set_dimmer(dimmer)
+
+    async def set_tone_settings(self, tone: str, treble: int, bass: int):
+        """Set AVR tone settings for zone."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_tone_settings(%s, tone=%s, treble=%d, bass=%d)",
+            self._zone,
+            tone,
+            treble,
+            bass,
+        )
+        return await self._pioneer.set_tone_settings(
+            tone, treble, bass, zone=self._zone
+        )
+
+    async def set_fm_tuner_frequency(self, frequency: float):
+        """Set AVR AM tuner frequency."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_fm_tuner_frequency(%s, frequency=%f)",
+            self._zone,
+            frequency,
+        )
+        return await self._pioneer.set_tuner_frequency("FM", frequency)
+
+    async def set_am_tuner_frequency(self, frequency: int):
+        """Set AVR AM tuner frequency."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_am_tuner_frequency(%s, frequency=%d)",
+            self._zone,
+            frequency,
+        )
+        return await self._pioneer.set_tuner_frequency("AM", float(frequency))
+
+    async def set_tuner_preset(self, **kwargs):
+        """Set AVR tuner preset."""
+        tuner_class = kwargs[ATTR_CLASS]  ## workaround for "class" as argument
+        preset = kwargs[ATTR_PRESET]
+        _LOGGER.debug(
+            ">> PioneerZone.set_tuner_preset(%s, class=%s, preset=%d)",
+            self._zone,
+            tuner_class,
+            preset,
+        )
+        return await self._pioneer.set_tuner_preset(tuner_class, preset)
+
+    async def set_channel_levels(self, channel: str, level: float):
+        """Set AVR level (gain) for amplifier channel in zone."""
+        _LOGGER.debug(
+            ">> PioneerZone.set_channel_levels(%s, channel=%s, level=%f)",
+            self._zone,
+            channel,
+            level,
+        )
+        return await self._pioneer.set_channel_levels(channel, level, zone=self._zone)
