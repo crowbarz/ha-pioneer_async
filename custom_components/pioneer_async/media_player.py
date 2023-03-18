@@ -415,10 +415,12 @@ class PioneerZone(MediaPlayerEntity):
                 attrs = {**attrs, "dsp": pioneer.dsp}
             if pioneer.video:
                 attrs = {**attrs, "video": pioneer.video}
-            if pioneer.audio:
-                attrs = {**attrs, "audio": pioneer.audio}
             if pioneer.system:
                 attrs = {**attrs, "system": pioneer.system}
+
+        ## Return zone specific attributes
+        if pioneer.audio and pioneer.audio.get(self._zone):
+            attrs = {**attrs, "audio": pioneer.audio[self._zone]}
 
         return attrs
 
