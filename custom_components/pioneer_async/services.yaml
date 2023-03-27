@@ -160,7 +160,7 @@ set_am_tuner_frequency:
         entity:
           integration: pioneer_async
     frequency:
-      description: Tuner frequency (530 - 1700KHz)
+      description: Tuner frequency (530 -- 1700KHz)
       required: true
       example: 988
       selector:
@@ -183,7 +183,7 @@ set_tuner_preset:
         entity:
           integration: pioneer_async
     class:
-      description: Tuner preset class (A - G)
+      description: Tuner preset class (A -- G)
       required: true
       example: "C"
       default: "A"
