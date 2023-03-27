@@ -22,13 +22,24 @@
     },
     "options": {
         "step": {
-            "init": {
+            "basic_options": {
+                "title": "Basic options",
+                "description": "Configure Pioneer AVR basic options",
                 "data": {
-                    "scan_interval": "Update frequency (s)",
+                    "scan_interval": "Polling update frequency (s)",
                     "timeout": "Connection/command timeout (s)",
-                    "sources": "Source name to AVR source ID mapping (JSON, use empty dict to query from AVR)",
+                    "sources": "Name to AVR source ID mapping\n(JSON dict | \"default\" to query from AVR)",
+                    "zone_2_sources": "Available sources for Zone 2 (JSON list | \"default\" to use default)",
+                    "zone_3_sources": "Available sources for Zone 3 (JSON list | \"default\" to use default)",
+                    "zone_z_sources": "Available sources for HDZone (JSON list | \"default\" to use default)",
                     "command_delay": "Delay between commands (ms) [command_delay]",
-                    "max_source_id": "Maximum source ID that automatic source identification will check [max_source_id]",
+                    "max_source_id": "Maximum source ID that automatic source identification will check [max_source_id]"
+                }
+            },
+            "advanced_options": {
+                "title": "Advanced options",
+                "description": "Configure Pioneer AVR advanced options",
+                "data": {
                     "max_volume": "Maximum volume units for Main Zone [max_volume]",
                     "max_volume_zonex": "Maximum volume units for Zones other than the Main Zone [max_volume_zonex]",
                     "power_on_volume_bounce": "Main Zone power on volume reporting workaround [power_on_volume_bounce]\n(required on VSX-930 with initial volume set)",
@@ -37,7 +48,13 @@
                     "ignore_volume_check": "Don't check volume when determining whether zone exists (on next restart) [ignore_volume_check]",
                     "ignore_zone_2": "Don't create entity for Zone 2 (on next restart) [ignore_zones]",
                     "ignore_zone_3": "Don't create entity for Zone 3 (on next restart) [ignore_zones]",
-                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart) [ignore_zones]",
+                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart) [ignore_zones]"
+                }
+            },
+            "debug_options": {
+                "title": "Debug options",
+                "description": "Configure Pioneer AVR debug options",
+                "data": {
                     "debug_listener": "Enable debug messages for listener task [debug_listener]",
                     "debug_responder": "Enable debug messages for responder task [debug_responder]",
                     "debug_updater": "Enable debug messages for updater task [debug_updater]",

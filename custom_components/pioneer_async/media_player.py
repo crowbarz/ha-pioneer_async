@@ -167,6 +167,12 @@ async def async_setup_platform(
     timeout = config[CONF_TIMEOUT]
     scan_interval = config[CONF_SCAN_INTERVAL]
     sources = config[CONF_SOURCES]
+    if isinstance(sources, str):
+        try:
+            sources = json.loads(sources)
+        except json.JSONDecodeError:
+            _LOGGER.warning("ignoring invalid sources: %s", sources)
+            config[CONF_SOURCES] = (sources := {})
     params = dict(config[CONF_PARAMS])
 
     ## Check whether Pioneer AVR has already been set up
@@ -372,13 +378,16 @@ class PioneerZone(MediaPlayerEntity):
         pioneer = self._pioneer
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
-        sources = json.loads(options[CONF_SOURCES])
+        sources = options[CONF_SOURCES]
+        if isinstance(sources, str):
+            sources = json.loads(sources)
         current_params = pioneer.get_params()
         pioneer.set_user_params(params)
         new_params = pioneer.get_params()
         if sources:
             pioneer.set_source_dict(sources)
         else:
+            ## TODO: re-query zones?
             await pioneer.build_source_dict()
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])

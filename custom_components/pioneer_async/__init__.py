@@ -61,11 +61,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     options = {**OPTIONS_DEFAULTS, **entry_options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
-    try:
-        sources = json.loads(options[CONF_SOURCES])
-    except:  ## pylint: disable=bare-except
-        _LOGGER.warning("ignoring invalid sources: %s", options[CONF_SOURCES])
-        sources = {}
+    sources = options[CONF_SOURCES]
+    if isinstance(sources, str):
+        try:
+            sources = json.loads(sources)
+        except json.JSONDecodeError:
+            _LOGGER.warning("ignoring invalid sources: %s", sources)
+            options[CONF_SOURCES] = (sources := {})
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
 
     ## Create PioneerAVR
