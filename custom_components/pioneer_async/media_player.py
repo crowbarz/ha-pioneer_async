@@ -514,7 +514,7 @@ class PioneerZone(MediaPlayerEntity):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         pioneer = self._pioneer
-        attrs = {"sources_json": json.dumps(pioneer.get_source_dict())}
+        attrs = {"sources_json": json.dumps(pioneer.get_source_dict(self._zone))}
 
         ## Return max volume attributes
         volume = pioneer.volume.get(self._zone)
