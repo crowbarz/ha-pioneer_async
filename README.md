@@ -87,7 +87,7 @@ Set AVR tone settings for zone.
 | Service data attribute | Type | Default | Description
 | --- | --- | --- | ---
 | entity_id | entity ID | | Entity for AVR zone to modify (required)
-| tone | string | | Tone mode. See [`services.yaml`](blob/main/custom_components/pioneer_async/services.yaml) for valid values (required)
+| tone | string | | Tone mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 | treble | int | None | Tone treble value (-6dB -- 6dB)
 | bass | int | None | Tone bass value (-6dB -- 6dB)
 
@@ -126,7 +126,7 @@ Set AVR level (gain) for an amplifier channel.
 | Service data attribute | Type | Default | Description
 | --- | --- | --- | ---
 | entity_id | entity ID | | Entity for AVR zone to modify (required)
-| channel | str | | Tuner amp channel to modify. See [`services.yaml`](blob/main/custom_components/pioneer_async/services.yaml) for valid values (required)
+| channel | str | | Tuner amp channel to modify. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 
 ### Service `set_panel_lock`
 
@@ -153,7 +153,7 @@ Set AVR display dimmer.
 | Service data attribute | Type | Default | Description
 | --- | --- | --- | ---
 | entity_id | entity ID | | Entity for AVR zone to modify (required)
-| dimmer | string | | Dimmer mode. See [`services.yaml`](blob/main/custom_components/pioneer_async/services.yaml) for valid values (required)
+| dimmer | string | | Dimmer mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 
 ### Service `set_video_settings`
 
