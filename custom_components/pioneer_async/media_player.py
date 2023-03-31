@@ -484,7 +484,7 @@ class PioneerZone(MediaPlayerEntity):
     def sound_mode(self) -> str | None:
         """Return the current sound mode."""
         ## Sound modes only supported on zones with speakers, return null if nothing found
-        return self._pioneer.listening_mode.get(self._zone, None)
+        return self._pioneer.listening_mode
 
     @property
     def sound_mode_list(self) -> list[str]:
@@ -532,6 +532,7 @@ class PioneerZone(MediaPlayerEntity):
             }
 
         ## Return Pioneer attributes for main zone
+        ## TODO: move volatile parameters to sensors?
         if self._zone == "1":
             if pioneer.amp:
                 attrs = {**attrs, "amp": pioneer.amp}
