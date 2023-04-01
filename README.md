@@ -99,6 +99,97 @@ media_player:
 
 \* are not automically idenitifed because of the missing Idenitify command in that model.
 
+## Services (>= 0.7.3)
+
+A number of service calls are supported by the integration to invoke functions and change parameters on the AVR. These can be called from scripts and automations, and can also be triggered via Developer Tools > Services.
+
+### Service `set_tone_settings`
+
+Set AVR tone settings for zone.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| tone | string | | Tone mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
+| treble | int | None | Tone treble value (-6dB -- 6dB)
+| bass | int | None | Tone bass value (-6dB -- 6dB)
+
+### Service `set_fm_tuner_frequency`
+
+Set AVR FM tuner frequency.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| frequency | float | | Tuner frequency (87.5 MHz -- 108.0 MHz) (required)
+
+### Service `set_am_tuner_frequency`
+
+Set AVR AM tuner frequency.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| frequency | float | | Tuner frequency (530 -- 1700KHz) (required)
+
+### Service `set_tuner_preset`
+
+Set AVR tuner preset.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| class | str | | Tuner preset class (A -- G) (required)
+| preset | int | | Tuner preset ID (1 -- 9) (required)
+
+### Service `set_channel_levels`
+
+Set AVR level (gain) for an amplifier channel.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| channel | str | | Tuner amp channel to modify. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
+
+### Service `set_panel_lock`
+
+Set AVR panel lock.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| panel_lock | bool | | Panel lock setting (required)
+
+### Service `set_remote_lock`
+
+Set AVR remote lock.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| remote_lock | bool | | Enable remote lock (required)
+
+### Service `set_dimmer`
+
+Set AVR display dimmer.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| dimmer | string | | Dimmer mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
+
+### Service `set_video_settings`
+
+To be implemented.
+
+### Service `set_dsp_settings`
+
+To be implemented.
+
+### Service `media_control`
+
+To be implemented.
+
 ## Breaking changes
 
 - **0.7**\

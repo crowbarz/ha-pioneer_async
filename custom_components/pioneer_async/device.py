@@ -19,7 +19,7 @@ def check_device_unique_id(
     hass: HomeAssistant,
     host: str,
     port: int,
-    entry: str = "configuration.yaml",
+    entry_id: str = "configuration.yaml",
     configure=False,
 ) -> str:
     """Check whether Pioneer AVR has already been set up."""
@@ -30,19 +30,21 @@ def check_device_unique_id(
         configure,
     )
     hass.data.setdefault(DOMAIN, {})
-    configured_entry = hass.data[DOMAIN].get(device_unique_id)
-    # configured_entry = devices.get(device_unique_id)
-    if configured_entry and configured_entry != entry:
+    configured_entry_id = hass.data[DOMAIN].get(device_unique_id)
+    # configured_entry_id = devices.get(device_unique_id)
+    if configured_entry_id and configured_entry_id != entry_id:
         # if configure:
         _LOGGER.error(
             'AVR "%s" is already configured via entry %s',
             device_unique_id,
-            configured_entry,
+            configured_entry_id,
         )
         return None
     if configure:
-        _LOGGER.debug('Configuring AVR "%s" via entry %s', device_unique_id, entry)
-        hass.data[DOMAIN][device_unique_id] = entry  ## flag as configured
+        _LOGGER.debug(
+            'Configuring AVR "%s" via entry_id %s', device_unique_id, entry_id
+        )
+        hass.data[DOMAIN][device_unique_id] = entry_id  ## flag as configured
         # devices[device_unique_id] = entry  ## flag as configured
     return device_unique_id
 

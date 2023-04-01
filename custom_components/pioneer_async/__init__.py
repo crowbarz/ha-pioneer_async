@@ -53,7 +53,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.data[CONF_NAME]
 
     ## Check whether Pioneer AVR has already been set up
-    if check_device_unique_id(hass, host, port, entry, configure=True) is None:
+    if check_device_unique_id(hass, host, port, entry.entry_id, configure=True) is None:
         return False
 
     ## Compile options and params
@@ -61,11 +61,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     options = {**OPTIONS_DEFAULTS, **entry_options}
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
-    try:
-        sources = json.loads(options[CONF_SOURCES])
-    except:  ## pylint: disable=bare-except
-        _LOGGER.warning("ignoring invalid sources: %s", options[CONF_SOURCES])
-        sources = {}
+    sources = options[CONF_SOURCES]
+    if isinstance(sources, str):
+        try:
+            sources = json.loads(sources)
+        except json.JSONDecodeError:
+            _LOGGER.warning("ignoring invalid sources: %s", sources)
+            options[CONF_SOURCES] = (sources := {})
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
 
     ## Create PioneerAVR
@@ -135,7 +137,7 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
     )
 
 
-async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
+async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     _LOGGER.debug(">> async_unload_entry()")
 
