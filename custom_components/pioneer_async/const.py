@@ -4,14 +4,6 @@ from datetime import timedelta
 
 import voluptuous as vol
 
-from homeassistant.components.media_player.const import (
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_SET,
-    SUPPORT_VOLUME_STEP,
-)
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
@@ -26,16 +18,7 @@ from homeassistant.components.media_player import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
-VERSION = "0.7.2"
-
-SUPPORT_PIONEER = (
-    SUPPORT_TURN_ON
-    | SUPPORT_TURN_OFF
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_VOLUME_STEP
-)
+VERSION = "0.7.3"
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
@@ -63,7 +46,7 @@ LOGIN_SCHEMA = vol.Schema(
 OPTIONS_DEFAULTS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL.total_seconds(),
     CONF_TIMEOUT: DEFAULT_TIMEOUT,
-    CONF_SOURCES: "{}",
+    CONF_SOURCES: {},
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_ZONE_Z: False,
@@ -71,3 +54,28 @@ OPTIONS_DEFAULTS = {
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 
 CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
+
+SERVICE_SET_PANEL_LOCK = "set_panel_lock"
+SERVICE_SET_REMOTE_LOCK = "set_remote_lock"
+SERVICE_SET_DIMMER = "set_dimmer"
+SERVICE_SET_TONE_SETTINGS = "set_tone_settings"
+SERVICE_SET_AMP_SETTINGS = "set_amp_settings"
+SERVICE_SET_FM_TUNER_FREQUENCY = "set_fm_tuner_frequency"
+SERVICE_SET_AM_TUNER_FREQUENCY = "set_am_tuner_frequency"
+SERVICE_SET_TUNER_PRESET = "set_tuner_preset"
+SERVICE_SET_CHANNEL_LEVELS = "set_channel_levels"
+SERVICE_SET_VIDEO_SETTINGS = "set_video_settings"
+SERVICE_SET_DSP_SETTINGS = "set_dsp_settings"
+
+ATTR_ENTITY_ID = "entity_id"
+ATTR_PANEL_LOCK = "panel_lock"
+ATTR_REMOTE_LOCK = "remote_lock"
+ATTR_DIMMER = "dimmer"
+ATTR_TONE = "tone"
+ATTR_TREBLE = "treble"
+ATTR_BASS = "bass"
+ATTR_FREQUENCY = "frequency"
+ATTR_CLASS = "class"
+ATTR_PRESET = "preset"
+ATTR_CHANNEL = "channel"
+ATTR_LEVEL = "level"

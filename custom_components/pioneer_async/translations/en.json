@@ -22,26 +22,42 @@
     },
     "options": {
         "step": {
-            "init": {
+            "basic_options": {
+                "title": "Basic options",
+                "description": "Configure Pioneer AVR basic options",
                 "data": {
-                    "scan_interval": "Update frequency (s)",
-                    "timeout": "Connection/command timeout (s)",
-                    "sources": "Source name to AVR source ID mapping (JSON, use empty dict to query from AVR)",
-                    "command_delay": "Delay between commands (ms) [command_delay]",
+                    "sources": "Name to AVR source ID mapping (JSON dict | \"current\" to copy current)",
+                    "zone_2_sources": "Zone 2 available sources (JSON list | \"default\" to copy default)",
+                    "zone_3_sources": "Zone 3 available sources (JSON list | \"default\" to copy default)",
+                    "zone_z_sources": "HDZone available sources (JSON list | \"default\" to copy default)",
                     "max_source_id": "Maximum source ID that automatic source identification will check [max_source_id]",
-                    "max_volume": "Maximum volume units for Main Zone [max_volume]",
-                    "max_volume_zonex": "Maximum volume units for Zones other than the Main Zone [max_volume_zonex]",
-                    "power_on_volume_bounce": "Main Zone power on volume reporting workaround [power_on_volume_bounce]\n(required on VSX-930 with initial volume set)",
-                    "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510) [volume_step_only]",
-                    "volume_step_delta": "Volume units changed per volume step command [volume_step_delta] (deprecated)",
-                    "ignore_volume_check": "Don't check volume when determining whether zone exists (on next restart) [ignore_volume_check]",
                     "ignore_zone_2": "Don't create entity for Zone 2 (on next restart) [ignore_zones]",
                     "ignore_zone_3": "Don't create entity for Zone 3 (on next restart) [ignore_zones]",
-                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart) [ignore_zones]",
+                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart) [ignore_zones]"
+                }
+            },
+            "advanced_options": {
+                "title": "Advanced options",
+                "description": "Configure Pioneer AVR advanced options",
+                "data": {
+                    "scan_interval": "Polling update frequency",
+                    "timeout": "Connection/command timeout",
+                    "command_delay": "Delay between commands [command_delay]",
+                    "max_volume": "Maximum volume units for Main Zone [max_volume]",
+                    "max_volume_zonex": "Maximum volume units for other Zones [max_volume_zonex]",
+                    "power_on_volume_bounce": "Main Zone power on volume reporting workaround (required on VSX-930 with initial volume set) [power_on_volume_bounce]",
+                    "ignore_volume_check": "Don't check volume when determining whether zone exists (on next restart) [ignore_volume_check]",
+                    "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510) [volume_step_only]"
+                }
+            },
+            "debug_options": {
+                "title": "Debug options",
+                "description": "Configure Pioneer AVR debug options",
+                "data": {
+                    "disable_autoquery": "Disable auto queries on init for all functions apart from basic functionality (power, source, volume and mute) [disable_autoquery]",
                     "debug_listener": "Enable debug messages for listener task [debug_listener]",
                     "debug_responder": "Enable debug messages for responder task [debug_responder]",
-                    "debug_updater": "Enable debug messages for updater task [debug_updater]",
-                    "disable_autoquery": "Disable auto queries on init for all functions apart from basic functionality (power, source, volume and mute) [disable_autoquery]"
+                    "debug_updater": "Enable debug messages for updater task [debug_updater]"
                 }
             }
         },
