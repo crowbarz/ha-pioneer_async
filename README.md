@@ -88,14 +88,14 @@ media_player:
       ignore_volume_check: true
 ```
 ## Pioneer models tested and assumed to be working on
-|  SC | SC  |SC   | SC-LX  | VSX | VSX | VSX |
-|--- |--- |--- |---    |--- |--- | ---
-|	SC-71	|	SC-1223	|	SC-2023	|	SC-LX77	|	VSX-45	| VSX-529		|	VSX-1025*
-|	SC-75	|	SC-1228	|		|	SC-LX79	|		|	VSX-830	|	VSX-1028
-|	SC-77	|	SC-1323	|		|	SC-LX87	|		|	VSX-923		|	VSX-1120
-|		|	SC-1328	|		|		|		|	VSX-925*	|	VSX-1123
-|		|	SC-1523	|		|		|		|	VSX-930	|	VSX-1128
-|		|	SC-1528	|		|		|		|		|
+|  SC | SC  |SC   | SC-LX  | VSX | VSX | VSX | VSX |
+|--- |--- |--- |---    |--- |--- | ---| ---
+|	SC-71	|	SC-1223	|	SC-2023	|	SC-LX57	|	VSX-45	| VSX-529		|	VSX-1025*| VSX-2021
+|	SC-75	|	SC-1228	|		|	SC-LX77	|		|	VSX-830	|	VSX-1028|
+|	SC-77	|	SC-1323	|		|	SC-LX78	|		|	VSX-923		|	VSX-1120|
+|		|	SC-1328	|		| SC-LX87 		|		|	VSX-925*	|	VSX-1123|
+|		|	SC-1523	|		|		|		|	VSX-930	|	VSX-1128|
+|		|	SC-1528	|		|		|		|		|           |
 
 \* are not automically idenitifed because of the missing Idenitify command in that model.
 
