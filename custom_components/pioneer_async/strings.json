@@ -26,7 +26,22 @@
                 "title": "Basic options",
                 "description": "Configure Pioneer AVR basic options",
                 "data": {
-                    "sources": "Name to AVR source ID mapping (JSON dict | \"current\" to copy current)",
+                    "sources": "Sources",
+                    "scan_interval": "Scan Interval",
+                    "timeout": "Timeout",
+                    "command_delay": "Command Delay"
+                },
+                "data_description": {
+                    "sources": "Name to AVR source ID mapping (\"current\" to copy current)",
+                    "scan_interval": "Polling update frequency",
+                    "timeout": "Connection/command timeout",
+                    "command_delay": "Delay between commands"
+                }
+            },
+            "zone_options": {
+                "title": "Zone options",
+                "description": "Configure Pioneer AVR Zone options",
+                "data": {
                     "zone_2_sources": "Zone 2 available sources (JSON list | \"default\" to copy default)",
                     "zone_3_sources": "Zone 3 available sources (JSON list | \"default\" to copy default)",
                     "zone_z_sources": "HDZone available sources (JSON list | \"default\" to copy default)",
@@ -40,9 +55,6 @@
                 "title": "Advanced options",
                 "description": "Configure Pioneer AVR advanced options",
                 "data": {
-                    "scan_interval": "Polling update frequency",
-                    "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands [command_delay]",
                     "max_volume": "Maximum volume units for Main Zone [max_volume]",
                     "max_volume_zonex": "Maximum volume units for other Zones [max_volume_zonex]",
                     "power_on_volume_bounce": "Main Zone power on volume reporting workaround (required on VSX-930 with initial volume set) [power_on_volume_bounce]",
