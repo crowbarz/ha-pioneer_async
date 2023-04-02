@@ -356,17 +356,23 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             {
                 vol.Optional(PARAM_ZONE_2_SOURCES, default=""): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.Z2), multiple=True
+                        options=zone_options(Zones.Z2),
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(PARAM_ZONE_3_SOURCES, default=""): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.Z3), multiple=True
+                        options=zone_options(Zones.Z3),
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(PARAM_HDZONE_SOURCES, default=""): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.HDZ), multiple=True
+                        options=zone_options(Zones.HDZ),
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(
