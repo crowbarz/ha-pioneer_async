@@ -587,13 +587,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def _create_entry(self) -> FlowResult:
         """Create/update config entry using submitted options."""
-        if Debug.level >= 8:
-            _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler._create_entry(options=%s, options_parsed=%s)",
-                self.options,
-                self.options_parsed,
-            )
-
         options = self.options
         options_parsed = self.options_parsed
         defaults = self.defaults
@@ -625,5 +618,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         }
 
         data = {**options_conf, **options_parsed, **params, **zone_sources}
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerOptionsFlowHandler._create_entry(data=%s)", data)
 
         return self.async_create_entry(title="", data=data)
