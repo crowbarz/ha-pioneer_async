@@ -66,6 +66,7 @@
                 "title": "Debug options",
                 "description": "Configure Pioneer AVR debug options",
                 "data": {
+                    "debug_level": "Integration debug logging level",
                     "disable_autoquery": "Disable auto queries on init for all functions apart from basic functionality (power, source, volume and mute) [disable_autoquery]",
                     "debug_listener": "Enable debug messages for listener task [debug_listener]",
                     "debug_responder": "Enable debug messages for responder task [debug_responder]",

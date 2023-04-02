@@ -32,6 +32,7 @@ CONF_PARAMS = "params"
 CONF_IGNORE_ZONE_2 = "ignore_zone_2"
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"
 CONF_IGNORE_ZONE_Z = "ignore_zone_Z"
+CONF_DEBUG_LEVEL = "debug_level"
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
 
@@ -50,6 +51,7 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_ZONE_Z: False,
+    CONF_DEBUG_LEVEL: 0,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 

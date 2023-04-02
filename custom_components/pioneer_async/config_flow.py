@@ -46,11 +46,13 @@ from .const import (
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_ZONE_Z,
+    CONF_DEBUG_LEVEL,
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
 from .const import DOMAIN  # pylint: disable=unused-import
 from .device import check_device_unique_id, get_device_unique_id
+from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -85,8 +87,8 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initiated by the user."""
-        _LOGGER.debug(">> config.async_step_user(%s)", user_input)
-
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerAVRFlowHandler.async_step_user(%s)", user_input)
         errors = {}
 
         if user_input is not None:
@@ -132,7 +134,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         # """Initialize Pioneer AVR options flow."""
-        # _LOGGER.debug(">> options.__init__()")
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerOptionsFlowHandler.__init__()")
         self.config_entry = config_entry
         self.pioneer = None
         self.defaults = {}
@@ -145,7 +148,10 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle options flow for Pioneer AVR."""
-        _LOGGER.debug(">> options.async_step_init(%s)", user_input)
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler.async_step_init(%s)", user_input
+            )
 
         config_entry = self.config_entry
         if config_entry.entry_id not in self.hass.data[DOMAIN]:
@@ -265,7 +271,10 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle basic options for Pioneer AVR."""
-        # _LOGGER.debug(">> options.async_step_basic_options(%s)", user_input)
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler.async_step_basic_options(%s)", user_input
+            )
 
         errors = {}
         options = self.options
@@ -331,7 +340,10 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle zone options for Pioneer AVR."""
-        # _LOGGER.debug(">> options.async_step_advanced_options(%s)", user_input)
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler.async_step_zone_options(%s)", user_input
+            )
 
         errors = {}
         options = self.options
@@ -392,7 +404,11 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle advanced options for Pioneer AVR."""
-        # _LOGGER.debug(">> options.async_step_advanced_options(%s)", user_input)
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler.async_step_advanced_options(%s)",
+                user_input,
+            )
 
         errors = {}
         options = self.options
@@ -454,7 +470,10 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle debug options for Pioneer AVR."""
-        # _LOGGER.debug(">> options.async_step_debug_options(%s)", user_input)
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler.async_step_debug_options(%s)", user_input
+            )
 
         errors = {}
         options = self.options
@@ -470,8 +489,14 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         data_schema = vol.Schema(
             {
                 vol.Optional(
-                    PARAM_DISABLE_AUTO_QUERY, default=defaults[PARAM_DISABLE_AUTO_QUERY]
-                ): selector({"boolean": {}}),
+                    CONF_DEBUG_LEVEL, default=defaults[CONF_DEBUG_LEVEL]
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=0,
+                        max=9,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
                 vol.Optional(
                     PARAM_DEBUG_LISTENER, default=defaults[PARAM_DEBUG_LISTENER]
                 ): selector({"boolean": {}}),
@@ -494,11 +519,12 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, step_id: str, user_input: dict[str, Any] | None
     ) -> list[str]:
         """Update config entry options."""
-        _LOGGER.debug(
-            ">> options._update_options(step_id=%s, user_input=%s)",
-            step_id,
-            dict(user_input),
-        )
+        if Debug.level >= 8:
+            _LOGGER.debug(
+                ">> PioneerOptionsFlowHandler._update_options(step_id=%s, user_input=%s)",
+                step_id,
+                dict(user_input),
+            )
         errors = {}
 
         ## Coalesce ignore_zone options into param

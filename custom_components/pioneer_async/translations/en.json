@@ -70,6 +70,7 @@
                     "debug_listener": "Enable debug messages for listener task [debug_listener]",
                     "debug_responder": "Enable debug messages for responder task [debug_responder]",
                     "debug_updater": "Enable debug messages for updater task [debug_updater]"
+                    "debug_listener": "Enable listener task debug logging",
                 }
             }
         },
