@@ -332,7 +332,8 @@ async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR
 
     async def _shutdown_listener(_event: Event) -> None:
         """Handle Home Assistant shutdown."""
-        # _LOGGER.debug(">> async_shutdown()")
+        if Debug.level >= 9:
+            _LOGGER.debug(">> async_shutdown()")
         await pioneer.shutdown()
 
     return hass.bus.async_listen_once(EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener)

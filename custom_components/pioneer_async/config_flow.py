@@ -561,7 +561,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         if step_id == "basic_options":
             query_sources = user_input[CONF_QUERY_SOURCES]
             sources_list = user_input[CONF_SOURCES]
-            # _LOGGER.debug(">> sources_list: %s", sources_list)
             if query_sources:
                 pass
             elif sources_list == []:
@@ -620,6 +619,5 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         }
 
         data = {**options_conf, **options_parsed, **params, **zone_sources}
-        # _LOGGER.debug(">> options._create_entry(data=%s)", data)
 
         return self.async_create_entry(title="", data=data)
