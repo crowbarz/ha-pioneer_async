@@ -26,51 +26,67 @@
                 "title": "Basic options",
                 "description": "Configure Pioneer AVR basic options",
                 "data": {
-                    "sources": "Sources",
-                    "scan_interval": "Scan Interval",
+                    "query_sources": "Query sources from AVR",
+                    "sources": "Manually configured sources",
+                    "scan_interval": "Scan interval",
                     "timeout": "Timeout",
-                    "command_delay": "Command Delay"
+                    "command_delay": "Command delay"
                 },
                 "data_description": {
-                    "sources": "Name to AVR source ID mapping (\"current\" to copy current)",
-                    "scan_interval": "Polling update frequency",
-                    "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands"
+                    "query_sources": "When enabled, manually configured sources are ignored.",
+                    "sources": "Enter source mappings in the format: \"00 Source Name\".",
+                    "scan_interval": "Polling update frequency.",
+                    "timeout": "Connection/command timeout.",
+                    "command_delay": "Delay between commands."
                 }
             },
             "zone_options": {
                 "title": "Zone options",
                 "description": "Configure Pioneer AVR Zone options",
                 "data": {
-                    "zone_2_sources": "Zone 2 available sources (JSON list | \"default\" to copy default)",
-                    "zone_3_sources": "Zone 3 available sources (JSON list | \"default\" to copy default)",
-                    "zone_z_sources": "HDZone available sources (JSON list | \"default\" to copy default)",
-                    "max_source_id": "Maximum source ID that automatic source identification will check [max_source_id]",
-                    "ignore_zone_2": "Don't create entity for Zone 2 (on next restart) [ignore_zones]",
-                    "ignore_zone_3": "Don't create entity for Zone 3 (on next restart) [ignore_zones]",
-                    "ignore_zone_Z": "Don't create entity for HDZone (on next restart) [ignore_zones]"
+                    "max_source_id": "Maximum source ID",
+                    "ignore_zone_2": "Don't create an entity for Zone 2 (requires restart)",
+                    "ignore_zone_3": "Don't create an entity for Zone 3 (requires restart)",
+                    "ignore_hdzone": "Don't create an entity for HDZone (requires restart)",
+                    "zone_2_sources": "Available sources for Zone 2",
+                    "zone_3_sources": "Available sources for Zone 3",
+                    "zone_z_sources": "Available sources for HDZone"
+                },
+                "data_description": {
+                    "max_source_id": "Maximum source ID that AVR source query will check"
                 }
             },
             "advanced_options": {
                 "title": "Advanced options",
                 "description": "Configure Pioneer AVR advanced options",
                 "data": {
-                    "max_volume": "Maximum volume units for Main Zone [max_volume]",
-                    "max_volume_zonex": "Maximum volume units for other Zones [max_volume_zonex]",
-                    "power_on_volume_bounce": "Main Zone power on volume reporting workaround (required on VSX-930 with initial volume set) [power_on_volume_bounce]",
-                    "ignore_volume_check": "Don't check volume when determining whether zone exists (on next restart) [ignore_volume_check]",
-                    "volume_step_only": "Emulate volume level set by stepping volume up/down (for VSX-S510) [volume_step_only]"
+                    "disable_autoquery": "Query basic AVR parameters only",
+                    "power_on_volume_bounce": "Workaround for Main Zone initial volume reporting",
+                    "ignore_volume_check": "Don't check volume when querying AVR source",
+                    "volume_step_only": "Step volume up/down to set volume level",
+                    "max_volume": "Maximum volume units for Main Zone",
+                    "max_volume_zonex": "Maximum volume units for other Zones"
+                },
+                "data_description": {
+                    "disable_autoquery": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs [disable_autoquery]",
+                    "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
+                    "ignore_volume_check": "Enable this when using source query on AVRs  that do not support reporting volume\n[ignore_volume_check] (requires restart)",
+                    "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]"
                 }
             },
             "debug_options": {
                 "title": "Debug options",
                 "description": "Configure Pioneer AVR debug options",
                 "data": {
-                    "disable_autoquery": "Disable auto queries on init for all functions apart from basic functionality (power, source, volume and mute) [disable_autoquery]",
-                    "debug_listener": "Enable debug messages for listener task [debug_listener]",
-                    "debug_responder": "Enable debug messages for responder task [debug_responder]",
-                    "debug_updater": "Enable debug messages for updater task [debug_updater]"
+                    "debug_level": "Integration debug logging level",
                     "debug_listener": "Enable listener task debug logging",
+                    "debug_responder": "Enable responder task debug logging",
+                    "debug_updater": "Enable updater task debug logging"
+                },
+                "data_description": {
+                    "debug_listener": "Enable debug messages for listener task\n[debug_listener]",
+                    "debug_responder": "Enable debug messages for responder task\n[debug_responder]",
+                    "debug_updater": "Enable debug messages for updater task\n[debug_updater]"
                 }
             }
         },
