@@ -90,6 +90,9 @@
                 }
             }
         },
+        "progress": {
+            "query_sources": "Querying AVR sources"
+        },
         "error": {
             "invalid_sources": "Invalid JSON dictionary specified for source name mapping"
         },

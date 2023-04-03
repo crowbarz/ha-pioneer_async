@@ -147,6 +147,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self.options = {}
         self.options_parsed = {}
         self.default_source_ids = {}
+        # self.requery_task = None
 
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured sources."""
@@ -181,6 +182,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
         self.pioneer = pioneer
         default_params = pioneer.get_default_params()
+        # self.requery_task = None
 
         defaults = {
             **OPTIONS_DEFAULTS,  ## defaults
@@ -259,9 +261,32 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         defaults = self.defaults
         step_id = "basic_options"
 
+        # async def _requery_sources():
+        #     """Re-query AVR sources after enabling query_sources."""
+        #     pioneer = self.pioneer
+        #     await pioneer.build_source_dict()
+        #     _LOGGER.debug("flow_id=%s", self.flow_id)
+        #     self.hass.async_create_task(
+        #         self.hass.config_entries.flow.async_configure(flow_id=self.flow_id)
+        #     )
+
         if user_input is not None:
+            # query_sources = options[CONF_QUERY_SOURCES]
             errors = await self._update_options(step_id, user_input)
             if not errors:
+                # if not query_sources and options[CONF_QUERY_SOURCES]:
+                #     ## Query sources turned on, query AVR and restart options flow
+                #     _LOGGER.debug("flow_id=%s", self.flow_id)
+                #     if not self.requery_task:
+                #         self.requery_task = self.hass.async_create_task(
+                #             _requery_sources()
+                #         )
+                #         return self.async_show_progress(
+                #             step_id=step_id,
+                #             progress_action="query_sources",
+                #         )
+
+                #     return self.async_show_progress_done(next_step_id="basic_options")
                 return await self.async_step_zone_options()
 
         data_schema = vol.Schema(
