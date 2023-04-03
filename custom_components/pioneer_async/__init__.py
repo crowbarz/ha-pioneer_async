@@ -29,9 +29,11 @@ from .const import (
     PIONEER_OPTIONS_UPDATE,
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
+    CONF_DEBUG_LEVEL,
 )
 from .device import check_device_unique_id, clear_device_unique_id
 from .media_player import async_setup_shutdown_listener
+from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -40,12 +42,16 @@ CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Pioneer AVR from a config entry."""
-    _LOGGER.debug(
-        ">> init/async_setup_entry(entry_id=%s, data=%s, options=%s)",
-        entry.entry_id,
-        entry.data,
-        entry.options,
-    )
+    if CONF_DEBUG_LEVEL in entry.options:
+        Debug.level = entry.options[CONF_DEBUG_LEVEL]
+
+    if Debug.level >= 9:
+        _LOGGER.debug(
+            ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+            entry.entry_id,
+            entry.data,
+            entry.options,
+        )
 
     ## Create PioneerAVR API object
     host = entry.data[CONF_HOST]
@@ -139,7 +145,8 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    _LOGGER.debug(">> async_unload_entry()")
+    if Debug.level >= 9:
+        _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)
     pioneer = hass.data[DOMAIN][entry.entry_id]

@@ -29,9 +29,14 @@ DEFAULT_SOURCES = {}
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"
-CONF_IGNORE_ZONE_2 = "ignore_zone_2"
-CONF_IGNORE_ZONE_3 = "ignore_zone_3"
-CONF_IGNORE_ZONE_Z = "ignore_zone_Z"
+CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
+CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
+CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
+CONF_QUERY_SOURCES = "query_sources"  ## UI option only
+
+CONF_OLD_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
+
+CONF_DEBUG_LEVEL = "debug_level"
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
 
@@ -49,7 +54,9 @@ OPTIONS_DEFAULTS = {
     CONF_SOURCES: {},
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
-    CONF_IGNORE_ZONE_Z: False,
+    CONF_IGNORE_HDZONE: False,
+    CONF_QUERY_SOURCES: True,
+    CONF_DEBUG_LEVEL: 0,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 

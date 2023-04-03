@@ -38,6 +38,7 @@ from .const import (
     DOMAIN,
     CONF_SOURCES,
     CONF_PARAMS,
+    CONF_DEBUG_LEVEL,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
@@ -71,8 +72,8 @@ from .const import (
     ATTR_CHANNEL,
     ATTR_LEVEL,
 )
-
 from .device import get_device_unique_id, check_device_unique_id
+from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -89,6 +90,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
         vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
         vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
+        vol.Optional(CONF_DEBUG_LEVEL, default=0): cv.positive_int,
     }
 )
 
@@ -160,7 +162,11 @@ async def async_setup_platform(
     _discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
     """Set up the Pioneer AVR platform."""
-    _LOGGER.debug(">> async_setup_platform(%s)", config)
+    if CONF_DEBUG_LEVEL in config:
+        Debug.level = config[CONF_DEBUG_LEVEL]
+
+    if Debug.level >= 9:
+        _LOGGER.debug(">> async_setup_platform(%s)", config)
 
     host = config[CONF_HOST]
     port = config[CONF_PORT]
@@ -214,12 +220,13 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the Pioneer AVR media_player from config entry."""
-    _LOGGER.debug(
-        ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
-        config_entry.entry_id,
-        config_entry.data,
-        config_entry.options,
-    )
+    if Debug.level >= 9:
+        _LOGGER.debug(
+            ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+            config_entry.entry_id,
+            config_entry.data,
+            config_entry.options,
+        )
     pioneer = hass.data[DOMAIN][config_entry.entry_id]
     data = config_entry.data
     entry_options = config_entry.options if config_entry.options else {}
@@ -325,7 +332,8 @@ async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR
 
     async def _shutdown_listener(_event: Event) -> None:
         """Handle Home Assistant shutdown."""
-        _LOGGER.debug(">> async_shutdown()")
+        if Debug.level >= 9:
+            _LOGGER.debug(">> async_shutdown()")
         await pioneer.shutdown()
 
     return hass.bus.async_listen_once(EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener)
@@ -346,7 +354,8 @@ class PioneerZone(MediaPlayerEntity):
         device_unique_id: str,
     ) -> None:
         """Initialize the Pioneer zone."""
-        _LOGGER.debug("PioneerZone.__init__(%s)", zone)
+        if Debug.level >= 9:
+            _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         self._config_entry = config_entry
         self._device_unique_id = device_unique_id
         self._pioneer = pioneer
@@ -358,7 +367,8 @@ class PioneerZone(MediaPlayerEntity):
 
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
-        _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
+        if Debug.level >= 9:
+            _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
 
         self._added_to_hass = True
         self._pioneer.set_zone_callback(self._zone, self.schedule_update_ha_state)
@@ -374,7 +384,8 @@ class PioneerZone(MediaPlayerEntity):
 
     async def _async_update_options(self, data):
         """Change options when the options flow does."""
-        _LOGGER.debug(">> PioneerZone._async_update_options(data=%s)", data)
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerZone._async_update_options(data=%s)", data)
         pioneer = self._pioneer
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
@@ -594,85 +605,94 @@ class PioneerZone(MediaPlayerEntity):
 
     async def async_update(self) -> None:
         """Poll properties on demand."""
-        _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerZone.async_update(%s)", self._zone)
         return await self._pioneer.update()
 
     async def set_panel_lock(self, panel_lock: str) -> None:
         """Set AVR panel lock."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_panel_lock(%s, panel_lock=%s)",
-            self._zone,
-            panel_lock,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_panel_lock(%s, panel_lock=%s)",
+                self._zone,
+                panel_lock,
+            )
         return await self._pioneer.set_panel_lock(panel_lock)
 
     async def set_remote_lock(self, remote_lock: bool):
         """Set AVR remote lock."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_remote_lock(%s, remote_lock=%s)",
-            self._zone,
-            remote_lock,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_remote_lock(%s, remote_lock=%s)",
+                self._zone,
+                remote_lock,
+            )
         return await self._pioneer.set_remote_lock(remote_lock)
 
     async def set_dimmer(self, dimmer: str):
         """Set AVR display dimmer."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_dimmer(%s, dimmer=%s)",
-            self._zone,
-            dimmer,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_dimmer(%s, dimmer=%s)",
+                self._zone,
+                dimmer,
+            )
         return await self._pioneer.set_dimmer(dimmer)
 
     async def set_tone_settings(self, tone: str, treble: int, bass: int):
         """Set AVR tone settings for zone."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_tone_settings(%s, tone=%s, treble=%d, bass=%d)",
-            self._zone,
-            tone,
-            treble,
-            bass,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_tone_settings(%s, tone=%s, treble=%d, bass=%d)",
+                self._zone,
+                tone,
+                treble,
+                bass,
+            )
         return await self._pioneer.set_tone_settings(
             tone, treble, bass, zone=self._zone
         )
 
     async def set_fm_tuner_frequency(self, frequency: float):
         """Set AVR AM tuner frequency."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_fm_tuner_frequency(%s, frequency=%f)",
-            self._zone,
-            frequency,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_fm_tuner_frequency(%s, frequency=%f)",
+                self._zone,
+                frequency,
+            )
         return await self._pioneer.set_tuner_frequency("FM", frequency)
 
     async def set_am_tuner_frequency(self, frequency: int):
         """Set AVR AM tuner frequency."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_am_tuner_frequency(%s, frequency=%d)",
-            self._zone,
-            frequency,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_am_tuner_frequency(%s, frequency=%d)",
+                self._zone,
+                frequency,
+            )
         return await self._pioneer.set_tuner_frequency("AM", float(frequency))
 
     async def set_tuner_preset(self, **kwargs):
         """Set AVR tuner preset."""
         tuner_class = kwargs[ATTR_CLASS]  ## workaround for "class" as argument
         preset = kwargs[ATTR_PRESET]
-        _LOGGER.debug(
-            ">> PioneerZone.set_tuner_preset(%s, class=%s, preset=%d)",
-            self._zone,
-            tuner_class,
-            preset,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_tuner_preset(%s, class=%s, preset=%d)",
+                self._zone,
+                tuner_class,
+                preset,
+            )
         return await self._pioneer.set_tuner_preset(tuner_class, preset)
 
     async def set_channel_levels(self, channel: str, level: float):
         """Set AVR level (gain) for amplifier channel in zone."""
-        _LOGGER.debug(
-            ">> PioneerZone.set_channel_levels(%s, channel=%s, level=%f)",
-            self._zone,
-            channel,
-            level,
-        )
+        if Debug.level >= 1:
+            _LOGGER.debug(
+                ">> PioneerZone.set_channel_levels(%s, channel=%s, level=%f)",
+                self._zone,
+                channel,
+                level,
+            )
         return await self._pioneer.set_channel_levels(channel, level, zone=self._zone)
