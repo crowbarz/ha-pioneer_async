@@ -48,6 +48,7 @@
                     "ignore_zone_2": "Don't create an entity for Zone 2 (requires restart)",
                     "ignore_zone_3": "Don't create an entity for Zone 3 (requires restart)",
                     "ignore_hdzone": "Don't create an entity for HDZone (requires restart)",
+                    "zone_1_sources": "Available sources for Zone 1",
                     "zone_2_sources": "Available sources for Zone 2",
                     "zone_3_sources": "Available sources for Zone 3",
                     "zone_z_sources": "Available sources for HDZone"

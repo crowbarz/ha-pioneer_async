@@ -11,6 +11,7 @@ from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
 from aiopioneer.param import (
     PARAM_IGNORED_ZONES,
+    PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,
     PARAM_ZONE_3_SOURCES,
     PARAM_HDZONE_SOURCES,
@@ -379,6 +380,13 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
         data_schema = vol.Schema(
             {
+                vol.Optional(PARAM_ZONE_1_SOURCES, default=""): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=zone_options(Zones.Z1),
+                        multiple=True,
+                        mode=selector.SelectSelectorMode.DROPDOWN,
+                    ),
+                ),
                 vol.Optional(PARAM_ZONE_2_SOURCES, default=""): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=zone_options(Zones.Z2),
