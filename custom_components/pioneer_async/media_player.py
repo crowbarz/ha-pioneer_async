@@ -39,6 +39,9 @@ from .const import (
     CONF_SOURCES,
     CONF_PARAMS,
     CONF_DEBUG_LEVEL,
+    CONF_QUERY_SOURCES,
+    MIGRATE_CONFIG,
+    MIGRATE_PARAMS,
     DEFAULT_NAME,
     DEFAULT_PORT,
     DEFAULT_TIMEOUT,
@@ -157,16 +160,37 @@ PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
 
 async def async_setup_platform(
     hass: HomeAssistant,
-    config: ConfigType,
+    config_raw: ConfigType,
     async_add_entities: AddEntitiesCallback,
     _discovery_info: DiscoveryInfoType | None = None,
 ) -> None:
-    """Set up the Pioneer AVR platform."""
-    if CONF_DEBUG_LEVEL in config:
-        Debug.level = config[CONF_DEBUG_LEVEL]
+    """Set up the Pioneer AVR platform from configuration.yaml."""
+    if CONF_DEBUG_LEVEL in config_raw:
+        Debug.level = config_raw[CONF_DEBUG_LEVEL]
 
     if Debug.level >= 9:
-        _LOGGER.debug(">> async_setup_platform(%s)", config)
+        _LOGGER.debug(">> async_setup_platform(%s)", config_raw)
+
+    def _migrate_dict(
+        kind: str, source: dict[str, Any], migrate_keys: dict[str, str]
+    ) -> None:
+        """Migrate legacy config/params dicts and warn if encountered."""
+        for key_old, key_new in migrate_keys.items():
+            if key_old in source:
+                _LOGGER.warning(
+                    "deprecated %s %s has been replaced with %s, "
+                    "please update your configuration",
+                    kind,
+                    key_old,
+                    key_new,
+                )
+                source[key_new] = source[key_old]
+                del source[key_old]
+
+    config = config_raw.copy()
+    _migrate_dict("config", config, MIGRATE_CONFIG)
+    if CONF_PARAMS in config:
+        _migrate_dict("param", config[CONF_PARAMS], MIGRATE_PARAMS)
 
     host = config[CONF_HOST]
     port = config[CONF_PORT]
@@ -227,9 +251,9 @@ async def async_setup_entry(
             config_entry.data,
             config_entry.options,
         )
-    pioneer = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer: PioneerAVR = hass.data[DOMAIN][config_entry.entry_id]
     data = config_entry.data
-    entry_options = config_entry.options if config_entry.options else {}
+    entry_options = config_entry.options or {}
     options = {
         **OPTIONS_DEFAULTS,
         **{k: entry_options[k] for k in OPTIONS_ALL if k in entry_options},
@@ -241,9 +265,9 @@ async def async_setup_entry(
 async def _pioneer_add_entities(
     _hass: HomeAssistant,
     config_entry: ConfigEntry,
-    async_add_entities,
+    async_add_entities: AddEntitiesCallback,
     pioneer: PioneerAVR,
-    config,
+    config: ConfigType,
 ):
     """Add media_player entities for each zone."""
     _LOGGER.info("Adding entities for zones %s", pioneer.zones)
@@ -364,6 +388,9 @@ class PioneerZone(MediaPlayerEntity):
 
         self._added_to_hass = False
         self._zone_entities = None
+        self._query_sources = (
+            config_entry.options[CONF_QUERY_SOURCES] if config_entry else None
+        )
 
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
@@ -390,15 +417,14 @@ class PioneerZone(MediaPlayerEntity):
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
         sources = options[CONF_SOURCES]
-        if isinstance(sources, str):
-            sources = json.loads(sources)
-        current_params = pioneer.get_params()
+        query_sources_old = self._query_sources
+        self._query_sources = (query_sources_new := options[CONF_QUERY_SOURCES])
+        params_old = pioneer.get_params()
         pioneer.set_user_params(params)
-        new_params = pioneer.get_params()
+        params_new = pioneer.get_params()
         if sources:
             pioneer.set_source_dict(sources)
-        else:
-            ## TODO: re-query zones?
+        elif not query_sources_old and query_sources_new:
             await pioneer.build_source_dict()
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
@@ -406,7 +432,7 @@ class PioneerZone(MediaPlayerEntity):
         ##       wait_for missing cancellation when awaited coroutine
         ##       has already completed: https://bugs.python.org/issue42130
         ##       Mitigated also by using safe_wait_for()
-        if new_params[PARAM_IGNORED_ZONES] != current_params[PARAM_IGNORED_ZONES]:
+        if params_new[PARAM_IGNORED_ZONES] != params_old[PARAM_IGNORED_ZONES]:
             await pioneer.update_zones()
 
         ## TODO: load/unload entities if ignored_zones has changed

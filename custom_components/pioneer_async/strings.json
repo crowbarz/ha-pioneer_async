@@ -8,16 +8,17 @@
                 "data": {
                     "name": "Device Name",
                     "host": "Host",
-                    "port": "Port"
+                    "port": "Port",
+                    "query_sources": "Query sources from AVR"
                 }
             }
         },
         "error": {
-            "cannot_connect": "Cannot connect to AVR"
+            "cannot_connect": "Cannot connect to AVR: {exception}"
         },
         "abort": {
             "already_configured": "Specified device is already configured",
-            "unknown": "Unknown error occurred"
+            "exception": "Unexpected exception: {exception}"
         }
     },
     "options": {
@@ -51,7 +52,7 @@
                     "zone_1_sources": "Available sources for Zone 1",
                     "zone_2_sources": "Available sources for Zone 2",
                     "zone_3_sources": "Available sources for Zone 3",
-                    "zone_z_sources": "Available sources for HDZone"
+                    "hdzone_sources": "Available sources for HDZone"
                 },
                 "data_description": {
                     "max_source_id": "Maximum source ID that AVR source query will check"

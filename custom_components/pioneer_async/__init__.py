@@ -2,13 +2,14 @@
 # pylint: disable=logging-format-interpolation
 
 import asyncio
-import logging
+from datetime import timedelta
 import json
+import logging
 
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.param import PARAMS_ALL
+from aiopioneer.param import PARAMS_ALL, PARAM_ZONE_SOURCES
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -23,12 +24,15 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
+from .config_flow import PioneerAVRFlowHandler
 from .const import (
     DOMAIN,
     PLATFORMS,
     PIONEER_OPTIONS_UPDATE,
+    MIGRATE_OPTIONS,
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
+    CONF_QUERY_SOURCES,
     CONF_DEBUG_LEVEL,
 )
 from .debug import Debug
@@ -38,6 +42,78 @@ from .media_player import async_setup_shutdown_listener
 _LOGGER = logging.getLogger(__name__)
 
 CONFIG_SCHEMA = vol.Schema({DOMAIN: vol.Schema({})}, extra=vol.ALLOW_EXTRA)
+
+
+async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
+    """Migrate Pioneer AVR config entry."""
+    _LOGGER.debug("migrating config from version %d", config_entry.version)
+
+    if config_entry.version < PioneerAVRFlowHandler.VERSION:
+        data_old = config_entry.data
+        data_new = {**data_old}
+        options_old = config_entry.options
+        options_new = {**options_old}
+
+        ## Migrate options that have been renamed
+        for option_old, option_new in MIGRATE_OPTIONS.items():
+            if option_old in options_old:
+                options_new[option_new] = options_old[option_old]
+                del options_new[option_old]
+
+        ## Add CONF_QUERY_SOURCES
+        sources = options_old.get(CONF_SOURCES, {})
+        query_sources = options_old.get(CONF_QUERY_SOURCES, False)
+        if (
+            not sources or query_sources is None
+        ):  ## no query_sources but sources specified
+            query_sources = True
+        options_new[CONF_QUERY_SOURCES] = query_sources
+
+        ## Ensure CONF_SOURCES is a dict and convert if string
+        try:
+            if isinstance(sources, str):
+                sources = json.loads(sources)
+            if not isinstance(sources, dict):
+                raise ValueError
+        except (json.JSONDecodeError, ValueError):
+            _LOGGER.warning(
+                '%s: invalid config "%s", resetting to default', CONF_SOURCES, sources
+            )
+            options_new[CONF_QUERY_SOURCES] = (query_sources := True)
+        if sources:
+            options_new[CONF_SOURCES] = sources
+        elif CONF_SOURCES in options_new:
+            del options_new[CONF_SOURCES]
+
+        ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
+        for zone, param_sources in PARAM_ZONE_SOURCES.items():
+            sources_zone = options_old.get(param_sources, [])
+            try:
+                if isinstance(sources_zone, str):
+                    sources_zone = json.loads(sources_zone)
+                if not isinstance(sources_zone, list):
+                    raise ValueError
+            except (json.JSONDecodeError, ValueError):
+                _LOGGER.warning(
+                    'invalid config for zone %s: "%s", resetting to default',
+                    str(zone),
+                    sources_zone,
+                )
+                sources_zone = []
+            options_new[param_sources] = sources_zone
+
+        ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
+        scan_interval = options_old[CONF_SCAN_INTERVAL]
+        if isinstance(scan_interval, timedelta):
+            options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
+
+        config_entry.version = 2
+        hass.config_entries.async_update_entry(
+            config_entry, data=data_new, options=options_new
+        )
+
+    _LOGGER.info("config migration to version %s successful", config_entry.version)
+    return True
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
