@@ -33,6 +33,7 @@ from aiopioneer.param import (
 
 from homeassistant import config_entries
 from homeassistant.const import (
+    CONF_NAME,
     CONF_HOST,
     CONF_PORT,
     CONF_SCAN_INTERVAL,
@@ -45,14 +46,15 @@ from homeassistant.helpers import selector
 
 from .const import (
     DOMAIN,
-    LOGIN_SCHEMA,
     CONF_SOURCES,
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_HDZONE,
     CONF_QUERY_SOURCES,
-    CONF_OLD_IGNORE_ZONE_Z,
     CONF_DEBUG_LEVEL,
+    DEFAULT_NAME,
+    DEFAULT_HOST,
+    DEFAULT_PORT,
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
@@ -95,11 +97,12 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         if Debug.level >= 8:
             _LOGGER.debug(">> PioneerAVRFlowHandler.async_step_user(%s)", user_input)
         errors = {}
+        description_placeholders = {}
 
         if user_input is not None:
+            host = user_input[CONF_HOST]
+            port = int(user_input[CONF_PORT])
             try:
-                host = user_input[CONF_HOST]
-                port = user_input[CONF_PORT]
                 if check_device_unique_id(self.hass, host, port) is None:
                     raise AlreadyConfigured
 
@@ -107,30 +110,63 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
                     pioneer = PioneerAVR(host, port)
                     await pioneer.connect()
                 except Exception as exc:  # pylint: disable=broad-except
-                    raise CannotConnect from exc
+                    raise CannotConnect(str(exc)) from exc
 
                 await pioneer.query_device_info()
                 await pioneer.shutdown()
                 del pioneer
+                ## TODO: pass through PioneerAVR to async_setup_entry
 
                 device_unique_id = get_device_unique_id(host, port)
                 await self.async_set_unique_id(device_unique_id)
                 self._abort_if_unique_id_configured()
 
-                return self.async_create_entry(title=device_unique_id, data=user_input)
+                return self.async_create_entry(
+                    title=device_unique_id,
+                    data={
+                        CONF_NAME: user_input[CONF_NAME],
+                        CONF_HOST: host,
+                        CONF_PORT: port,
+                    },
+                    # options={CONF_QUERY_SOURCES: user_input[CONF_QUERY_SOURCES]},
+                )
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
 
-            except CannotConnect:
+            except CannotConnect as exc:
                 errors["base"] = "cannot_connect"
+                description_placeholders["exception"] = str(exc)
 
             except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("Unexpected exception: %s", str(exc))
-                return self.async_abort(reason="unknown")
+                _LOGGER.error("unexpected exception: %s", str(exc))
+                return self.async_abort(
+                    reason="exception", description_placeholders={"exception", str(exc)}
+                )
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
+                vol.Required(CONF_HOST, default=DEFAULT_HOST): str,
+                vol.Optional(CONF_PORT, default=DEFAULT_PORT): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=1,
+                        max=65535,
+                        mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                ## TODO: have to define sources if not querying from AVR
+                # vol.Optional(
+                #     CONF_QUERY_SOURCES, default=True
+                # ): selector.BooleanSelector(),
+            }
+        )
 
         return self.async_show_form(
-            step_id="user", data_schema=LOGIN_SCHEMA, errors=errors
+            step_id="user",
+            data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
+            errors=errors,
+            description_placeholders=description_placeholders,
         )
 
 
@@ -144,7 +180,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self.config_entry = config_entry
         self.pioneer = None
         self.defaults = {}
-        self.errors = {}
         self.options = {}
         self.options_parsed = {}
         self.default_source_ids = {}
@@ -153,6 +188,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured sources."""
         ## NOTE: param defaults may include sources excluded from main zone
+        if Debug.level >= 8:
+            _LOGGER.debug(">> PioneerOptionsFlowHandler.update_zone_source_subsets()")
         defaults = self.defaults
         sources = self.options_parsed.get(CONF_SOURCES) or defaults[CONF_SOURCES]
         source_ids = sources.values()
@@ -258,8 +295,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         errors = {}
-        options = self.options
-        defaults = self.defaults
+        description_placeholders = {}
         step_id = "basic_options"
 
         # async def _requery_sources():
@@ -290,6 +326,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 #     return self.async_show_progress_done(next_step_id="basic_options")
                 return await self.async_step_zone_options()
 
+        options = self.options
+        defaults = self.defaults
         data_schema = vol.Schema(
             {
                 vol.Optional(
@@ -351,8 +389,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         errors = {}
-        options = self.options
-        defaults = self.defaults
+        description_placeholders = {}
         step_id = "zone_options"
 
         if user_input is not None:
@@ -363,6 +400,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 else:
                     return await self._create_entry()
 
+        options = self.options
+        defaults = self.defaults
         zone_labels = dict(
             [
                 (v, k)
@@ -433,6 +472,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(data_schema, options),
             errors=errors,
+            description_placeholders=description_placeholders,
             last_step=not self.show_advanced_options,
         )
 
@@ -447,8 +487,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         errors = {}
-        options = self.options
-        defaults = self.defaults
+        description_placeholders = {}
         step_id = "advanced_options"
 
         if user_input is not None:
@@ -456,6 +495,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             if not errors:
                 return await self.async_step_debug_options()
 
+        options = self.options
+        defaults = self.defaults
         data_schema = vol.Schema(
             {
                 vol.Optional(
@@ -497,6 +538,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(data_schema, options),
             errors=errors,
+            description_placeholders=description_placeholders,
             last_step=False,
         )
 
@@ -510,8 +552,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             )
 
         errors = {}
-        options = self.options
-        defaults = self.defaults
+        description_placeholders = {}
         step_id = "debug_options"
 
         if user_input is not None:
@@ -519,6 +560,8 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             if not errors:
                 return await self._create_entry()
 
+        options = self.options
+        defaults = self.defaults
         data_schema = vol.Schema(
             {
                 vol.Optional(
@@ -545,6 +588,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(data_schema, options),
             errors=errors,
+            description_placeholders=description_placeholders,
             last_step=True,
         )
 
