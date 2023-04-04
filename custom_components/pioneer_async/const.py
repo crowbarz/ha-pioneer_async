@@ -4,6 +4,11 @@ from datetime import timedelta
 
 import voluptuous as vol
 
+from aiopioneer.param import PARAM_HDZONE_SOURCES
+
+from homeassistant.components.media_player import (
+    MediaPlayerDeviceClass,
+)
 from homeassistant.const import (
     CONF_HOST,
     CONF_NAME,
@@ -33,6 +38,7 @@ CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
 CONF_QUERY_SOURCES = "query_sources"  ## UI option only
+CONF_DEBUG_LEVEL = "debug_level"
 
 CONF_OLD_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
 

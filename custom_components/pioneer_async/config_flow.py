@@ -32,7 +32,6 @@ from aiopioneer.param import (
 )
 
 from homeassistant import config_entries
-from homeassistant.exceptions import HomeAssistantError
 from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
@@ -41,6 +40,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import selector
 
 from .const import (
@@ -56,8 +56,8 @@ from .const import (
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
 )
-from .device import check_device_unique_id, get_device_unique_id
 from .debug import Debug
+from .device import check_device_unique_id, get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 

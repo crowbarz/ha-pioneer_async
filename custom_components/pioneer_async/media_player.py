@@ -72,8 +72,8 @@ from .const import (
     ATTR_CHANNEL,
     ATTR_LEVEL,
 )
-from .device import get_device_unique_id, check_device_unique_id
 from .debug import Debug
+from .device import get_device_unique_id, check_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 

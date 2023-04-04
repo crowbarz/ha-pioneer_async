@@ -31,9 +31,9 @@ from .const import (
     CONF_SOURCES,
     CONF_DEBUG_LEVEL,
 )
+from .debug import Debug
 from .device import check_device_unique_id, clear_device_unique_id
 from .media_player import async_setup_shutdown_listener
-from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
