@@ -238,7 +238,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         if query_sources:
             sources = pioneer.get_source_dict() or {}
         options[CONF_QUERY_SOURCES] = query_sources
-        options[CONF_SOURCES] = list([f"{v} {k}" for k, v in sources.items()])
+        options[CONF_SOURCES] = list([f"{v}:{k}" for k, v in sources.items()])
         self.options_parsed[CONF_SOURCES] = sources
 
         self.options = options
@@ -585,7 +585,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             source_err = False
             sources_tuple = list(
                 map(
-                    lambda x: (v[1], v[0]) if len(v := x.split(" ", 1)) == 2 else x,
+                    lambda x: (v[1], v[0]) if len(v := x.split(":", 1)) == 2 else x,
                     sources_list,
                 )
             )
