@@ -70,7 +70,7 @@
                     "max_volume_zonex": "Maximum volume units for other Zones"
                 },
                 "data_description": {
-                    "disable_autoquery": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs [disable_autoquery]",
+                    "disable_autoquery": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_autoquery]",
                     "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
                     "ignore_volume_check": "Enable this when using source query on AVRs  that do not support reporting volume\n[ignore_volume_check] (requires restart)",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]"
@@ -80,7 +80,7 @@
                 "title": "Debug options",
                 "description": "Configure Pioneer AVR debug options",
                 "data": {
-                    "debug_level": "Integration debug logging level",
+                    "debug_config": "Integration debug configuration",
                     "debug_listener": "Enable listener task debug logging",
                     "debug_responder": "Enable responder task debug logging",
                     "debug_updater": "Enable updater task debug logging"
