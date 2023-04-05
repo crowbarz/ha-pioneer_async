@@ -107,7 +107,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             options_new[param_sources] = sources_zone
 
         ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
-        scan_interval = options_old[CONF_SCAN_INTERVAL]
+        scan_interval = options_old.get(CONF_SCAN_INTERVAL)
         if isinstance(scan_interval, timedelta):
             options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
