@@ -96,7 +96,8 @@
             "query_sources": "Querying AVR sources"
         },
         "error": {
-            "invalid_sources": "Invalid JSON dictionary specified for source name mapping"
+            "invalid_sources": "Invalid source name mapping: {sources}",
+            "invalid_debug": "Invalid debug config: {debug}"
         },
         "abort": {
             "not_set_up": "Integration is not set up"

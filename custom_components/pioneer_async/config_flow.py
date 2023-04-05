@@ -1,8 +1,9 @@
 """Config flow for pioneer_async integration."""
 from __future__ import annotations
 
+import json
 import logging
-from typing import Any
+from typing import Any, Tuple
 
 import voluptuous as vol
 
@@ -50,7 +51,7 @@ from .const import (
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_HDZONE,
     CONF_QUERY_SOURCES,
-    CONF_DEBUG_LEVEL,
+    CONF_DEBUG_CONFIG,
     DEFAULT_NAME,
     DEFAULT_HOST,
     DEFAULT_PORT,
@@ -62,6 +63,10 @@ from .debug import Debug
 from .device import check_device_unique_id, get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
+
+
+def _debug_atlevel(level: int, category: str = __name__):
+    return Debug.atlevel(None, level, category)
 
 
 class CannotConnect(HomeAssistantError):
@@ -94,7 +99,7 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initiated by the user."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerAVRFlowHandler.async_step_user(%s)", user_input)
         errors = {}
         description_placeholders = {}
@@ -175,7 +180,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
         # """Initialize Pioneer AVR options flow."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlowHandler.__init__()")
         self.config_entry = config_entry
         self.pioneer = None
@@ -188,7 +193,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured/available sources."""
         ## NOTE: param defaults may include sources excluded from main zone
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlowHandler.update_zone_source_subsets()")
         defaults = self.defaults
         sources = self.options_parsed[CONF_SOURCES]
@@ -208,7 +213,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle options flow for Pioneer AVR."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler.async_step_init(%s)", user_input
             )
@@ -232,7 +237,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         }
         options = {**defaults_inherit, **entry_options}
 
-        ## Convert sources option for options flow
+        ## Convert CONF_SOURCES for options flow
         sources = options[CONF_SOURCES]
         query_sources = True if not sources else options[CONF_QUERY_SOURCES]
         if query_sources:
@@ -240,6 +245,13 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         options[CONF_QUERY_SOURCES] = query_sources
         options[CONF_SOURCES] = list([f"{v}:{k}" for k, v in sources.items()])
         self.options_parsed[CONF_SOURCES] = sources
+
+        ## Convert CONF_DEBUG_CONFIG for options flow
+        debug_config = options[CONF_DEBUG_CONFIG]
+        self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
+        options[CONF_DEBUG_CONFIG] = list(
+            [f"{k}:{json.dumps(v)}" for k, v in debug_config.items()]
+        )
 
         self.options = options
         self.defaults = defaults
@@ -251,13 +263,11 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle basic options for Pioneer AVR."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler.async_step_basic_options(%s)", user_input
             )
 
-        errors = {}
-        description_placeholders = {}
         step_id = "basic_options"
 
         # async def _requery_sources():
@@ -269,10 +279,12 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         #         self.hass.config_entries.flow.async_configure(flow_id=self.flow_id)
         #     )
 
+        errors = {}
+        description_placeholders = {}
         if user_input is not None:
             # query_sources = options[CONF_QUERY_SOURCES]
-            errors = await self._update_options(step_id, user_input)
-            if not errors:
+            result = await self._update_options(step_id, user_input)
+            if result is True:
                 # if not query_sources and options[CONF_QUERY_SOURCES]:
                 #     ## Query sources turned on, query AVR and restart options flow
                 #     _LOGGER.debug("flow_id=%s", self.flow_id)
@@ -287,6 +299,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
                 #     return self.async_show_progress_done(next_step_id="basic_options")
                 return await self.async_step_zone_options()
+            (errors, description_placeholders) = result
 
         options = self.options
         defaults = self.defaults
@@ -346,22 +359,21 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle zone options for Pioneer AVR."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler.async_step_zone_options(%s)", user_input
             )
 
+        step_id = "zone_options"
         errors = {}
         description_placeholders = {}
-        step_id = "zone_options"
-
         if user_input is not None:
-            errors = await self._update_options(step_id, user_input)
-            if not errors:
+            result = await self._update_options(step_id, user_input)
+            if result is True:
                 if self.show_advanced_options:
                     return await self.async_step_advanced_options()
-                else:
-                    return await self._create_entry()
+                return await self._create_entry()
+            (errors, description_placeholders) = result
 
         options = self.options
         defaults = self.defaults
@@ -443,20 +455,20 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle advanced options for Pioneer AVR."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler.async_step_advanced_options(%s)",
                 user_input,
             )
 
+        step_id = "advanced_options"
         errors = {}
         description_placeholders = {}
-        step_id = "advanced_options"
-
         if user_input is not None:
-            errors = await self._update_options(step_id, user_input)
-            if not errors:
+            result = await self._update_options(step_id, user_input)
+            if result is True:
                 return await self.async_step_debug_options()
+            (errors, description_placeholders) = result
 
         options = self.options
         defaults = self.defaults
@@ -509,32 +521,28 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle debug options for Pioneer AVR."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler.async_step_debug_options(%s)", user_input
             )
 
+        step_id = "debug_options"
         errors = {}
         description_placeholders = {}
-        step_id = "debug_options"
-
         if user_input is not None:
-            errors = await self._update_options(step_id, user_input)
-            if not errors:
+            result = await self._update_options(step_id, user_input)
+            if result is True:
                 return await self._create_entry()
+            (errors, description_placeholders) = result
 
         options = self.options
         defaults = self.defaults
         data_schema = vol.Schema(
             {
-                vol.Optional(
-                    CONF_DEBUG_LEVEL, default=defaults[CONF_DEBUG_LEVEL]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        max=9,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
+                vol.Optional(CONF_DEBUG_CONFIG, default=[]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[], custom_value=True, multiple=True
+                    ),
                 ),
                 vol.Optional(
                     PARAM_DEBUG_LISTENER, default=defaults[PARAM_DEBUG_LISTENER]
@@ -557,18 +565,37 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
     async def _update_options(
         self, step_id: str, user_input: dict[str, Any] | None
-    ) -> list[str]:
+    ) -> Tuple[list[str], list[str]] | bool:
         """Update config entry options."""
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(
                 ">> PioneerOptionsFlowHandler._update_options(step_id=%s, user_input=%s)",
                 step_id,
                 dict(user_input),
             )
         errors = {}
+        description_placeholders = {}
         self.options.update(user_input)
 
-        ## Coalesce ignore_zone options into param
+        ## Parse and validate CONF_DEBUG_CONFIG
+        if CONF_DEBUG_CONFIG in user_input:
+            debug_config = {}
+            debug_invalid = []
+            for debug_item in user_input[CONF_DEBUG_CONFIG]:
+                try:
+                    (debug_category, debug_value_str) = debug_item.split(":", 1)
+                    debug_value = json.loads(debug_value_str)
+                    debug_config.update({debug_category: debug_value})
+                except (json.JSONDecodeError, ValueError):
+                    debug_invalid.append(debug_item)
+
+            if debug_invalid:
+                errors[CONF_DEBUG_CONFIG] = "invalid_debug"
+                description_placeholders["debug"] = json.dumps(debug_invalid)
+            elif debug_config:
+                self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
+
+        ## Coalesce CONF_IGNORE_ZONE_* options into param
         if step_id == "zone_options":
             ignored_zones = []
             if user_input.get(CONF_IGNORE_ZONE_2):
@@ -582,7 +609,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
         def _validate_sources(sources_list: list[str]) -> dict[str, Any] | None:
             """Validate sources are in correct format and convert to dict."""
-            source_err = False
+            sources_invalid = []
             sources_tuple = list(
                 map(
                     lambda x: (v[1], v[0]) if len(v := x.split(":", 1)) == 2 else x,
@@ -591,8 +618,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             )
             for source_tuple in sources_tuple:
                 if not isinstance(source_tuple, tuple):
-                    _LOGGER.error("invalid source specification: %s", source_tuple)
-                    source_err = True
+                    sources_invalid.append(source_tuple)
                 else:
                     (_, source_id) = source_tuple
                     if not (
@@ -600,9 +626,12 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                         and source_id[0].isdigit()
                         and source_id[1].isdigit()
                     ):
-                        _LOGGER.error("invalid source ID: %s", source_id)
-                        source_err = True
-            return dict(sources_tuple) if not source_err else None
+                        sources_invalid.append(source_tuple)
+            if sources_invalid:
+                errors[CONF_SOURCES] = "invalid_sources"
+                description_placeholders["sources"] = json.dumps(sources_invalid)
+                return None
+            return dict(sources_tuple)
 
         ## Validate CONF_SOURCES is a dict of names to numeric IDs
         if step_id == "basic_options":
@@ -611,20 +640,18 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             if not sources_list:
                 query_sources = True
             elif not query_sources:
-                if sources_new := _validate_sources(sources_list):
+                if (sources_new := _validate_sources(sources_list)) is not None:
                     self.options_parsed[CONF_SOURCES] = sources_new
-                else:
-                    errors[CONF_SOURCES] = "invalid_sources"
             self.options[CONF_QUERY_SOURCES] = query_sources
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
 
-        return errors
+        return (errors, description_placeholders) if errors else True
 
     async def _create_entry(self) -> FlowResult:
         """Create/update config entry using submitted options."""
         options = self.options
         defaults = self.defaults
-        Debug.level = options[CONF_DEBUG_LEVEL]
+        Debug.setconfig(None, self.options_parsed.get(CONF_DEBUG_CONFIG, {}))
 
         ## Save integration options for non-default values only
         options_conf = {
@@ -656,7 +683,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             del self.options_parsed[CONF_SOURCES]
 
         data = {**options_conf, **self.options_parsed, **params, **zone_sources}
-        if Debug.level >= 8:
+        if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlowHandler._create_entry(data=%s)", data)
 
         return self.async_create_entry(title="", data=data)

@@ -8,7 +8,9 @@ from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
-# devices = {}
+
+def _debug_atlevel(level: int, category: str = __name__):
+    return Debug.atlevel(None, level, category)
 
 
 def get_device_unique_id(host: str, port: int) -> str:
@@ -25,7 +27,7 @@ def check_device_unique_id(
 ) -> str:
     """Check whether Pioneer AVR has already been set up."""
     device_unique_id = get_device_unique_id(host, port)
-    if Debug.level >= 9:
+    if _debug_atlevel(9):
         _LOGGER.debug(
             ">> check_device_unique_id(unique_id=%s, configure=%s)",
             device_unique_id,
@@ -54,7 +56,7 @@ def check_device_unique_id(
 def clear_device_unique_id(hass: HomeAssistant, host: str, port: int) -> None:
     """Clear Pioneer AVR setup."""
     device_unique_id = get_device_unique_id(host, port)
-    if Debug.level >= 9:
+    if _debug_atlevel(9):
         _LOGGER.debug(">> clear_device_unique_id(unique_id=%s)", device_unique_id)
     if device_unique_id in hass.data[DOMAIN]:
         hass.data[DOMAIN].pop(device_unique_id)
