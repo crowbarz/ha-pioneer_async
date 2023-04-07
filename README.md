@@ -7,10 +7,11 @@ Tested on a VSX-930 (Main Zone and HDZone outputs).
 
 Added support for the following features:
 
-- Supports integration config flow (`Configuration` > `Integrations` > `+` to add) as well as configuration via `configuration.yaml`.
+- Supports integration config flow (**Configuration > Integrations > +** to add) as well as configuration via `configuration.yaml`.
 - Uses the [`aiopioneer`](http://github.com/crowbarz/aiopioneer) package to communicate with the AVR via its API.
 - Auto-detect and create entities for Zones 1, 2, 3 and HDZone.
 - Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
+- Specify the sources that are available for each zone, selected from all AVR sources.
 - Create devices and populate with model, software version and MAC address queried from AVR (if supported) when configured via the UI.
 
 ## Installation
@@ -19,11 +20,19 @@ This integration can be installed via HACS by adding this repository as a custom
 
 ## Configuration
 
-This integration may be configured via the UI (`Configuration > Integrations > Add Integration`) or through YAML in `configuration.yaml`. It is recommended that all AVRs are configured using the same configuration method.
+This integration may be configured via the UI (**Configuration > Integrations > +**) or through YAML in `configuration.yaml`. All AVRs should be configured using the same configuration method.
 
 Unlike other similar integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
 
 Be aware that some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. This integration uses a single connection, and each instance of the Pioneer iControlAV5 application will use another connection. (eg. if iControlAV5 is open on two phones, then two connections will be used.)
+
+## Configuration via the UI
+
+On the Integrations page, click **Configure** on the Pioneer AVR integration to specify configuration parameters.
+
+If **Query sources from AVR** is selected and the options flow is submitted, then the integration will poll the AVR for available sources. The sources can then be saved by reconfiguring the AVR again and turning off **Query sources from AVR** and submitting again. Unwanted sources can be removed from the list, and sources available for each zone can also be selected. Once sources are saved, the integration does not poll the AVR for sources again until **Query sources from AVR** is turned on again, making integration startup quicker.
+
+Additional sources can be manually added by entering them in **Manually configured sources** in the format "_id_:_name_", where _id_ is a two digit number with leading zeros.
 
 ## `configuration.yaml` options
 
@@ -37,8 +46,9 @@ Configure these settings under `media_player`:
 | `port` | integer | `8102` | The port on which the Pioneer device listens. This may be `23` if your AVR doesn't respond on port `8102`.
 | `scan_interval` | time_period | `60s` | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling.
 | `timeout` | float | `5.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
-| `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below. To remove custom sources in the UI and query them from the AVR instead, enter `{}`.
+| `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below.
 | `params` | object | `{}` | A mapping of configuration parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
+| `debug_config` | object | `{}` | A mapping of integration module names to debug levels. See [Enabling debugging](#enabling-debugging) for more details.
 
 **NOTE:** See [Breaking Changes](#breaking-changes) if you are upgrading from version 0.2 or earlier as configuration options have changed.
 
@@ -49,8 +59,6 @@ If the `sources` property is not specified, then the integration will attempt to
 The configured mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters in length. The IDs must be defined as YAML strings (ie. between single or double quotes) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
 
 Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
-
-**NOTE:** Remember to use JSON syntax when entering sources in the UI, for example: `{ "TV": "05", "Cable": "06" }`
 
 ### `params` object
 
@@ -78,7 +86,7 @@ media_player:
 
 ## Services (>= 0.7.3)
 
-A number of service calls are supported by the integration to invoke functions and change parameters on the AVR. These can be called from scripts and automations, and can also be triggered via Developer Tools > Services.
+A number of service calls are supported by the integration to invoke functions and change parameters on the AVR. These can be called from scripts and automations, and can also be triggered via **Developer Tools > Services**.
 
 ### Service `set_tone_settings`
 
@@ -169,6 +177,9 @@ To be implemented.
 
 ## Breaking changes
 
+- **0.8**\
+  The `zone_h_sources` and `zone_z_sources` params have been renamed to `hdzone_sources`, to be more consistent with the rest of the integration.
+
 - **0.7**\
   The `device_class` for the zone entities has been updated to `receiver`. If any zone entities are exported to Google Assistant, this change currently (2023-01-08) removes the Google Home UI that was previously shown for this entity when using the default `device_class` of `tv`. You can restore the old behaviour by overriding `device_class` for the entity to `tv`, see [Customising Entities](https://www.home-assistant.io/docs/configuration/customizing-devices/) for details on how to do this.
 
@@ -201,5 +212,7 @@ To be implemented.
 ## Enabling debugging
 
 The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
+
+Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. Home Assistant debug level logging must also be enabled for the integration to generate debug.
 
 The [`debug_*`](#params-object) configuration parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
