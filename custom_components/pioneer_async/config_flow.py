@@ -387,9 +387,12 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         )
 
         def zone_options(zone: Zones):
-            return list(
-                dict([("label", zone_labels.get(v, f"Source {v}")), ("value", v)])
-                for v in self.default_source_ids[zone]
+            return sorted(
+                (
+                    dict([("label", zone_labels.get(v, f"Source {v}")), ("value", v)])
+                    for v in self.default_source_ids[zone]
+                ),
+                key=lambda i: i["label"],
             )
 
         data_schema = vol.Schema(
