@@ -34,11 +34,11 @@
                     "command_delay": "Command delay"
                 },
                 "data_description": {
-                    "query_sources": "When enabled, manually configured sources are ignored.",
-                    "sources": "Enter source mappings in the format: \"00:Source Name\".",
-                    "scan_interval": "Polling update frequency.",
-                    "timeout": "Connection/command timeout.",
-                    "command_delay": "Delay between commands."
+                    "query_sources": "When enabled, manually configured sources are ignored",
+                    "sources": "Add source mappings using the format: \"00:Source Name\"",
+                    "scan_interval": "Polling update frequency",
+                    "timeout": "Connection/command timeout",
+                    "command_delay": "Delay between commands sent to the AVR"
                 }
             },
             "zone_options": {
