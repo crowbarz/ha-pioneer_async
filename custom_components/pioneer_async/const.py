@@ -38,10 +38,12 @@ CONF_QUERY_SOURCES = "query_sources"  ## UI option only
 CONF_DEBUG_CONFIG = "debug_config"
 
 ## Deprecated options
+OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
 OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 
 MIGRATE_CONFIG = {
+    OLD_CONF_IGNORE_ZONE_H: CONF_IGNORE_HDZONE,
     OLD_CONF_IGNORE_ZONE_Z: CONF_IGNORE_HDZONE,
 }
 MIGRATE_PARAMS = {
