@@ -161,6 +161,11 @@ PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
 # }
 
 
+## Debug levels:
+##  1: service calls
+##  7: callback calls
+##  8: update options flow
+##  9: component load/unload
 def _debug_atlevel(level: int, category: str = __name__):
     return Debug.atlevel(None, level, category)
 
@@ -403,6 +408,11 @@ class PioneerZone(MediaPlayerEntity):
         """Complete the initialization."""
         if _debug_atlevel(9):
             _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
+
+        def callback_update_ha() -> None:
+            if _debug_atlevel(7):
+                _LOGGER.debug(">> PioneerZone.callback_update_ha(%s)", self._zone)
+            self.schedule_update_ha_state()
 
         self._added_to_hass = True
         self._pioneer.set_zone_callback(Zones(self._zone), callback_update_ha)
