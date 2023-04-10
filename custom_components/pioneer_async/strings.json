@@ -67,28 +67,31 @@
                     "ignore_volume_check": "Don't check volume when querying AVR source",
                     "volume_step_only": "Step volume up/down to set volume level",
                     "max_volume": "Maximum volume units for Main Zone",
-                    "max_volume_zonex": "Maximum volume units for other Zones"
+                    "max_volume_zonex": "Maximum volume units for other Zones",
+                    "params": "Extra aiopioneer parameters"
                 },
                 "data_description": {
                     "disable_autoquery": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_autoquery]",
                     "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
                     "ignore_volume_check": "Enable this when using source query on AVRs  that do not support reporting volume\n[ignore_volume_check] (requires restart)",
-                    "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]"
+                    "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]",
+                    "params": "Additional config parameters to pass to aiopioneer"
                 }
             },
             "debug_options": {
                 "title": "Debug options",
                 "description": "Configure Pioneer AVR debug options",
                 "data": {
-                    "debug_config": "Integration debug configuration",
                     "debug_listener": "Enable listener task debug logging",
                     "debug_responder": "Enable responder task debug logging",
-                    "debug_updater": "Enable updater task debug logging"
+                    "debug_updater": "Enable updater task debug logging",
+                    "debug_config": "Integration debug"
                 },
                 "data_description": {
                     "debug_listener": "Enable debug messages for listener task\n[debug_listener]",
                     "debug_responder": "Enable debug messages for responder task\n[debug_responder]",
-                    "debug_updater": "Enable debug messages for updater task\n[debug_updater]"
+                    "debug_updater": "Enable debug messages for updater task\n[debug_updater]",
+                    "debug_config": "Additional integration debug configuration"
                 }
             }
         },
@@ -97,7 +100,8 @@
         },
         "error": {
             "invalid_sources": "Invalid source name mapping: {sources}",
-            "invalid_debug": "Invalid debug config: {debug}"
+            "invalid_debug": "Invalid debug config: {debug}",
+            "invalid_params": "Invalid parameter: {params}"
         },
         "abort": {
             "not_set_up": "Integration is not set up"

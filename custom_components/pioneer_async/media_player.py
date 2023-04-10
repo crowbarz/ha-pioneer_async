@@ -422,6 +422,7 @@ class PioneerZone(MediaPlayerEntity):
         pioneer = self._pioneer
         options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
         params = {k: data[k] for k in PARAMS_ALL if k in data}
+        params.update(options.get(CONF_PARAMS, {}))
         sources = options[CONF_SOURCES]
         query_sources_old = self._query_sources
         self._query_sources = (query_sources_new := options[CONF_QUERY_SOURCES])

@@ -47,6 +47,7 @@ from homeassistant.helpers import selector
 from .const import (
     DOMAIN,
     CONF_SOURCES,
+    CONF_PARAMS,
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_HDZONE,
@@ -246,11 +247,18 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         options[CONF_SOURCES] = list([f"{v}:{k}" for k, v in sources.items()])
         self.options_parsed[CONF_SOURCES] = sources
 
+        ## Convert CONF_PARAMS for options flow
+        params_config = options[CONF_PARAMS]
+        self.options_parsed[CONF_PARAMS] = params_config
+        options[CONF_PARAMS] = list(
+            [f"{k}: {json.dumps(v)}" for k, v in params_config.items()]
+        )
+
         ## Convert CONF_DEBUG_CONFIG for options flow
         debug_config = options[CONF_DEBUG_CONFIG]
         self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
         options[CONF_DEBUG_CONFIG] = list(
-            [f"{k}:{json.dumps(v)}" for k, v in debug_config.items()]
+            [f"{k}: {json.dumps(v)}" for k, v in debug_config.items()]
         )
 
         self.options = options
@@ -559,11 +567,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         defaults = self.defaults
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_DEBUG_CONFIG, default=[]): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[], custom_value=True, multiple=True
-                    ),
-                ),
                 vol.Optional(
                     PARAM_DEBUG_LISTENER, default=defaults[PARAM_DEBUG_LISTENER]
                 ): selector.BooleanSelector(),
@@ -573,6 +576,11 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     PARAM_DEBUG_UPDATER, default=defaults[PARAM_DEBUG_UPDATER]
                 ): selector.BooleanSelector(),
+                vol.Optional(CONF_DEBUG_CONFIG, default=[]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[], custom_value=True, multiple=True
+                    ),
+                ),
             }
         )
         return self.async_show_form(
@@ -596,24 +604,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         errors = {}
         description_placeholders = {}
         self.options.update(user_input)
-
-        ## Parse and validate CONF_DEBUG_CONFIG
-        if CONF_DEBUG_CONFIG in user_input:
-            debug_config = {}
-            debug_invalid = []
-            for debug_item in user_input[CONF_DEBUG_CONFIG]:
-                try:
-                    (debug_category, debug_value_str) = debug_item.split(":", 1)
-                    debug_value = json.loads(debug_value_str)
-                    debug_config.update({debug_category: debug_value})
-                except (json.JSONDecodeError, ValueError):
-                    debug_invalid.append(debug_item)
-
-            if debug_invalid:
-                errors[CONF_DEBUG_CONFIG] = "invalid_debug"
-                description_placeholders["debug"] = json.dumps(debug_invalid)
-            elif debug_config:
-                self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
 
         ## Coalesce CONF_IGNORE_ZONE_* options into param
         if step_id == "zone_options":
@@ -664,6 +654,42 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                     self.options_parsed[CONF_SOURCES] = sources_new
             self.options[CONF_QUERY_SOURCES] = query_sources
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
+
+        ## Parse and validate CONF_PARAMS
+        if CONF_PARAMS in user_input:
+            params_config = {}
+            params_invalid = []
+            for param_item in user_input[CONF_PARAMS]:
+                try:
+                    (param_name, _, param_value_str) = param_item.partition(":")
+                    param_value = json.loads(param_value_str)
+                    params_config.update({param_name: param_value})
+                except (json.JSONDecodeError, ValueError):
+                    params_invalid.append(param_item)
+
+            if params_invalid:
+                errors[CONF_PARAMS] = "invalid_params"
+                description_placeholders["params"] = json.dumps(params_invalid)
+            elif params_config:
+                self.options_parsed[CONF_PARAMS] = params_config
+
+        ## Parse and validate CONF_DEBUG_CONFIG
+        if CONF_DEBUG_CONFIG in user_input:
+            debug_config = {}
+            debug_invalid = []
+            for debug_item in user_input[CONF_DEBUG_CONFIG]:
+                try:
+                    (debug_category, _, debug_value_str) = debug_item.partition(":")
+                    debug_value = json.loads(debug_value_str)
+                    debug_config.update({debug_category: debug_value})
+                except (json.JSONDecodeError, ValueError):
+                    debug_invalid.append(debug_item)
+
+            if debug_invalid:
+                errors[CONF_DEBUG_CONFIG] = "invalid_debug"
+                description_placeholders["debug"] = json.dumps(debug_invalid)
+            elif debug_config:
+                self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
 
         return (errors, description_placeholders) if errors else True
 

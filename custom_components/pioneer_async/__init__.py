@@ -32,6 +32,7 @@ from .const import (
     MIGRATE_OPTIONS,
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
+    CONF_PARAMS,
     CONF_QUERY_SOURCES,
     CONF_DEBUG_CONFIG,
 )
@@ -155,6 +156,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             _LOGGER.warning("ignoring invalid sources: %s", sources)
             options[CONF_SOURCES] = (sources := {})
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
+    params.update(options.get(CONF_PARAMS, {}))
 
     ## Create PioneerAVR
     try:
