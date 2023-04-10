@@ -315,13 +315,16 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 vol.Optional(
                     CONF_SCAN_INTERVAL, default=defaults[CONF_SCAN_INTERVAL]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1,
-                        max=2592000,  # 30 days
-                        unit_of_measurement="s",
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=2592000,  # 30 days
+                            unit_of_measurement="s",
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                 ),
                 vol.Optional(
                     CONF_TIMEOUT, default=defaults[CONF_TIMEOUT]
@@ -427,12 +430,15 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 ),
                 vol.Optional(
                     PARAM_MAX_SOURCE_ID, default=defaults[PARAM_MAX_SOURCE_ID]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1,
-                        max=99,
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=99,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                 ),
                 vol.Optional(
                     CONF_IGNORE_ZONE_2, default=defaults[CONF_IGNORE_ZONE_2]
@@ -493,21 +499,32 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_MAX_VOLUME, default=defaults[PARAM_MAX_VOLUME]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        max=PARAM_DEFAULTS[PARAM_MAX_VOLUME],
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=PARAM_DEFAULTS[PARAM_MAX_VOLUME],
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
                 ),
                 vol.Optional(
                     PARAM_MAX_VOLUME_ZONEX, default=defaults[PARAM_MAX_VOLUME_ZONEX]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0,
-                        max=PARAM_DEFAULTS[PARAM_MAX_VOLUME],
-                        mode=selector.NumberSelectorMode.BOX,
-                    )
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=0,
+                            max=PARAM_DEFAULTS[PARAM_MAX_VOLUME],
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                ),
+                vol.Optional(CONF_PARAMS, default=[]): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[], custom_value=True, multiple=True
+                    ),
                 ),
             }
         )
