@@ -90,7 +90,7 @@ In addition to the standard `media_player` entity attributes, this integration e
 
 | Entity attribute | Type | Description
 | --- | --- | --- | ---
-| sources_json | JSON | JSON mapping of all source names to source IDs
+| sources_json | JSON | JSON mapping of zone source names to source IDs
 | device_volume_db | float | Current volume of zone (in dB)
 | device_volume | int | Current volume of zone (in device units)
 | device_max_volume | int | Maximum supported volume of zone (in device units)
