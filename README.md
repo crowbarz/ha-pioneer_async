@@ -84,6 +84,28 @@ media_player:
       ignore_volume_check: true
 ```
 
+## Entity attributes
+
+In addition to the standard `media_player` entity attributes, this integration exposes additional attributes for the Pioneer AVR:
+
+| Entity attribute | Type | Description
+| --- | --- | --- | ---
+| sources_json | JSON | JSON mapping of all source names to source IDs
+| device_volume_db | float | Current volume of zone (in dB)
+| device_volume | int | Current volume of zone (in device units)
+| device_max_volume | int | Maximum supported volume of zone (in device units)
+
+**BETA (>= 0.7.3)**: The following AVR wide attributes may be reported by your AVR. Currently, these attributes appear on the Zone 1 entity, but is likely to move to sensors in a future release.
+
+| Entity attribute | Type | Description
+| --- | --- | --- | ---
+| amp | dict | Amp attributes: eg. front panel display
+| tuner | dict | Tuner attributes: eg. current frequency
+| channel_levels | dict | Surround channel levels
+| dsp | dict | DSP parameters
+| video | dict | Video parameters: inputs and outputs, eg. aspect, colour format, resolution/refresh frequency
+| system | dict | System information from the AVR
+
 ## Services (>= 0.7.3)
 
 A number of service calls are supported by the integration to invoke functions and change parameters on the AVR. These can be called from scripts and automations, and can also be triggered via **Developer Tools > Services**.
