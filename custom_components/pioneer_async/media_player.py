@@ -400,9 +400,6 @@ class PioneerZone(MediaPlayerEntity):
 
         self._added_to_hass = False
         self._zone_entities = None
-        self._query_sources = (
-            config_entry.options.get(CONF_QUERY_SOURCES, True) if config_entry else None
-        )
 
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
@@ -438,14 +435,14 @@ class PioneerZone(MediaPlayerEntity):
         params = {k: data[k] for k in PARAMS_ALL if k in data}
         params.update(options.get(CONF_PARAMS, {}))
         sources = options[CONF_SOURCES]
-        query_sources_old = self._query_sources
-        self._query_sources = (query_sources_new := options[CONF_QUERY_SOURCES])
+        query_sources_old = pioneer.query_sources
+        query_sources_new = options[CONF_QUERY_SOURCES]
         params_old = pioneer.get_params()
         pioneer.set_user_params(params)
         params_new = pioneer.get_params()
-        if sources:
+        if not query_sources_new and sources:
             pioneer.set_source_dict(sources)
-        elif not query_sources_old and query_sources_new:
+        elif not sources or (not query_sources_old and query_sources_new):
             await pioneer.build_source_dict()
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
