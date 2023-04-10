@@ -5,6 +5,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
+from aiopioneer.const import Zones
 from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
 
 from homeassistant.components.media_player import (
@@ -404,16 +405,19 @@ class PioneerZone(MediaPlayerEntity):
             _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
 
         self._added_to_hass = True
-        self._pioneer.set_zone_callback(self._zone, self.schedule_update_ha_state)
-        if self._config_entry and self._zone == "1":
-            ## Add update options dispatcher connection on Main Zone entity
-            self.async_on_remove(
-                async_dispatcher_connect(
-                    self.hass,
-                    f"{PIONEER_OPTIONS_UPDATE}-{self._config_entry.entry_id}",
-                    self._async_update_options,
+        self._pioneer.set_zone_callback(Zones(self._zone), callback_update_ha)
+        if self._zone == "1":
+            ## TODO: Global parameters currently added to attributes of Main Zone entity
+            # self._pioneer.set_zone_callback(Zones.ALL, self.schedule_update_ha_state)
+            if self._config_entry:
+                ## Add update options dispatcher connection on Main Zone entity
+                self.async_on_remove(
+                    async_dispatcher_connect(
+                        self.hass,
+                        f"{PIONEER_OPTIONS_UPDATE}-{self._config_entry.entry_id}",
+                        self._async_update_options,
+                    )
                 )
-            )
 
     async def _async_update_options(self, data):
         """Change options when the options flow does."""
