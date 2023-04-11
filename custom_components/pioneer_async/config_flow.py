@@ -27,6 +27,7 @@ from aiopioneer.param import (
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_RESPONDER,
     PARAM_DEBUG_UPDATER,
+    PARAM_DEBUG_COMMAND,
     PARAM_DEFAULTS,
     PARAMS_ALL,
 )
@@ -575,6 +576,9 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_DEBUG_UPDATER, default=defaults[PARAM_DEBUG_UPDATER]
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_DEBUG_COMMAND, default=defaults[PARAM_DEBUG_COMMAND]
                 ): selector.BooleanSelector(),
                 vol.Optional(CONF_DEBUG_CONFIG, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(

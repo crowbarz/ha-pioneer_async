@@ -85,12 +85,10 @@
                     "debug_listener": "Enable listener task debug logging",
                     "debug_responder": "Enable responder task debug logging",
                     "debug_updater": "Enable updater task debug logging",
+                    "debug_command": "Enable command debug logging",
                     "debug_config": "Integration debug"
                 },
                 "data_description": {
-                    "debug_listener": "Enable debug messages for listener task\n[debug_listener]",
-                    "debug_responder": "Enable debug messages for responder task\n[debug_responder]",
-                    "debug_updater": "Enable debug messages for updater task\n[debug_updater]",
                     "debug_config": "Additional integration debug configuration"
                 }
             }
