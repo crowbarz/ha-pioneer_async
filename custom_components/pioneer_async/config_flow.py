@@ -670,7 +670,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             if params_invalid:
                 errors[CONF_PARAMS] = "invalid_params"
                 description_placeholders["params"] = json.dumps(params_invalid)
-            elif params_config:
+            else:
                 self.options_parsed[CONF_PARAMS] = params_config
 
         ## Parse and validate CONF_DEBUG_CONFIG
@@ -688,7 +688,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
             if debug_invalid:
                 errors[CONF_DEBUG_CONFIG] = "invalid_debug"
                 description_placeholders["debug"] = json.dumps(debug_invalid)
-            elif debug_config:
+            else:
                 self.options_parsed[CONF_DEBUG_CONFIG] = debug_config
 
         return (errors, description_placeholders) if errors else True
