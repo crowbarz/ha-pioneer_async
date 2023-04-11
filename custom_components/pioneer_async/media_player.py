@@ -40,7 +40,6 @@ from .const import (
     CONF_SOURCES,
     CONF_PARAMS,
     CONF_DEBUG_CONFIG,
-    CONF_QUERY_SOURCES,
     MIGRATE_CONFIG,
     MIGRATE_PARAMS,
     DEFAULT_NAME,
@@ -435,14 +434,13 @@ class PioneerZone(MediaPlayerEntity):
         params = {k: data[k] for k in PARAMS_ALL if k in data}
         params.update(options.get(CONF_PARAMS, {}))
         sources = options[CONF_SOURCES]
-        query_sources_old = pioneer.query_sources
-        query_sources_new = options[CONF_QUERY_SOURCES]
-        params_old = pioneer.get_params()
+        query_sources_current = pioneer.query_sources
+        params_current = pioneer.get_params()
         pioneer.set_user_params(params)
         params_new = pioneer.get_params()
-        if not query_sources_new and sources:
+        if sources:
             pioneer.set_source_dict(sources)
-        elif not sources or (not query_sources_old and query_sources_new):
+        elif not query_sources_current:
             await pioneer.build_source_dict()
         await pioneer.set_timeout(options[CONF_TIMEOUT])
         await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
@@ -450,7 +448,7 @@ class PioneerZone(MediaPlayerEntity):
         ##       wait_for missing cancellation when awaited coroutine
         ##       has already completed: https://bugs.python.org/issue42130
         ##       Mitigated also by using safe_wait_for()
-        if params_new[PARAM_IGNORED_ZONES] != params_old[PARAM_IGNORED_ZONES]:
+        if params_new[PARAM_IGNORED_ZONES] != params_current[PARAM_IGNORED_ZONES]:
             await pioneer.update_zones()
 
         ## TODO: load/unload entities if ignored_zones has changed

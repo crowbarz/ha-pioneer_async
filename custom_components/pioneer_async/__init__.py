@@ -33,7 +33,6 @@ from .const import (
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
     CONF_PARAMS,
-    CONF_QUERY_SOURCES,
     CONF_DEBUG_CONFIG,
 )
 from .debug import Debug
@@ -54,27 +53,19 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     _LOGGER.debug("migrating config from version %d", config_entry.version)
 
     if config_entry.version < PioneerAVRFlowHandler.VERSION:
-        data_old = config_entry.data
-        data_new = {**data_old}
-        options_old = config_entry.options
-        options_new = {**options_old}
+        data_current = config_entry.data
+        data_new = {**data_current}
+        options_current = config_entry.options
+        options_new = {**options_current}
 
         ## Migrate options that have been renamed
-        for option_old, option_new in MIGRATE_OPTIONS.items():
-            if option_old in options_old:
-                options_new[option_new] = options_old[option_old]
-                del options_new[option_old]
-
-        ## Add CONF_QUERY_SOURCES
-        sources = options_old.get(CONF_SOURCES, {})
-        query_sources = options_old.get(CONF_QUERY_SOURCES, False)
-        if (
-            not sources or query_sources is None
-        ):  ## no query_sources but sources specified
-            query_sources = True
-        options_new[CONF_QUERY_SOURCES] = query_sources
+        for option_current, option_new in MIGRATE_OPTIONS.items():
+            if option_current in options_current:
+                options_new[option_new] = options_current[option_current]
+                del options_new[option_current]
 
         ## Ensure CONF_SOURCES is a dict and convert if string
+        sources = options_current.get(CONF_SOURCES, {})
         try:
             if isinstance(sources, str):
                 sources = json.loads(sources)
@@ -84,7 +75,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             _LOGGER.warning(
                 '%s: invalid config "%s", resetting to default', CONF_SOURCES, sources
             )
-            options_new[CONF_QUERY_SOURCES] = (query_sources := True)
         if sources:
             options_new[CONF_SOURCES] = sources
         elif CONF_SOURCES in options_new:
@@ -92,7 +82,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
         ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
         for zone, param_sources in PARAM_ZONE_SOURCES.items():
-            sources_zone = options_old.get(param_sources, [])
+            sources_zone = options_current.get(param_sources, [])
             try:
                 if isinstance(sources_zone, str):
                     sources_zone = json.loads(sources_zone)
@@ -108,7 +98,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             options_new[param_sources] = sources_zone
 
         ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
-        scan_interval = options_old.get(CONF_SCAN_INTERVAL)
+        scan_interval = options_current.get(CONF_SCAN_INTERVAL)
         if isinstance(scan_interval, timedelta):
             options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
@@ -149,12 +139,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
     sources = options[CONF_SOURCES]
-    if isinstance(sources, str):
-        try:
-            sources = json.loads(sources)
-        except json.JSONDecodeError:
-            _LOGGER.warning("ignoring invalid sources: %s", sources)
-            options[CONF_SOURCES] = (sources := {})
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
     params.update(options.get(CONF_PARAMS, {}))
 

@@ -34,7 +34,7 @@ CONF_PARAMS = "params"
 CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
-CONF_QUERY_SOURCES = "query_sources"  ## UI option only
+CONF_QUERY_SOURCES = "query_sources"  ## UI option only, inferred from CONF_SOURCES
 CONF_DEBUG_CONFIG = "debug_config"
 
 ## Deprecated options
@@ -61,7 +61,6 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_HDZONE: False,
-    CONF_QUERY_SOURCES: True,
     CONF_DEBUG_CONFIG: {},
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()

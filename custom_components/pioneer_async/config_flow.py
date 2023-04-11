@@ -86,7 +86,7 @@ class InvalidSources(HomeAssistantError):
 class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle Pioneer AVR config flow."""
 
-    VERSION = 2
+    VERSION = 3
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     @staticmethod
@@ -195,10 +195,12 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured/available sources."""
         ## NOTE: param defaults may include sources excluded from main zone
+        config_entry = self.config_entry
+        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlowHandler.update_zone_source_subsets()")
         defaults = self.defaults
-        sources = self.options_parsed[CONF_SOURCES]
+        sources = self.options_parsed.get(CONF_SOURCES, pioneer.get_source_dict() or {})
         source_ids = sources.values()
         for zone, param_sources in PARAM_ZONE_SOURCES.items():
             zone_valid_ids = [
@@ -241,10 +243,10 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
         ## Convert CONF_SOURCES for options flow
         sources = options[CONF_SOURCES]
-        query_sources = True if not sources else options[CONF_QUERY_SOURCES]
-        if query_sources:
+        options[CONF_QUERY_SOURCES] = False
+        if not sources:
             sources = pioneer.get_source_dict() or {}
-        options[CONF_QUERY_SOURCES] = query_sources
+            options[CONF_QUERY_SOURCES] = True
         options[CONF_SOURCES] = list([f"{v}:{k}" for k, v in sources.items()])
         self.options_parsed[CONF_SOURCES] = sources
 
@@ -315,7 +317,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         data_schema = vol.Schema(
             {
                 vol.Optional(
-                    CONF_QUERY_SOURCES, default=defaults[CONF_QUERY_SOURCES]
+                    CONF_QUERY_SOURCES, default=True
                 ): selector.BooleanSelector(),
                 vol.Optional(CONF_SOURCES, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(
@@ -390,12 +392,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         options = self.options
         defaults = self.defaults
         zone_labels = dict(
-            [
-                (v, k)
-                for k, v in (
-                    self.options_parsed.get(CONF_SOURCES) or defaults[CONF_SOURCES]
-                ).items()
-            ]
+            [(v, k) for k, v in (self.options_parsed[CONF_SOURCES]).items()]
         )
 
         def zone_options(zone: Zones):
@@ -649,14 +646,13 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
         ## Validate CONF_SOURCES is a dict of names to numeric IDs
         if step_id == "basic_options":
-            query_sources = user_input[CONF_QUERY_SOURCES]
-            sources_list = user_input[CONF_SOURCES]
-            if not sources_list:
-                query_sources = True
-            elif not query_sources:
-                if (sources_new := _validate_sources(sources_list)) is not None:
+            sources_list = {}
+            sources_new = {}
+            if not user_input[CONF_QUERY_SOURCES]:
+                sources_list = user_input[CONF_SOURCES]
+            if sources_list:
+                if sources_new := _validate_sources(sources_list):
                     self.options_parsed[CONF_SOURCES] = sources_new
-            self.options[CONF_QUERY_SOURCES] = query_sources
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
 
         ## Parse and validate CONF_PARAMS
