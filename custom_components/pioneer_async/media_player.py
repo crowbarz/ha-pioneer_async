@@ -93,7 +93,7 @@ PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
         vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
         vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
         vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
-        vol.Optional(CONF_DEBUG_CONFIG, default=0): vol.Schema(
+        vol.Optional(CONF_DEBUG_CONFIG, default={}): vol.Schema(
             {}, extra=vol.ALLOW_EXTRA
         ),
     }
