@@ -83,7 +83,7 @@ class InvalidSources(HomeAssistantError):
     """Error to indicate invalid sources specified."""
 
 
-class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
+class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle Pioneer AVR config flow."""
 
     VERSION = 3
@@ -93,16 +93,16 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
     @callback
     def async_get_options_flow(
         config_entry: config_entries.ConfigEntry,
-    ) -> PioneerOptionsFlowHandler:
+    ) -> PioneerOptionsFlow:
         """Get the options flow for this handler."""
-        return PioneerOptionsFlowHandler(config_entry)
+        return PioneerOptionsFlow(config_entry)
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle a flow initiated by the user."""
         if _debug_atlevel(8):
-            _LOGGER.debug(">> PioneerAVRFlowHandler.async_step_user(%s)", user_input)
+            _LOGGER.debug(">> PioneerAVRConfigFlow.async_step_user(%s)", user_input)
         errors = {}
         description_placeholders = {}
 
@@ -177,13 +177,13 @@ class PioneerAVRFlowHandler(config_entries.ConfigFlow, domain=DOMAIN):
         )
 
 
-class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
+class PioneerOptionsFlow(config_entries.OptionsFlow):
     """Handle Pioneer AVR options."""
 
     def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        # """Initialize Pioneer AVR options flow."""
+        """Initialise Pioneer AVR options flow."""
         if _debug_atlevel(8):
-            _LOGGER.debug(">> PioneerOptionsFlowHandler.__init__()")
+            _LOGGER.debug(">> PioneerOptionsFlow.__init__()")
         self.config_entry = config_entry
         self.pioneer = None
         self.defaults = {}
@@ -198,7 +198,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         config_entry = self.config_entry
         pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
         if _debug_atlevel(8):
-            _LOGGER.debug(">> PioneerOptionsFlowHandler.update_zone_source_subsets()")
+            _LOGGER.debug(">> PioneerOptionsFlow.update_zone_source_subsets()")
         defaults = self.defaults
         sources = self.options_parsed.get(CONF_SOURCES, pioneer.get_source_dict() or {})
         source_ids = sources.values()
@@ -218,9 +218,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
     ) -> FlowResult:
         """Handle options flow for Pioneer AVR."""
         if _debug_atlevel(8):
-            _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler.async_step_init(%s)", user_input
-            )
+            _LOGGER.debug(">> PioneerOptionsFlow.async_step_init(%s)", user_input)
 
         config_entry = self.config_entry
         if config_entry.entry_id not in self.hass.data[DOMAIN]:
@@ -276,7 +274,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle basic options for Pioneer AVR."""
         if _debug_atlevel(8):
             _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler.async_step_basic_options(%s)", user_input
+                ">> PioneerOptionsFlow.async_step_basic_options(%s)", user_input
             )
 
         step_id = "basic_options"
@@ -375,7 +373,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle zone options for Pioneer AVR."""
         if _debug_atlevel(8):
             _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler.async_step_zone_options(%s)", user_input
+                ">> PioneerOptionsFlow.async_step_zone_options(%s)", user_input
             )
 
         step_id = "zone_options"
@@ -472,7 +470,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle advanced options for Pioneer AVR."""
         if _debug_atlevel(8):
             _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler.async_step_advanced_options(%s)",
+                ">> PioneerOptionsFlow.async_step_advanced_options(%s)",
                 user_input,
             )
 
@@ -549,7 +547,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         """Handle debug options for Pioneer AVR."""
         if _debug_atlevel(8):
             _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler.async_step_debug_options(%s)", user_input
+                ">> PioneerOptionsFlow.async_step_debug_options(%s)", user_input
             )
 
         step_id = "debug_options"
@@ -598,7 +596,7 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
         """Update config entry options."""
         if _debug_atlevel(8):
             _LOGGER.debug(
-                ">> PioneerOptionsFlowHandler._update_options(step_id=%s, user_input=%s)",
+                ">> PioneerOptionsFlow._update_options(step_id=%s, user_input=%s)",
                 step_id,
                 dict(user_input),
             )
@@ -730,6 +728,6 @@ class PioneerOptionsFlowHandler(config_entries.OptionsFlow):
 
         data = {**options_conf, **self.options_parsed, **params, **zone_sources}
         if _debug_atlevel(8):
-            _LOGGER.debug(">> PioneerOptionsFlowHandler._create_entry(data=%s)", data)
+            _LOGGER.debug(">> PioneerOptionsFlow._create_entry(data=%s)", data)
 
         return self.async_create_entry(title="", data=data)

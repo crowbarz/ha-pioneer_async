@@ -24,7 +24,7 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 
-from .config_flow import PioneerAVRFlowHandler
+from .config_flow import PioneerAVRConfigFlow
 from .const import (
     DOMAIN,
     PLATFORMS,
@@ -52,7 +52,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate Pioneer AVR config entry."""
     _LOGGER.debug("migrating config from version %d", config_entry.version)
 
-    if config_entry.version < PioneerAVRFlowHandler.VERSION:
+    if config_entry.version < PioneerAVRConfigFlow.VERSION:
         data_current = config_entry.data
         data_new = {**data_current}
         options_current = config_entry.options
