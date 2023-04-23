@@ -189,24 +189,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ## Set up platforms for Pioneer AVR
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
+    async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
+        """Handle options update."""
+
+        ## Send signal to platform to update options
+        async_dispatcher_send(
+            hass, f"{PIONEER_OPTIONS_UPDATE}-{entry.entry_id}", entry.options
+        )
+
     ## Create update listener
-    entry.add_update_listener(_update_listener)
+    entry.async_on_unload(entry.add_update_listener(_update_listener))
 
     ## Create shutdown event listener
-    shutdown_listener = await async_setup_shutdown_listener(hass, pioneer)
-    if shutdown_listener:
-        entry.async_on_unload(shutdown_listener)
+    await async_setup_shutdown_listener(hass, entry, pioneer)
 
     return True
-
-
-async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
-    """Handle options update."""
-
-    ## Send signal to platform to update options
-    async_dispatcher_send(
-        hass, f"{PIONEER_OPTIONS_UPDATE}-{entry.entry_id}", entry.options
-    )
 
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:

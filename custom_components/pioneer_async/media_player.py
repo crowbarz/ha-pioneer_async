@@ -28,7 +28,7 @@ from homeassistant.const import (
     STATE_UNKNOWN,
     EVENT_HOMEASSISTANT_CLOSE,
 )
-from homeassistant.core import HomeAssistant, Event
+from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
 from homeassistant.helpers.dispatcher import async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
@@ -246,7 +246,23 @@ async def async_setup_platform(
     await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
 
     ## Create shutdown event listener
-    await async_setup_shutdown_listener(hass, pioneer)
+    await async_setup_shutdown_listener(hass, None, pioneer)
+
+
+async def async_setup_shutdown_listener(
+    hass: HomeAssistant, entry: ConfigEntry, pioneer: PioneerAVR
+) -> None:
+    """Set up handler for Home Assistant shutdown."""
+
+    async def _shutdown_listener(_event) -> None:
+        await pioneer.shutdown()
+
+    ## Create shutdown event listener
+    shutdown_listener = hass.bus.async_listen_once(
+        EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener
+    )
+    if entry:
+        entry.async_on_unload(shutdown_listener)
 
 
 async def async_setup_entry(
@@ -360,18 +376,6 @@ async def _pioneer_add_entities(
     # platform.async_register_entity_service(
     #     SERVICE_SET_DSP_SETTINGS, PIONEER_SET_DSP_SETTINGS_SCHEMA, "set_dsp_settings"
     # )
-
-
-async def async_setup_shutdown_listener(hass: HomeAssistant, pioneer: PioneerAVR):
-    """Set up listener to shutdown Pioneer AVR on HA shutdown."""
-
-    async def _shutdown_listener(_event: Event) -> None:
-        """Handle Home Assistant shutdown."""
-        if _debug_atlevel(9):
-            _LOGGER.debug(">> async_shutdown()")
-        await pioneer.shutdown()
-
-    return hass.bus.async_listen_once(EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener)
 
 
 class PioneerZone(MediaPlayerEntity):
