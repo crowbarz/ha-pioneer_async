@@ -64,7 +64,7 @@ Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
 
 The `params` object contains configuration parameters that are passed onto the Pioneer AVR API to modify its functionality. Configuration parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/blob/main/README.md) for the configuration parameters that can be set.
 
-Most configuration parameters are configurable from the UI.
+Many configuration parameters are configurable from the UI. Other parameters can be added through the **Extra aiopioneer parameters** by specifying the parameter name (without quotes) and the value in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by entering `am_frequency_step:9`.
 
 **NOTE**: Changing `ignored_zones` or `ignore_volume_check` via the UI requires Home Assistant to be restarted before fully taking effect.
 
@@ -235,6 +235,8 @@ To be implemented.
 
 The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
 
-Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. Home Assistant debug level logging must also be enabled for the integration to generate debug.
+Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. For example, `config_flow:9` will enable full debugging output for the `config_flow` module.
+
+Home Assistant debug level logging must also be enabled for the integration to generate debug.
 
 The [`debug_*`](#params-object) configuration parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
