@@ -124,6 +124,26 @@ set_tone_settings:
 #         entity:
 #           integration: pioneer_async
 
+set_tuner_band:
+  description: Set AVR tuner band
+  fields:
+    entity_id:
+      description: Entity for AVR zone to modify
+      required: true
+      example: media_player.pioneer_avr
+      selector:
+        entity:
+          integration: pioneer_async
+    band:
+      required: true
+      example: "FM"
+      selector:
+        select:
+          options:
+            - "FM"
+            - "AM"
+
+
 set_fm_tuner_frequency:
   description: Set AVR FM tuner frequency
   fields:

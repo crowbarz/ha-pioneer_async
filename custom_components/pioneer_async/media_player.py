@@ -56,6 +56,7 @@ from .const import (
     SERVICE_SET_DIMMER,
     SERVICE_SET_TONE_SETTINGS,
     # SERVICE_SET_AMP_SETTINGS,
+    SERVICE_SET_TUNER_BAND,
     SERVICE_SET_FM_TUNER_FREQUENCY,
     SERVICE_SET_AM_TUNER_FREQUENCY,
     SERVICE_SET_TUNER_PRESET,
@@ -69,6 +70,7 @@ from .const import (
     ATTR_TONE,
     ATTR_TREBLE,
     ATTR_BASS,
+    ATTR_BAND,
     ATTR_FREQUENCY,
     ATTR_CLASS,
     ATTR_PRESET,
@@ -124,6 +126,12 @@ PIONEER_SET_TONE_SETTINGS_SCHEMA = {
 # PIONEER_SET_AMP_SETTINGS_SCHEMA = {
 #     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
 # }
+
+PIONEER_SET_TUNER_BAND_SCHEMA = {
+    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
+    vol.Required(ATTR_BAND): str,
+}
+
 
 PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA = {
     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
@@ -352,6 +360,12 @@ async def _pioneer_add_entities(
     # platform.async_register_entity_service(
     #     SERVICE_SET_AMP_SETTINGS, PIONEER_SET_AMP_SETTINGS_SCHEMA, "set_amp_settings"
     # )
+
+    platform.async_register_entity_service(
+        SERVICE_SET_TUNER_BAND,
+        PIONEER_SET_TUNER_BAND_SCHEMA,
+        "set_tuner_band",
+    )
     platform.async_register_entity_service(
         SERVICE_SET_FM_TUNER_FREQUENCY,
         PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA,
@@ -698,6 +712,16 @@ class PioneerZone(MediaPlayerEntity):
         return await self._pioneer.set_tone_settings(
             tone, treble, bass, zone=self._zone
         )
+
+    async def set_tuner_band(self, band: str):
+        """Set AVR tuner band."""
+        if _debug_atlevel(1):
+            _LOGGER.debug(
+                ">> PioneerZone.set_tuner_band(%s, band=%s)",
+                self._zone,
+                band,
+            )
+        return await self._pioneer.set_tuner_frequency(band)
 
     async def set_fm_tuner_frequency(self, frequency: float):
         """Set AVR AM tuner frequency."""

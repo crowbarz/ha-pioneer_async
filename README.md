@@ -121,6 +121,15 @@ Set AVR tone settings for zone.
 | treble | int | None | Tone treble value (-6dB -- 6dB)
 | bass | int | None | Tone bass value (-6dB -- 6dB)
 
+### Service `set_tuner_band`
+
+Set AVR tuner band.
+
+| Service data attribute | Type | Default | Description
+| --- | --- | --- | ---
+| entity_id | entity ID | | Entity for AVR zone to modify (required)
+| band | string | | Tuner band: `AM` or `FM` (required)
+
 ### Service `set_fm_tuner_frequency`
 
 Set AVR FM tuner frequency.
