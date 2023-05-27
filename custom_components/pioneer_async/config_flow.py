@@ -1,6 +1,7 @@
 """Config flow for pioneer_async integration."""
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Any, Tuple
@@ -71,6 +72,102 @@ def _debug_atlevel(level: int, category: str = __name__):
     return Debug.atlevel(None, level, category)
 
 
+def _get_schema_basic_options(defaults: list) -> dict:
+    """Return basic options schema."""
+    return {
+        vol.Required(CONF_SOURCES, default=[]): selector.SelectSelector(
+            selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
+        ),
+        vol.Optional(
+            CONF_SCAN_INTERVAL, default=defaults[CONF_SCAN_INTERVAL]
+        ): vol.Coerce(
+            int,
+            selector.NumberSelector(
+                selector.NumberSelectorConfig(
+                    min=1,
+                    max=2592000,  # 30 days
+                    unit_of_measurement="s",
+                    mode=selector.NumberSelectorMode.BOX,
+                )
+            ),
+        ),
+        vol.Optional(
+            CONF_TIMEOUT, default=defaults[CONF_TIMEOUT]
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1.0,
+                max=10.0,
+                step=0.1,
+                unit_of_measurement="s",
+                mode=selector.NumberSelectorMode.SLIDER,
+            )
+        ),
+        vol.Optional(
+            PARAM_COMMAND_DELAY, default=defaults[PARAM_COMMAND_DELAY]
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=0.0,
+                max=1.0,
+                step=0.1,
+                unit_of_measurement="s",
+                mode=selector.NumberSelectorMode.SLIDER,
+            )
+        ),
+    }
+
+
+def _convert_sources(sources: dict[str, Any]) -> list[str]:
+    """Convert sources dict to format for data entry flow."""
+    return list([f"{v}:{k}" for k, v in sources.items()])
+
+
+def _validate_sources(sources_list: list[str]) -> Tuple[dict[str, Any] | None, list]:
+    """Validate sources are in correct format and convert to dict."""
+    sources_invalid = []
+    sources_tuple = list(
+        map(
+            lambda x: (v[1], v[0]) if len(v := x.split(":", 1)) == 2 else x,
+            sources_list,
+        )
+    )
+    for source_tuple in sources_tuple:
+        if not isinstance(source_tuple, tuple):
+            sources_invalid.append(source_tuple)
+        else:
+            (_, source_id) = source_tuple
+            if not (
+                len(source_id) == 2
+                and source_id[0].isdigit()
+                and source_id[1].isdigit()
+            ):
+                sources_invalid.append(source_tuple)
+    if sources_invalid:
+        return None, sources_invalid
+    return dict(sources_tuple), []
+
+
+def _filter_options(
+    options: dict[str, Any], defaults: dict[str, Any]
+) -> dict[str, Any]:
+    """Filter options and remove defaults."""
+    return {
+        k: options[k]
+        for k in OPTIONS_ALL
+        if k not in [CONF_SOURCES] and k in options and options[k] != defaults[k]
+    }
+
+
+def _filter_params(options: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
+    """Filter params and remove defaults."""
+    return {
+        k: options[k]
+        for k in PARAMS_ALL
+        if k not in PARAM_ZONE_SOURCES.values()
+        and k in options
+        and options[k] != defaults[k]
+    }
+
+
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
@@ -88,6 +185,20 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 3
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
+
+    def __init__(self) -> None:
+        """Initialise Pioneer AVR config flow."""
+        if _debug_atlevel(8):
+            _LOGGER.debug(">> PioneerAVRConfigFlow.__init__()")
+        self.device_unique_id = None
+        self.pioneer = None
+        self.name = None
+        self.host = None
+        self.port = None
+        self.defaults = {}
+        self.query_sources = False
+        self.sources = {}
+        self.options = {}
 
     @staticmethod
     @callback
@@ -107,49 +218,43 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         description_placeholders = {}
 
         if user_input is not None:
-            host = user_input[CONF_HOST]
-            port = int(user_input[CONF_PORT])
-            try:
-                if check_device_unique_id(self.hass, host, port) is None:
-                    raise AlreadyConfigured
+            self.name = user_input[CONF_NAME]
+            self.host = user_input[CONF_HOST]
+            self.port = int(user_input[CONF_PORT])
+            self.query_sources = user_input[CONF_QUERY_SOURCES]
 
+            self.device_unique_id = get_device_unique_id(self.host, self.port)
+            await self.async_set_unique_id(self.device_unique_id)
+            self._abort_if_unique_id_configured()
+
+            try:
                 try:
-                    pioneer = PioneerAVR(host, port)
+                    self.pioneer = (pioneer := PioneerAVR(self.host, self.port))
                     await pioneer.connect()
                 except Exception as exc:  # pylint: disable=broad-except
                     raise CannotConnect(str(exc)) from exc
 
                 await pioneer.query_device_info()
-                await pioneer.shutdown()
-                del pioneer
-                ## TODO: pass through PioneerAVR to async_setup_entry
-
-                device_unique_id = get_device_unique_id(host, port)
-                await self.async_set_unique_id(device_unique_id)
-                self._abort_if_unique_id_configured()
-
-                return self.async_create_entry(
-                    title=device_unique_id,
-                    data={
-                        CONF_NAME: user_input[CONF_NAME],
-                        CONF_HOST: host,
-                        CONF_PORT: port,
-                    },
-                    # options={CONF_QUERY_SOURCES: user_input[CONF_QUERY_SOURCES]},
-                )
+                self.sources = {}
+                if self.query_sources:
+                    await pioneer.build_source_dict()
+                    self.sources = pioneer.get_source_dict() or {}
+                ## TODO: use default set of sources and disable query sources if no sources?
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
-
             except CannotConnect as exc:
                 errors["base"] = "cannot_connect"
                 description_placeholders["exception"] = str(exc)
-
+                del pioneer
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("unexpected exception: %s", str(exc))
                 return self.async_abort(
                     reason="exception", description_placeholders={"exception", str(exc)}
                 )
+
+            if not errors:
+                return await self.async_step_basic_options()
 
         data_schema = vol.Schema(
             {
@@ -162,10 +267,9 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                         mode=selector.NumberSelectorMode.BOX,
                     )
                 ),
-                ## TODO: have to define sources if not querying from AVR
-                # vol.Optional(
-                #     CONF_QUERY_SOURCES, default=True
-                # ): selector.BooleanSelector(),
+                vol.Optional(
+                    CONF_QUERY_SOURCES, default=True
+                ): selector.BooleanSelector(),
             }
         )
 
@@ -174,6 +278,69 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
+        )
+
+    async def async_step_basic_options(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle basic options for Pioneer AVR."""
+        if _debug_atlevel(8):
+            _LOGGER.debug(
+                ">> PioneerAVRConfigFlow.async_step_basic_options(%s)", user_input
+            )
+
+        step_id = "basic_options"
+        errors = {}
+        description_placeholders = {}
+
+        if user_input is not None:
+            self.options = {**user_input}
+            self.sources, sources_invalid = _validate_sources(user_input[CONF_SOURCES])
+            if self.sources is None:
+                errors[CONF_SOURCES] = "invalid_sources"
+                description_placeholders["sources"] = json.dumps(sources_invalid)
+            elif not self.sources:
+                errors[CONF_SOURCES] = "sources_required"
+            if not errors:
+                return await self._create_config_entry()
+        else:
+            user_input = {CONF_SOURCES: _convert_sources(self.sources)}
+
+        pioneer = self.pioneer
+        self.defaults = {
+            **OPTIONS_DEFAULTS,  ## defaults
+            **pioneer.get_default_params(),  ## aiopioneer defaults
+        }
+        data_schema = vol.Schema(_get_schema_basic_options(self.defaults))
+
+        return self.async_show_form(
+            step_id=step_id,
+            data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
+            errors=errors,
+            description_placeholders=description_placeholders,
+            last_step=True,
+        )
+
+    async def _create_config_entry(self) -> FlowResult:
+        """Create config entry using submitted options."""
+        ## TODO: pass through PioneerAVR to async_setup_entry
+        pioneer = self.pioneer
+        await pioneer.shutdown()
+        await asyncio.sleep(0)  # yield to pending shutdown tasks
+        del pioneer
+
+        return self.async_create_entry(
+            title=self.device_unique_id,
+            data={
+                CONF_NAME: self.name,
+                CONF_HOST: self.host,
+                CONF_PORT: self.port,
+            },
+            options={
+                **_filter_options(self.options, self.defaults),
+                **_filter_params(self.options, self.defaults),
+                CONF_SOURCES: self.sources,
+            },
         )
 
 
@@ -190,7 +357,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         self.options = {}
         self.options_parsed = {}
         self.default_source_ids = {}
-        # self.requery_task = None
 
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured/available sources."""
@@ -226,12 +392,10 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
         self.pioneer = pioneer
-        default_params = pioneer.get_default_params()
-        # self.requery_task = None
 
         defaults = {
             **OPTIONS_DEFAULTS,  ## defaults
-            **default_params,  ## aiopioneer defaults
+            **pioneer.get_default_params(),  ## aiopioneer defaults
         }
         entry_options = config_entry.options
         defaults_inherit = {
@@ -245,7 +409,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if not sources:
             sources = pioneer.get_source_dict() or {}
             options[CONF_QUERY_SOURCES] = True
-        options[CONF_SOURCES] = list([f"{v}:{k}" for k, v in sources.items()])
+        options[CONF_SOURCES] = _convert_sources(sources)
         self.options_parsed[CONF_SOURCES] = sources
 
         ## Convert CONF_PARAMS for options flow
@@ -279,36 +443,22 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         step_id = "basic_options"
 
-        # async def _requery_sources():
-        #     """Re-query AVR sources after enabling query_sources."""
-        #     pioneer = self.pioneer
-        #     await pioneer.build_source_dict()
-        #     _LOGGER.debug("flow_id=%s", self.flow_id)
-        #     self.hass.async_create_task(
-        #         self.hass.config_entries.flow.async_configure(flow_id=self.flow_id)
-        #     )
-
         errors = {}
         description_placeholders = {}
         if user_input is not None:
             # query_sources = options[CONF_QUERY_SOURCES]
             result = await self._update_options(step_id, user_input)
             if result is True:
-                # if not query_sources and options[CONF_QUERY_SOURCES]:
-                #     ## Query sources turned on, query AVR and restart options flow
-                #     _LOGGER.debug("flow_id=%s", self.flow_id)
-                #     if not self.requery_task:
-                #         self.requery_task = self.hass.async_create_task(
-                #             _requery_sources()
-                #         )
-                #         return self.async_show_progress(
-                #             step_id=step_id,
-                #             progress_action="query_sources",
-                #         )
-
-                #     return self.async_show_progress_done(next_step_id="basic_options")
-                return await self.async_step_zone_options()
-            (errors, description_placeholders) = result
+                if user_input[CONF_QUERY_SOURCES]:
+                    pioneer = self.pioneer
+                    await pioneer.build_source_dict()
+                    sources = pioneer.get_source_dict() or {}
+                    self.options[CONF_SOURCES] = _convert_sources(sources)
+                    self.options[CONF_QUERY_SOURCES] = False
+                else:
+                    return await self.async_step_zone_options()
+            else:
+                (errors, description_placeholders) = result
 
         options = self.options
         defaults = self.defaults
@@ -317,48 +467,10 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_QUERY_SOURCES, default=True
                 ): selector.BooleanSelector(),
-                vol.Optional(CONF_SOURCES, default=[]): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[], custom_value=True, multiple=True
-                    ),
-                ),
-                vol.Optional(
-                    CONF_SCAN_INTERVAL, default=defaults[CONF_SCAN_INTERVAL]
-                ): vol.Coerce(
-                    int,
-                    selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1,
-                            max=2592000,  # 30 days
-                            unit_of_measurement="s",
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
-                ),
-                vol.Optional(
-                    CONF_TIMEOUT, default=defaults[CONF_TIMEOUT]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=1.0,
-                        max=10.0,
-                        step=0.1,
-                        unit_of_measurement="s",
-                        mode=selector.NumberSelectorMode.SLIDER,
-                    )
-                ),
-                vol.Optional(
-                    PARAM_COMMAND_DELAY, default=defaults[PARAM_COMMAND_DELAY]
-                ): selector.NumberSelector(
-                    selector.NumberSelectorConfig(
-                        min=0.0,
-                        max=1.0,
-                        step=0.1,
-                        unit_of_measurement="s",
-                        mode=selector.NumberSelectorMode.SLIDER,
-                    )
-                ),
+                **_get_schema_basic_options(defaults),
             }
         )
+
         return self.async_show_form(
             step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(data_schema, options),
@@ -616,41 +728,20 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             if ignored_zones:
                 self.options[PARAM_IGNORED_ZONES] = ignored_zones
 
-        def _validate_sources(sources_list: list[str]) -> dict[str, Any] | None:
-            """Validate sources are in correct format and convert to dict."""
-            sources_invalid = []
-            sources_tuple = list(
-                map(
-                    lambda x: (v[1], v[0]) if len(v := x.split(":", 1)) == 2 else x,
-                    sources_list,
-                )
-            )
-            for source_tuple in sources_tuple:
-                if not isinstance(source_tuple, tuple):
-                    sources_invalid.append(source_tuple)
-                else:
-                    (_, source_id) = source_tuple
-                    if not (
-                        len(source_id) == 2
-                        and source_id[0].isdigit()
-                        and source_id[1].isdigit()
-                    ):
-                        sources_invalid.append(source_tuple)
-            if sources_invalid:
-                errors[CONF_SOURCES] = "invalid_sources"
-                description_placeholders["sources"] = json.dumps(sources_invalid)
-                return None
-            return dict(sources_tuple)
-
         ## Validate CONF_SOURCES is a dict of names to numeric IDs
         if step_id == "basic_options":
-            sources_list = {}
-            sources_new = {}
             if not user_input[CONF_QUERY_SOURCES]:
-                sources_list = user_input[CONF_SOURCES]
-            if sources_list:
-                if sources_new := _validate_sources(sources_list):
+                sources_new, sources_invalid = _validate_sources(
+                    user_input[CONF_SOURCES]
+                )
+                if sources_new is None:
+                    errors[CONF_SOURCES] = "invalid_sources"
+                    description_placeholders["sources"] = json.dumps(sources_invalid)
+                elif not sources_new:
+                    errors[CONF_SOURCES] = "sources_required"
+                else:
                     self.options_parsed[CONF_SOURCES] = sources_new
+
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
 
         ## Parse and validate CONF_PARAMS
@@ -697,21 +788,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         defaults = self.defaults
         Debug.setconfig(None, self.options_parsed.get(CONF_DEBUG_CONFIG, {}))
 
-        ## Save integration options for non-default values only
-        options_conf = {
-            k: options[k]
-            for k in OPTIONS_ALL
-            if k not in [CONF_SOURCES] and k in options and options[k] != defaults[k]
-        }
-
-        ## Save params for non-default values only
-        params = {
-            k: options[k]
-            for k in PARAMS_ALL
-            if k not in PARAM_ZONE_SOURCES.values()
-            and k in options
-            and options[k] != defaults[k]
-        }
+        options_conf = _filter_options(options, defaults)  ## non-default options only
+        params = _filter_params(options, defaults)  ## non-default params only
 
         ## Save zone sources that differ from default
         zone_sources = {

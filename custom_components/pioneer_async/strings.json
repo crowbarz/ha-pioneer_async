@@ -11,10 +11,29 @@
                     "port": "Port",
                     "query_sources": "Query sources from AVR"
                 }
+            },
+            "basic_options": {
+                "title": "Basic options",
+                "description": "Configure Pioneer AVR basic options",
+                "data": {
+                    "sources": "Manually configured sources",
+                    "scan_interval": "Scan interval",
+                    "timeout": "Timeout",
+                    "command_delay": "Command delay"
+                },
+                "data_description": {
+                    "query_sources": "Disable for AVRs that do not support source discovery",
+                    "sources": "Add source mappings using the format: \"00:Source Name\"",
+                    "scan_interval": "Polling update frequency",
+                    "timeout": "Connection/command timeout",
+                    "command_delay": "Delay between commands sent to the AVR"
+                }
             }
         },
         "error": {
-            "cannot_connect": "Cannot connect to AVR: {exception}"
+            "cannot_connect": "Cannot connect to AVR: {exception}",
+            "invalid_sources": "Invalid source name mapping: {sources}",
+            "sources_required": "Sources must be specified"
         },
         "abort": {
             "already_configured": "Specified device is already configured",
@@ -34,7 +53,7 @@
                     "command_delay": "Command delay"
                 },
                 "data_description": {
-                    "query_sources": "When enabled, manually configured sources are ignored",
+                    "query_sources": "When enabled, sources will be discovered from the AVR and replace manually configured sources",
                     "sources": "Add source mappings using the format: \"00:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
@@ -98,6 +117,7 @@
         },
         "error": {
             "invalid_sources": "Invalid source name mapping: {sources}",
+            "sources_required": "Sources must be specified",
             "invalid_debug": "Invalid debug config: {debug}",
             "invalid_params": "Invalid parameter: {params}"
         },
