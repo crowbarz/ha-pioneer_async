@@ -63,7 +63,7 @@ from .const import (
     DEFAULTS_EXCLUDE,
 )
 from .debug import Debug
-from .device import check_device_unique_id, get_device_unique_id
+from .device import get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
