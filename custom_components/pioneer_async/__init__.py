@@ -102,7 +102,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         if isinstance(scan_interval, timedelta):
             options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
-        config_entry.version = 2
+        config_entry.version = PioneerAVRConfigFlow.VERSION
         hass.config_entries.async_update_entry(
             config_entry, data=data_new, options=options_new
         )
