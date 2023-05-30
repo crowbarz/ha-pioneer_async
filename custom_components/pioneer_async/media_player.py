@@ -6,7 +6,7 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
-from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES
+from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES, PARAM_DISABLE_AUTO_QUERY
 
 from homeassistant.components.media_player import (
     PLATFORM_SCHEMA,
@@ -534,21 +534,23 @@ class PioneerZone(MediaPlayerEntity):
         """Flag media player features that are supported."""
         ## Automatically detect what features are supported by what parameters are available
         features = 0
-        if self._pioneer.power.get(self._zone) is not None:
-            features += MediaPlayerEntityFeature.TURN_ON.value
-            features += MediaPlayerEntityFeature.TURN_OFF.value
-        if self._pioneer.volume.get(self._zone) is not None:
-            features += MediaPlayerEntityFeature.VOLUME_SET.value
-            features += MediaPlayerEntityFeature.VOLUME_STEP.value
-        if self._pioneer.mute.get(self._zone) is not None:
-            features += MediaPlayerEntityFeature.VOLUME_MUTE.value
-        if self._pioneer.source.get(self._zone) is not None:
-            features += MediaPlayerEntityFeature.SELECT_SOURCE.value
+        pioneer = self._pioneer
+        if pioneer.power.get(self._zone) is not None:
+            features |= MediaPlayerEntityFeature.TURN_ON.value
+            features |= MediaPlayerEntityFeature.TURN_OFF.value
+        if pioneer.volume.get(self._zone) is not None:
+            features |= MediaPlayerEntityFeature.VOLUME_SET.value
+            features |= MediaPlayerEntityFeature.VOLUME_STEP.value
+        if pioneer.mute.get(self._zone) is not None:
+            features |= MediaPlayerEntityFeature.VOLUME_MUTE.value
+        if pioneer.source.get(self._zone) is not None:
+            features |= MediaPlayerEntityFeature.SELECT_SOURCE.value
 
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
-        if self._zone == "1":
-            features += MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
+        ## Disable sound mode also if autoquery is disabled
+        if self._zone == "1" and not pioneer.get_params().get(PARAM_DISABLE_AUTO_QUERY):
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
         return features
 
     @property
