@@ -533,24 +533,24 @@ class PioneerZone(MediaPlayerEntity):
     def supported_features(self) -> MediaPlayerEntityFeature:
         """Flag media player features that are supported."""
         ## Automatically detect what features are supported by what parameters are available
-        features = 0
+        features = MediaPlayerEntityFeature(0)
         pioneer = self._pioneer
         if pioneer.power.get(self._zone) is not None:
-            features |= MediaPlayerEntityFeature.TURN_ON.value
-            features |= MediaPlayerEntityFeature.TURN_OFF.value
+            features |= MediaPlayerEntityFeature.TURN_ON
+            features |= MediaPlayerEntityFeature.TURN_OFF
         if pioneer.volume.get(self._zone) is not None:
-            features |= MediaPlayerEntityFeature.VOLUME_SET.value
-            features |= MediaPlayerEntityFeature.VOLUME_STEP.value
+            features |= MediaPlayerEntityFeature.VOLUME_SET
+            features |= MediaPlayerEntityFeature.VOLUME_STEP
         if pioneer.mute.get(self._zone) is not None:
-            features |= MediaPlayerEntityFeature.VOLUME_MUTE.value
+            features |= MediaPlayerEntityFeature.VOLUME_MUTE
         if pioneer.source.get(self._zone) is not None:
-            features |= MediaPlayerEntityFeature.SELECT_SOURCE.value
+            features |= MediaPlayerEntityFeature.SELECT_SOURCE
 
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
         ## Disable sound mode also if autoquery is disabled
         if self._zone == "1" and not pioneer.get_params().get(PARAM_DISABLE_AUTO_QUERY):
-            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE.value
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
         return features
 
     @property
