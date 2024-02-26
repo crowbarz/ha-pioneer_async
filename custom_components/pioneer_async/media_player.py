@@ -392,7 +392,7 @@ async def _pioneer_add_entities(
     # )
 
 
-class PioneerZone(MediaPlayerEntity):
+class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
     """Representation of a Pioneer zone."""
 
     _attr_should_poll = False
@@ -562,7 +562,10 @@ class PioneerZone(MediaPlayerEntity):
     @property
     def sound_mode_list(self) -> list[str]:
         """Returns all valid sound modes from aiopioneer."""
-        return self._pioneer.get_sound_modes(self._zone)
+        listening_modes = self._pioneer.get_zone_listening_modes(self._zone)
+        return (
+            [v for _, v in sorted(listening_modes.items())] if listening_modes else None
+        )
 
     @property
     def source(self) -> str | None:
@@ -597,33 +600,37 @@ class PioneerZone(MediaPlayerEntity):
                 volume_db = volume / 2 - 80.5
             else:
                 volume_db = volume - 81
-            attrs = {
-                **attrs,
+            attrs |= {
                 "device_volume": volume,
                 "device_max_volume": max_volume,
                 "device_volume_db": volume_db,
             }
 
         ## Return Pioneer attributes for main zone
-        ## TODO: move volatile parameters to sensors?
         if self._zone == "1":
-            if pioneer.amp:
-                attrs = {**attrs, "amp": pioneer.amp}
-            if pioneer.tuner:
-                attrs = {**attrs, "tuner": pioneer.tuner}
-            if pioneer.channel_levels:
-                attrs = {**attrs, "channel_levels": pioneer.channel_levels}
-            if pioneer.dsp:
-                attrs = {**attrs, "dsp": pioneer.dsp}
-            if pioneer.video:
-                attrs = {**attrs, "video": pioneer.video}
-            if pioneer.system:
-                attrs = {**attrs, "system": pioneer.system}
+            if hasattr(pioneer, "listening_mode_raw") and pioneer.listening_mode_raw:
+                attrs |= {"listening_mode": pioneer.listening_mode_raw}
+            if hasattr(pioneer, "tone") and pioneer.tone:
+                attrs |= {"tone": pioneer.tone}
+            if hasattr(pioneer, "amp") and pioneer.amp:
+                attrs |= {
+                    "amp": pioneer.amp,
+                    "display": pioneer.amp.get("display", "").strip(),
+                }
+            if hasattr(pioneer, "tuner") and pioneer.tuner:
+                attrs |= {"tuner": pioneer.tuner}
+            if hasattr(pioneer, "channel_levels") and pioneer.channel_levels:
+                attrs |= {"channel_levels": pioneer.channel_levels}
+            if hasattr(pioneer, "dsp") and pioneer.dsp:
+                attrs |= {"dsp": pioneer.dsp}
+            if hasattr(pioneer, "video") and pioneer.video:
+                attrs |= {"video": pioneer.video}
+            if hasattr(pioneer, "system") and pioneer.system:
+                attrs |= {"system": pioneer.system}
 
         ## Return zone specific attributes
         if pioneer.audio and pioneer.audio.get(self._zone):
-            attrs = {**attrs, "audio": pioneer.audio[self._zone]}
-
+            attrs |= {"audio": pioneer.audio[self._zone]}
         return attrs
 
     async def async_turn_on(self) -> None:
