@@ -1,4 +1,5 @@
 """Support for Pioneer AVR."""
+
 import logging
 import json
 from typing import Any
@@ -397,6 +398,18 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
 
     _attr_should_poll = False
     _attr_device_class = CLASS_PIONEER
+    _unrecorded_attributes = frozenset(
+        {
+            "sources_json",
+            "listening_mode_raw",
+            "amp",
+            "tuner",
+            "channel_levels",
+            "dsp",
+            "video",
+            "system",
+        }
+    )
 
     def __init__(
         self,
