@@ -81,7 +81,7 @@
                 "title": "Advanced options",
                 "description": "Configure Pioneer AVR advanced options",
                 "data": {
-                    "disable_autoquery": "Query basic AVR parameters only",
+                    "disable_auto_query": "Query basic AVR parameters only",
                     "power_on_volume_bounce": "Workaround for Main Zone initial volume reporting",
                     "ignore_volume_check": "Don't check volume when querying AVR source",
                     "volume_step_only": "Step volume up/down to set volume level",
@@ -90,7 +90,7 @@
                     "params": "Extra aiopioneer parameters"
                 },
                 "data_description": {
-                    "disable_autoquery": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_autoquery]",
+                    "disable_auto_query": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_auto_query]",
                     "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
                     "ignore_volume_check": "Enable this when using source query on AVRs  that do not support reporting volume\n[ignore_volume_check] (requires restart)",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]",

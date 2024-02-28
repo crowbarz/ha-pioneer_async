@@ -7,6 +7,7 @@ from aiopioneer.param import (
     PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,
     PARAM_ZONE_3_SOURCES,
+    PARAM_DISABLE_AUTO_QUERY,
 )
 
 from homeassistant.components.media_player import (
@@ -41,6 +42,7 @@ CONF_DEBUG_CONFIG = "debug_config"
 OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
 OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
+OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
 
 MIGRATE_CONFIG = {
     OLD_CONF_IGNORE_ZONE_H: CONF_IGNORE_HDZONE,
@@ -48,6 +50,7 @@ MIGRATE_CONFIG = {
 }
 MIGRATE_PARAMS = {
     OLD_PARAM_HDZONE_SOURCES: PARAM_HDZONE_SOURCES,
+    OLD_PARAM_DISABLE_AUTO_QUERY: PARAM_DISABLE_AUTO_QUERY,
 }
 MIGRATE_OPTIONS = {**MIGRATE_CONFIG, **MIGRATE_PARAMS}
 

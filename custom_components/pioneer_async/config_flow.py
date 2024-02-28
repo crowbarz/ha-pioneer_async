@@ -1,4 +1,5 @@
 """Config flow for pioneer_async integration."""
+
 from __future__ import annotations
 
 import asyncio
@@ -183,7 +184,7 @@ class InvalidSources(HomeAssistantError):
 class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     """Handle Pioneer AVR config flow."""
 
-    VERSION = 3
+    VERSION = 4
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
