@@ -14,13 +14,16 @@ from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
 )
 from homeassistant.const import (
+    Platform,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
 
 
 DOMAIN = "pioneer_async"
-PLATFORMS = ["media_player"]
+PLATFORMS = [Platform.MEDIA_PLAYER]
+PLATFORMS_CONFIG_FLOW = [Platform.MEDIA_PLAYER, Platform.SENSOR]
+# , Platform.BINARY_SENSOR]
 VERSION = "0.8.6"
 
 DEFAULT_HOST = "avr"
@@ -91,6 +94,12 @@ SERVICE_SET_CHANNEL_LEVELS = "set_channel_levels"
 SERVICE_SET_VIDEO_SETTINGS = "set_video_settings"
 SERVICE_SET_DSP_SETTINGS = "set_dsp_settings"
 
+## hass.data attributes
+ATTR_PIONEER = "pioneer"
+ATTR_COORDINATORS = "coordinators"
+ATTR_DEVICE_INFO = "device_info"
+
+## Config attributes
 ATTR_ENTITY_ID = "entity_id"
 ATTR_PANEL_LOCK = "panel_lock"
 ATTR_REMOTE_LOCK = "remote_lock"
@@ -104,3 +113,24 @@ ATTR_CLASS = "class"
 ATTR_PRESET = "preset"
 ATTR_CHANNEL = "channel"
 ATTR_LEVEL = "level"
+
+## State attribute lists
+ATTRS_SYSTEM_PROMOTE = "speaker_system"
+ATTRS_SYSTEM_EXCLUDE = ["speaker_system"]
+ATTRS_AMP_PROMOTE = "speakers"
+ATTRS_AMP_EXCLUDE = ["display", "dimmer", "speakers"]
+ATTRS_DSP_PROMOTE = "signal_select"
+ATTRS_DSP_EXCLUDE = ["signal_select"]
+ATTRS_TUNER_PROMOTE = "frequency"
+ATTRS_TUNER_EXCLUDE = ["frequency"]
+ATTRS_VIDEO_PROMOTE = "signal_output_resolution"
+ATTRS_VIDEO_EXCLUDE = ["signal_output_resolution", "1", "2", "3", "Z"]
+ATTRS_AUDIO_PROMOTE = "input_signal"
+ATTRS_AUDIO_EXCLUDE = ["input_signal", "1", "2", "3", "Z"]
+## TODO: add binary_sensor for input_multichannel
+ATTRS_ZONE_VIDEO_PROMOTE = "status"  # TODO
+ATTRS_ZONE_VIDEO_EXCLUDE = []  # TODO
+ATTRS_TONE_PROMOTE = "status"
+ATTRS_TONE_EXCLUDE = ["status"]
+ATTRS_CHANNEL_LEVEL_PROMOTE = "C"
+ATTRS_CHANNEL_LEVEL_EXCLUDE = ["C"]

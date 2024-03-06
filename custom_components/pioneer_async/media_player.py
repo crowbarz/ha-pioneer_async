@@ -1,4 +1,4 @@
-"""Support for Pioneer AVR."""
+"""Pioneer AVR media_player platform."""
 
 import logging
 import json
@@ -35,6 +35,7 @@ from homeassistant.helpers.dispatcher import async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
+from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
@@ -64,6 +65,9 @@ from .const import (
     SERVICE_SET_CHANNEL_LEVELS,
     # SERVICE_SET_VIDEO_SETTINGS,
     # SERVICE_SET_DSP_SETTINGS,
+    ATTR_PIONEER,
+    ATTR_COORDINATORS,
+    ATTR_DEVICE_INFO,
     ATTR_ENTITY_ID,
     ATTR_PANEL_LOCK,
     ATTR_REMOTE_LOCK,
@@ -78,6 +82,7 @@ from .const import (
     ATTR_CHANNEL,
     ATTR_LEVEL,
 )
+from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
 from .device import get_device_unique_id, check_device_unique_id
 
@@ -252,7 +257,9 @@ async def async_setup_platform(
         )
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
-    await _pioneer_add_entities(hass, None, async_add_entities, pioneer, config)
+    await _pioneer_add_entities(
+        hass, None, None, None, async_add_entities, pioneer, config
+    )
 
     ## Create shutdown event listener
     await async_setup_shutdown_listener(hass, None, pioneer)
@@ -282,12 +289,15 @@ async def async_setup_entry(
     """Set up the Pioneer AVR media_player from config entry."""
     if _debug_atlevel(9):
         _LOGGER.debug(
-            ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+            ">> media_player.async_setup_entry(entry_id=%s, data=%s, options=%s)",
             config_entry.entry_id,
             config_entry.data,
             config_entry.options,
         )
-    pioneer: PioneerAVR = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
+    coordinators = pioneer_data[ATTR_COORDINATORS]
+    device_info_dict = pioneer_data[ATTR_DEVICE_INFO]
     data = config_entry.data
     entry_options = config_entry.options or {}
     options = {
@@ -295,12 +305,22 @@ async def async_setup_entry(
         **{k: entry_options[k] for k in OPTIONS_ALL if k in entry_options},
     }
     config = {**data, **options}
-    await _pioneer_add_entities(hass, config_entry, async_add_entities, pioneer, config)
+    await _pioneer_add_entities(
+        hass,
+        config_entry,
+        coordinators,
+        device_info_dict,
+        async_add_entities,
+        pioneer,
+        config,
+    )
 
 
 async def _pioneer_add_entities(
     _hass: HomeAssistant,
     config_entry: ConfigEntry,
+    coordinators: list[PioneerAVRZoneCoordinator] | None,
+    device_info_dict: dict[str, DeviceInfo],
     async_add_entities: AddEntitiesCallback,
     pioneer: PioneerAVR,
     config: ConfigType,
@@ -311,18 +331,27 @@ async def _pioneer_add_entities(
     main_entity = None
     for zone in pioneer.zones:
         name = config[CONF_NAME]
+        coordinator = coordinators[zone] if coordinators else None
         if zone != "1":
             name += " HDZone" if zone == "Z" else f" Zone {zone}"
         device_unique_id = get_device_unique_id(config[CONF_HOST], config[CONF_PORT])
-        entity = PioneerZone(config_entry, pioneer, zone, name, device_unique_id)
+        entity = PioneerZone(
+            config_entry,
+            device_info_dict.get(zone),
+            coordinator,
+            pioneer,
+            zone,
+            name,
+            device_unique_id,
+        )
         if entity:
             _LOGGER.debug("Created entity %s for zone %s", name, zone)
             if zone == "1":
                 main_entity = entity
             #     ## Set update callback to update Main Zone entity
             #     pioneer.set_update_callback(entity.update_callback)
-            else:
-                entities.append(entity)
+            # else:
+            entities.append(entity)
     if not main_entity:
         _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
@@ -338,12 +367,13 @@ async def _pioneer_add_entities(
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     ## Register additional zone entities with main zone entity
-    if entities:
-        main_entity.register_zone_entities(entities)
+    # if entities:
+    #     main_entity.register_zone_entities(entities)
 
-    entities.insert(0, main_entity)
+    # entities.insert(0, main_entity)
     async_add_entities(entities, update_before_add=True)
 
+    ## Register platform specific services
     platform = entity_platform.async_get_current_platform()
 
     platform.async_register_entity_service(
@@ -393,7 +423,9 @@ async def _pioneer_add_entities(
     # )
 
 
-class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
+class PioneerZone(
+    MediaPlayerEntity, CoordinatorEntity
+):  # pylint: disable=abstract-method
     """Representation of a Pioneer zone."""
 
     _attr_should_poll = False
@@ -414,6 +446,8 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
     def __init__(
         self,
         config_entry: ConfigEntry,
+        device_info: DeviceInfo,
+        coordinator: PioneerAVRZoneCoordinator,
         pioneer: PioneerAVR,
         zone: str,
         name: str,
@@ -423,29 +457,36 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
         if _debug_atlevel(9):
             _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         self._config_entry = config_entry
+        self._coordinator = coordinator
         self._device_unique_id = device_unique_id
         self._pioneer = pioneer
         self._zone = zone
         self._attr_name = name
+        ## TODO: migrate to _attr_device_info after configuration.yaml deprecation
+        # self._attr_device_info = device_info
+        self._device_info = device_info
 
-        self._added_to_hass = False
-        self._zone_entities = None
+        if coordinator:
+            CoordinatorEntity.__init__(self, coordinator)
 
     async def async_added_to_hass(self) -> None:
         """Complete the initialization."""
         if _debug_atlevel(9):
             _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self._zone)
 
+        ## TODO: move callback to Coordinator after deprecating configuration.yaml
         def callback_update_ha() -> None:
             if _debug_atlevel(7):
                 _LOGGER.debug(">> PioneerZone.callback_update_ha(%s)", self._zone)
+            if self._coordinator:
+                self._coordinator.async_set_updated_data(None)
+                ## NOTE: coordinator does not update entity class that triggers update
             self.schedule_update_ha_state()
 
-        self._added_to_hass = True
         self._pioneer.set_zone_callback(Zones(self._zone), callback_update_ha)
         if self._zone == "1":
             ## TODO: Global parameters currently added to attributes of Main Zone entity
-            # self._pioneer.set_zone_callback(Zones.ALL, self.schedule_update_ha_state)
+            self._pioneer.set_zone_callback(Zones.ALL, callback_update_ha)
             if self._config_entry:
                 ## Add update options dispatcher connection on Main Zone entity
                 self.async_on_remove(
@@ -458,6 +499,7 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
 
     async def _async_update_options(self, data):
         """Change options when the options flow does."""
+        ## TODO: modify to just unload/load entities on options change
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerZone._async_update_options(data=%s)", data)
         pioneer = self._pioneer
@@ -484,17 +526,14 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
 
         ## TODO: load/unload entities if ignored_zones has changed
         self.schedule_update_ha_state(force_refresh=True)
-        if self._zone_entities:
-            for entity in self._zone_entities:
-                entity.schedule_update_ha_state(force_refresh=True)
-
-    def register_zone_entities(self, entities):
-        """Register additional zone entities to trigger update."""
-        self._zone_entities = entities
 
     @property
     def device_info(self) -> DeviceInfo:
         """Return device info."""
+        if self._device_info:
+            return self._device_info
+
+        ## Device info creation for configuration.yaml
         name = self._attr_name
         if self._zone == "1":
             name += " Main Zone"

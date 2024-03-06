@@ -1,4 +1,5 @@
 """The Pioneer AVR integration."""
+
 # pylint: disable=logging-format-interpolation
 
 import asyncio
@@ -23,18 +24,23 @@ from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.device_registry import DeviceInfo
 
 from .config_flow import PioneerAVRConfigFlow
 from .const import (
     DOMAIN,
-    PLATFORMS,
+    PLATFORMS_CONFIG_FLOW,
     PIONEER_OPTIONS_UPDATE,
     MIGRATE_OPTIONS,
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
     CONF_PARAMS,
     CONF_DEBUG_CONFIG,
+    ATTR_PIONEER,
+    ATTR_COORDINATORS,
+    ATTR_DEVICE_INFO,
 )
+from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
 from .device import check_device_unique_id, clear_device_unique_id
 from .media_player import async_setup_shutdown_listener
@@ -124,7 +130,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry.options,
         )
 
-    ## Create PioneerAVR API object
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
     name = entry.data[CONF_NAME]
@@ -142,7 +147,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
     params.update(options.get(CONF_PARAMS, {}))
 
-    ## Create PioneerAVR
+    ## Create PioneerAVR API object
     try:
         pioneer = PioneerAVR(
             host,
@@ -168,17 +173,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         raise ConfigEntryNotReady from exc
 
     hass.data.setdefault(DOMAIN, {})
-    hass.data[DOMAIN][entry.entry_id] = pioneer
+    pioneer_data = {}
+    pioneer_data[ATTR_PIONEER] = pioneer
 
     ## Set up parent device for Pioneer AVR
     model = pioneer.model
     software_version = pioneer.software_version
     mac_addr = pioneer.mac_addr
+    mac_addr_val = mac_addr if mac_addr != "unknown" else None
 
+    ## TODO: migrate from using device_unique_id
+    ## Remove old devices from device registry
+    ## https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/__init__.py#L220
+
+    ## TODO: clean up MAC connections to unknown
+
+    top_identifier = mac_addr_val or entry.entry_id
     device_registry.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
         connections={(device_registry.CONNECTION_NETWORK_MAC, mac_addr)},
-        identifiers={(DOMAIN, entry.unique_id)},
+        identifiers={(DOMAIN, top_identifier)},
         manufacturer="Pioneer",
         name=name,
         model=model,
@@ -186,8 +200,33 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         configuration_url=f"http://{host}",
     )
 
+    pioneer_data[ATTR_DEVICE_INFO] = {}
+    pioneer_data[ATTR_DEVICE_INFO]["top"] = DeviceInfo(
+        identifiers={(DOMAIN, top_identifier)},
+    )
+
+    ## Create DeviceInfo and DataUpdateCoordinator for each zone
+    pioneer_data[ATTR_COORDINATORS] = {}
+    for zone in pioneer.zones:
+        zone_name_suffix = (
+            "Main Zone" if zone == "1" else "HDZone" if zone == "Z" else "Zone " + zone
+        )
+        pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
+            identifiers={(DOMAIN, top_identifier + "-" + zone)},
+            manufacturer="Pioneer",
+            sw_version=software_version,
+            name=(name + " " + zone_name_suffix),
+            model=model,
+            via_device=(DOMAIN, top_identifier),
+        )
+        pioneer_data[ATTR_COORDINATORS][zone] = PioneerAVRZoneCoordinator(
+            hass, pioneer, zone
+        )
+
+    hass.data[DOMAIN][entry.entry_id] = pioneer_data
+
     ## Set up platforms for Pioneer AVR
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_CONFIG_FLOW)
 
     async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
         """Handle options update."""
@@ -212,11 +251,13 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)
-    pioneer = hass.data[DOMAIN][entry.entry_id]
+    pioneer: PioneerAVR = hass.data[DOMAIN][entry.entry_id][ATTR_PIONEER]
     pioneer.clear_zone_callbacks()
 
     ## Unload platforms for Pioneer AVR
-    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
+    unload_ok = await hass.config_entries.async_unload_platforms(
+        entry, PLATFORMS_CONFIG_FLOW
+    )
 
     ## Shutdown Pioneer AVR for removal
     await pioneer.shutdown()
