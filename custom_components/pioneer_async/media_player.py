@@ -640,10 +640,8 @@ class PioneerZone(MediaPlayerEntity):  # pylint: disable=abstract-method
                 attrs |= {"video": pioneer.video}
             if hasattr(pioneer, "system") and pioneer.system:
                 attrs |= {"system": pioneer.system}
-
-        ## Return zone specific attributes
-        if pioneer.audio and pioneer.audio.get(self._zone):
-            attrs |= {"audio": pioneer.audio[self._zone]}
+            if hasattr(pioneer, "audio") and pioneer.audio:
+                attrs |= {"audio": pioneer.audio}
         return attrs
 
     async def async_turn_on(self) -> None:
