@@ -21,7 +21,7 @@ from homeassistant.const import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = ["media_player"]
-VERSION = "0.8.5"
+VERSION = "0.8.6"
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
