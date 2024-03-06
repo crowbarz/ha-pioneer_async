@@ -20,6 +20,8 @@ This integration can be installed via HACS by adding this repository as a custom
 
 ## Configuration
 
+> **WARNING:** as of 0.8.6, support for YAML configuration via `configuration.yaml` is deprecated, and will be removed in 0.9.0.
+
 This integration may be configured via the UI (**Configuration > Integrations > +**) or through YAML in `configuration.yaml`. All AVRs should be configured using the same configuration method.
 
 Unlike other similar integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
@@ -35,6 +37,8 @@ If **Query sources from AVR** is selected and the options flow is submitted, the
 Additional sources can be manually added by entering them in **Manually configured sources** in the format "_id_:_name_", where _id_ is a two digit number with leading zeros.
 
 ## `configuration.yaml` options
+
+> **WARNING:** as of 0.8.6, support for YAML configuration via `configuration.yaml` is deprecated, and will be removed in 0.9.0.
 
 Configure these settings under `media_player`:
 
@@ -207,6 +211,9 @@ To be implemented.
 To be implemented.
 
 ## Breaking changes
+
+- **0.9**\
+  Integration configuration via `configuration.yaml` is no longer supported. [ADR10](https://github.com/home-assistant/architecture/blob/master/adr/0010-integration-configuration.md) outlines that integrations that communicate with devices, such as this one, must be configured via the UI. Also, several more recently added features, such as support for the HA device registry and dynamic integration loading/unloading, already do not work unless configured via the UI.
 
 - **0.8**\
   The `zone_h_sources` and `zone_z_sources` params have been renamed to `hdzone_sources`, to be more consistent with the rest of the integration.
