@@ -233,10 +233,11 @@ To be implemented.
 
 ## Implementation details
 
+Under the hood, this integration uses [crowbarz/aiopioneer](https://github.com/crowbarz/aiopioneer) to communicate with the Pioneer AVR via its API. Briefly, the features of this package are:
+
 - Implemented in asyncio.
 - Maintain single continuous telnet session to AVR, with automatic reconnect.
 - Eliminate polling where AVR sends keepalive responses (on port 8102).
-- Uses [crowbarz/aiopioneer](https://github.com/crowbarz/aiopioneer) to communicate with the Pioneer API.
 
 **NOTE:** On the VSX-930, the telnet API can become quite unstable when telnet connections are made to it repeatedly. The original integration established a new telnet connection for each command sent to the AVR, including the commands used to poll status. This integration establishes a single telnet connection when loaded, and re-connects automatically if it disconnects. The connection is used for sending commands, receiving responses, and receiving status updates which are reflected in Home Assistant in real time.
 
