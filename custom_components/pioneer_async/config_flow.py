@@ -62,6 +62,7 @@ from .const import (
     OPTIONS_DEFAULTS,
     OPTIONS_ALL,
     DEFAULTS_EXCLUDE,
+    ATTR_PIONEER,
 )
 from .debug import Debug
 from .device import get_device_unique_id
@@ -363,7 +364,9 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         """Update zone source IDs to be a valid subset of configured/available sources."""
         ## NOTE: param defaults may include sources excluded from main zone
         config_entry = self.config_entry
-        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
+        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id][
+            ATTR_PIONEER
+        ]
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlow.update_zone_source_subsets()")
         defaults = self.defaults
@@ -391,7 +394,9 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if config_entry.entry_id not in self.hass.data[DOMAIN]:
             return self.async_abort(reason="not_set_up")
 
-        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id]
+        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id][
+            ATTR_PIONEER
+        ]
         self.pioneer = pioneer
 
         defaults = {
