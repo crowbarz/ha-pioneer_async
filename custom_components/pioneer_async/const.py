@@ -22,8 +22,7 @@ from homeassistant.const import (
 
 DOMAIN = "pioneer_async"
 PLATFORMS = [Platform.MEDIA_PLAYER]
-PLATFORMS_CONFIG_FLOW = [Platform.MEDIA_PLAYER, Platform.SENSOR]
-# , Platform.BINARY_SENSOR]
+PLATFORMS_CONFIG_FLOW = [Platform.MEDIA_PLAYER, Platform.SENSOR, Platform.BINARY_SENSOR]
 VERSION = "0.8.6"
 
 DEFAULT_HOST = "avr"
@@ -113,24 +112,3 @@ ATTR_CLASS = "class"
 ATTR_PRESET = "preset"
 ATTR_CHANNEL = "channel"
 ATTR_LEVEL = "level"
-
-## State attribute lists
-ATTRS_SYSTEM_PROMOTE = "speaker_system"
-ATTRS_SYSTEM_EXCLUDE = ["speaker_system"]
-ATTRS_AMP_PROMOTE = "speakers"
-ATTRS_AMP_EXCLUDE = ["display", "dimmer", "speakers"]
-ATTRS_DSP_PROMOTE = "signal_select"
-ATTRS_DSP_EXCLUDE = ["signal_select"]
-ATTRS_TUNER_PROMOTE = "frequency"
-ATTRS_TUNER_EXCLUDE = ["frequency"]
-ATTRS_VIDEO_PROMOTE = "signal_output_resolution"
-ATTRS_VIDEO_EXCLUDE = ["signal_output_resolution", "1", "2", "3", "Z"]
-ATTRS_AUDIO_PROMOTE = "input_signal"
-ATTRS_AUDIO_EXCLUDE = ["input_signal", "1", "2", "3", "Z"]
-## TODO: add binary_sensor for input_multichannel
-ATTRS_ZONE_VIDEO_PROMOTE = "status"  # TODO
-ATTRS_ZONE_VIDEO_EXCLUDE = []  # TODO
-ATTRS_TONE_PROMOTE = "status"
-ATTRS_TONE_EXCLUDE = ["status"]
-ATTRS_CHANNEL_LEVEL_PROMOTE = "C"
-ATTRS_CHANNEL_LEVEL_EXCLUDE = ["C"]
