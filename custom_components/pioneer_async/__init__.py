@@ -6,10 +6,12 @@ import asyncio
 from datetime import timedelta
 import json
 import logging
+from typing import Any
 
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
+from aiopioneer.const import Zones
 from aiopioneer.param import PARAMS_ALL, PARAM_ZONE_SOURCES
 
 from homeassistant.config_entries import ConfigEntry
@@ -25,6 +27,8 @@ from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.device_registry import DeviceInfo
+from homeassistant.helpers.entity import Entity
+from homeassistant.util import slugify
 
 from .config_flow import PioneerAVRConfigFlow
 from .const import (
@@ -271,3 +275,50 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         _LOGGER.warning("unload_entry unload failed")
 
     return unload_ok
+
+
+class PioneerEntityBase(Entity):
+    """Pioneer AVR base entity class."""
+
+    _attr_should_poll = False
+    _attr_has_entity_name = True
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zones | None = None,
+    ) -> None:
+        """Initialize the Pioneer AVR display sensor."""
+        if _debug_atlevel(9):
+            _LOGGER.debug("%s.__init__()", type(self).__name__)
+        self.pioneer = pioneer
+        self.coordinator = coordinator
+        self.zone = zone
+        self._attr_device_info = device_info
+        self.unique_class_name = type(self).__name__  ## override for generic classes
+
+    @property
+    def unique_id(self) -> str:
+        """Return the unique id."""
+        entry_id = self.platform.config_entry.entry_id
+        zone_suffix = "-" + str(self.zone) if self.zone is not None else ""
+        return f"{entry_id}{zone_suffix}-{slugify(self._attr_name)}"
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the device is available."""
+        return self.pioneer.available and (
+            self.zone is None or self.zone in self.pioneer.zones
+        )
+
+
+def select_dict(orig_dict: dict[str, Any], include_keys: list[str]) -> dict[str, Any]:
+    """Include only specified keys from dict."""
+    return {k: v for k, v in orig_dict.items() if k in include_keys}
+
+
+def reject_dict(orig_dict: dict[str, Any], exclude_keys: list[str]) -> dict[str, Any]:
+    """Exclude specified keys from dict."""
+    return {k: v for k, v in orig_dict.items() if k not in exclude_keys}
