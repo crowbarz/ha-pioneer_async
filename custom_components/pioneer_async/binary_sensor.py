@@ -122,7 +122,7 @@ class PioneerBinarySensor(PioneerEntityBase, BinarySensorEntity, CoordinatorEnti
         zone: Zones | None = None,
     ) -> None:
         """Initialize the Pioneer AVR binary sensor."""
-        super().__init__(pioneer, coordinator, device_info, zone=zone)
+        super().__init__(pioneer, device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
 
