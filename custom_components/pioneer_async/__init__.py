@@ -11,7 +11,6 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
 from aiopioneer.param import PARAMS_ALL, PARAM_ZONE_SOURCES
 
 from homeassistant.config_entries import ConfigEntry
@@ -21,14 +20,13 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
+    EVENT_HOMEASSISTANT_CLOSE,
 )
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import ConfigEntryNotReady
 from homeassistant.helpers import device_registry
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.device_registry import DeviceInfo
-from homeassistant.helpers.entity import Entity
-from homeassistant.util import slugify
 
 from .config_flow import PioneerAVRConfigFlow
 from .const import (
@@ -47,7 +45,8 @@ from .const import (
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
 from .device import check_device_unique_id, clear_device_unique_id
-from .media_player import async_setup_shutdown_listener
+
+# from .media_player import async_setup_shutdown_listener
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -188,7 +187,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     ## TODO: migrate from using device_unique_id
     ## Remove old devices from device registry
-    ## https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/__init__.py#L220
+    ## https://github.com/blakeblackshear/frigate-hass-integration/blob/master/custom_components/frigate/__init__.py#L220  # pylint: disable=line-too-long
 
     ## TODO: clean up MAC connections to unknown
 
@@ -223,28 +222,34 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             model=model,
             via_device=(DOMAIN, top_identifier),
         )
-        pioneer_data[ATTR_COORDINATORS][zone] = PioneerAVRZoneCoordinator(
-            hass, pioneer, zone
-        )
+        coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
+        coordinator.set_zone_callback()
+        pioneer_data[ATTR_COORDINATORS][zone] = coordinator
 
     hass.data[DOMAIN][entry.entry_id] = pioneer_data
 
     ## Set up platforms for Pioneer AVR
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_CONFIG_FLOW)
 
-    async def _update_listener(hass: HomeAssistant, entry: ConfigEntry):
+    async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
         """Handle options update."""
+        await hass.config_entries.async_reload(config_entry.entry_id)
 
         ## Send signal to platform to update options
-        async_dispatcher_send(
-            hass, f"{PIONEER_OPTIONS_UPDATE}-{entry.entry_id}", entry.options
-        )
+        # async_dispatcher_send(
+        #     hass, f"{PIONEER_OPTIONS_UPDATE}-{config_entry.entry_id}", config_entry.options
+        # )
 
     ## Create update listener
     entry.async_on_unload(entry.add_update_listener(_update_listener))
 
+    async def _shutdown_listener(_event) -> None:
+        await pioneer.shutdown()
+
     ## Create shutdown event listener
-    await async_setup_shutdown_listener(hass, entry, pioneer)
+    entry.async_on_unload(
+        hass.bus.async_listen_once(EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener)
+    )
 
     return True
 

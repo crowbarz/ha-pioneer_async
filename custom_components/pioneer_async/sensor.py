@@ -218,7 +218,7 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
         zone: Zones | None = None,
     ) -> None:
         """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, coordinator, device_info, zone=zone)
+        super().__init__(pioneer, device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
 

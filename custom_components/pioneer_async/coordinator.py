@@ -28,3 +28,13 @@ class PioneerAVRZoneCoordinator(DataUpdateCoordinator):
 
     async def _async_update_data(self) -> None:
         """Update Pioneer AVR."""
+
+    def set_zone_callback(self) -> None:
+        """Set aiopioneer zone callback to trigger HA zone update."""
+
+        def callback_zone_update() -> None:
+            self.async_set_updated_data(None)
+
+        self.pioneer.set_zone_callback(Zones(self.zone), callback_zone_update)
+        if self.zone == "1":
+            self.pioneer.set_zone_callback(Zones.ALL, callback_zone_update)
