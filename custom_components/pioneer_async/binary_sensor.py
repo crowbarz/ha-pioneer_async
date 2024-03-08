@@ -147,19 +147,20 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         super().__init__(pioneer, coordinator, device_info, zone=zone)
         self._attr_name = name
         self._attr_icon = icon
+        self._attr_entity_registry_enabled_default = enabled_default
         self.base_property = base_property
         self.promoted_property = promoted_property
         self.include_properties = include_properties
         self.exclude_properties = exclude_properties
 
         ## Exclude promoted_property from extra_attributes
-        if (
-            isinstance(exclude_properties, list)
-            and promoted_property is not None
-            and promoted_property not in exclude_properties
-        ):
-            self.exclude_properties.append(promoted_property)
-        self._attr_entity_registry_enabled_default = enabled_default
+        # if (
+        #     isinstance(exclude_properties, list)
+        #     and promoted_property is not None
+        #     and promoted_property not in exclude_properties
+        #     and f"!{promoted_property}" not in exclude_properties
+        # ):
+        #     self.exclude_properties.append(promoted_property)
 
     @property
     def is_on(self) -> bool:
