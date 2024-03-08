@@ -84,7 +84,9 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-from .device import get_device_unique_id, check_device_unique_id
+
+# from .device import get_device_unique_id, check_device_unique_id
+from .entity_base import PioneerEntityBase
 
 _LOGGER = logging.getLogger(__name__)
 

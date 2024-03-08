@@ -22,9 +22,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from . import PioneerEntityBase
 from . import select_dict, reject_dict
-
 from .const import (
     DOMAIN,
     ATTR_PIONEER,
@@ -33,6 +31,7 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
+from .entity_base import PioneerEntityBase
 
 
 _LOGGER = logging.getLogger(__name__)
