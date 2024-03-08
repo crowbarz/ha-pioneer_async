@@ -65,9 +65,9 @@
                 "description": "Configure Pioneer AVR Zone options",
                 "data": {
                     "max_source_id": "Maximum source ID",
-                    "ignore_zone_2": "Don't create an entity for Zone 2 (requires restart)",
-                    "ignore_zone_3": "Don't create an entity for Zone 3 (requires restart)",
-                    "ignore_hdzone": "Don't create an entity for HDZone (requires restart)",
+                    "ignore_zone_2": "Don't create an entity for Zone 2",
+                    "ignore_zone_3": "Don't create an entity for Zone 3",
+                    "ignore_hdzone": "Don't create an entity for HDZone",
                     "zone_1_sources": "Available sources for Zone 1",
                     "zone_2_sources": "Available sources for Zone 2",
                     "zone_3_sources": "Available sources for Zone 3",
