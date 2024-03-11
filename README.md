@@ -252,7 +252,7 @@ Under the hood, this integration uses [crowbarz/aiopioneer](https://github.com/c
 
 The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
 
-Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. For example, `config_flow:9` will enable full debugging output for the `config_flow` module.
+Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. For example, `config_flow:9` will enable full debugging output for the `config_flow` module. To enable full debugging for all modules, enter `*:9`.
 
 Home Assistant debug level logging must also be enabled for the integration to generate debug.
 
