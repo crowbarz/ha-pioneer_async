@@ -65,7 +65,6 @@ from .const import (
     ATTR_PIONEER,
 )
 from .debug import Debug
-from .device import get_device_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -192,7 +191,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialise Pioneer AVR config flow."""
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerAVRConfigFlow.__init__()")
-        self.device_unique_id = None
         self.pioneer = None
         self.name = None
         self.host = None
@@ -224,10 +222,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.host = user_input[CONF_HOST]
             self.port = int(user_input[CONF_PORT])
             self.query_sources = user_input[CONF_QUERY_SOURCES]
-
-            self.device_unique_id = get_device_unique_id(self.host, self.port)
-            await self.async_set_unique_id(self.device_unique_id)
-            self._abort_if_unique_id_configured()
 
             try:
                 try:
@@ -332,7 +326,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         del pioneer
 
         return self.async_create_entry(
-            title=self.device_unique_id,
+            title=self.name,
             data={
                 CONF_NAME: self.name,
                 CONF_HOST: self.host,

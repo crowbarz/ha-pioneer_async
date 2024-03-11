@@ -6,52 +6,25 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
-from aiopioneer.param import PARAMS_ALL, PARAM_IGNORED_ZONES, PARAM_DISABLE_AUTO_QUERY
+from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY
 
-from homeassistant.components.media_player import (
-    PLATFORM_SCHEMA,
-    MediaPlayerEntity,
-)
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
+from homeassistant.components.media_player import MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     MediaPlayerEntityFeature,
     MediaPlayerState,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import (
-    CONF_HOST,
-    CONF_NAME,
-    CONF_PORT,
-    CONF_TIMEOUT,
-    CONF_SCAN_INTERVAL,
-    STATE_UNKNOWN,
-    EVENT_HOMEASSISTANT_CLOSE,
-)
+from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
 from homeassistant.exceptions import PlatformNotReady
-from homeassistant.helpers.dispatcher import async_dispatcher_connect
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
-from homeassistant.helpers.typing import ConfigType, DiscoveryInfoType
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
     DOMAIN,
-    CONF_SOURCES,
-    CONF_PARAMS,
-    CONF_DEBUG_CONFIG,
-    MIGRATE_CONFIG,
-    MIGRATE_PARAMS,
-    DEFAULT_NAME,
-    DEFAULT_PORT,
-    DEFAULT_TIMEOUT,
-    DEFAULT_SOURCES,
-    DEFAULT_SCAN_INTERVAL,
-    PIONEER_OPTIONS_UPDATE,
-    OPTIONS_DEFAULTS,
-    OPTIONS_ALL,
     CLASS_PIONEER,
     SERVICE_SET_PANEL_LOCK,
     SERVICE_SET_REMOTE_LOCK,
@@ -84,8 +57,6 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-
-# from .device import get_device_unique_id, check_device_unique_id
 from .entity_base import PioneerEntityBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -93,21 +64,6 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 
 PARAM_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
-
-PLATFORM_SCHEMA = PLATFORM_SCHEMA.extend(
-    {
-        vol.Optional(CONF_NAME, default=DEFAULT_NAME): cv.string,
-        vol.Required(CONF_HOST): cv.string,
-        vol.Optional(CONF_PORT, default=DEFAULT_PORT): cv.port,
-        vol.Optional(CONF_SCAN_INTERVAL, default=DEFAULT_SCAN_INTERVAL): cv.time_period,
-        vol.Optional(CONF_TIMEOUT, default=DEFAULT_TIMEOUT): cv.socket_timeout,
-        vol.Optional(CONF_SOURCES, default=DEFAULT_SOURCES): {cv.string: cv.string},
-        vol.Optional(CONF_PARAMS, default={}): PARAM_SCHEMA,
-        vol.Optional(CONF_DEBUG_CONFIG, default={}): vol.Schema(
-            {}, extra=vol.ALLOW_EXTRA
-        ),
-    }
-)
 
 PIONEER_SET_PANEL_LOCK_SCHEMA = {
     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
@@ -185,22 +141,6 @@ def _debug_atlevel(level: int, category: str = __name__):
     return Debug.atlevel(None, level, category)
 
 
-# async def async_setup_shutdown_listener(
-#     hass: HomeAssistant, entry: ConfigEntry, pioneer: PioneerAVR
-# ) -> None:
-#     """Set up handler for Home Assistant shutdown."""
-
-#     async def _shutdown_listener(_event) -> None:
-#         await pioneer.shutdown()
-
-#     ## Create shutdown event listener
-#     shutdown_listener = hass.bus.async_listen_once(
-#         EVENT_HOMEASSISTANT_CLOSE, _shutdown_listener
-#     )
-#     if entry:
-#         entry.async_on_unload(shutdown_listener)
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -238,7 +178,6 @@ async def async_setup_entry(
         _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
-    ## TODO: defer update to first power on
     try:
         await pioneer.update()
     except Exception as exc:  # pylint: disable=broad-except
@@ -321,51 +260,6 @@ class PioneerZone(
             _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         super().__init__(pioneer, device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
-
-    # async def async_added_to_hass(self) -> None:
-    #     """Complete the initialization."""
-    #     await super().async_added_to_hass()
-    #     if _debug_atlevel(9):
-    #         _LOGGER.debug(">> PioneerZone.async_added_to_hass(%s)", self.zone)
-
-    #     if self.zone == "1":
-    #         self.async_on_remove(
-    #             async_dispatcher_connect(
-    #                 self.hass,
-    #                 f"{PIONEER_OPTIONS_UPDATE}-{self.platform.config_entry.entry_id}",
-    #                 self._async_update_options,
-    #             )
-    #         )
-
-    # async def _async_update_options(self, data):
-    #     """Change options when the options flow does."""
-    #     ## TODO: modify to just unload/load entities on options change
-    #     if _debug_atlevel(8):
-    #         _LOGGER.debug(">> PioneerZone._async_update_options(data=%s)", data)
-    #     pioneer = self.pioneer
-    #     options = {**OPTIONS_DEFAULTS, **{k: data[k] for k in OPTIONS_ALL if k in data}}
-    #     params = {k: data[k] for k in PARAMS_ALL if k in data}
-    #     params.update(options.get(CONF_PARAMS, {}))
-    #     sources = options[CONF_SOURCES]
-    #     query_sources_current = pioneer.query_sources
-    #     params_current = pioneer.get_params()
-    #     pioneer.set_user_params(params)
-    #     params_new = pioneer.get_params()
-    #     if sources:
-    #         pioneer.set_source_dict(sources)
-    #     elif not query_sources_current:
-    #         await pioneer.build_source_dict()
-    #     await pioneer.set_timeout(options[CONF_TIMEOUT])
-    #     await pioneer.set_scan_interval(options[CONF_SCAN_INTERVAL])
-    #     ## NOTE: trigger zone update only after scan_interval update due to
-    #     ##       wait_for missing cancellation when awaited coroutine
-    #     ##       has already completed: https://bugs.python.org/issue42130
-    #     ##       Mitigated also by using safe_wait_for()
-    #     if params_new[PARAM_IGNORED_ZONES] != params_current[PARAM_IGNORED_ZONES]:
-    #         await pioneer.update_zones()
-
-    #     ## TODO: load/unload entities if ignored_zones has changed
-    #     self.schedule_update_ha_state(force_refresh=True)
 
     @property
     def state(self) -> MediaPlayerState:

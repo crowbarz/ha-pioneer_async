@@ -97,6 +97,7 @@ SERVICE_SET_DSP_SETTINGS = "set_dsp_settings"
 ATTR_PIONEER = "pioneer"
 ATTR_COORDINATORS = "coordinators"
 ATTR_DEVICE_INFO = "device_info"
+ATTR_DEVICE_ENTRY = "device_entry"
 
 ## Config attributes
 ATTR_ENTITY_ID = "entity_id"
