@@ -23,7 +23,7 @@ class Debug:
             return False
         category = category_raw.partition(DOMAIN + ".")[2] or DOMAIN
         try:
-            debug_level_str = Debug.config.get(category, 0)
+            debug_level_str = Debug.config.get(category, Debug.config.get("*", 0))
             debug_level = int(debug_level_str)
         except ValueError:
             _LOGGER.error(
