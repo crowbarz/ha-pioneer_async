@@ -24,7 +24,9 @@ This integration can be installed via HACS by adding this repository as a custom
 
 This integration may be configured via the UI (**Configuration > Integrations > +**) or through YAML in `configuration.yaml`. All AVRs should be configured using the same configuration method.
 
-Unlike other similar integrations, this integration will create `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure separate instances of the integration for each zone.
+**NOTE:** Unlike other similar integrations, this integration will create separate `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure a separate instance of the integration for each zone.
+
+**NOTE:** Some AVR system attributes are not available when the AVR main zone is not powered on when the integration is added to HA. To include all available attributes, ensure that the AVR is turned on when adding the integration.
 
 Be aware that some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. This integration uses a single connection, and each instance of the Pioneer iControlAV5 application will use another connection. (eg. if iControlAV5 is open on two phones, then two connections will be used.)
 
@@ -34,7 +36,7 @@ On the Integrations page, click **Configure** on the Pioneer AVR integration to 
 
 If **Query sources from AVR** is selected and the options flow is submitted, then the integration will poll the AVR for available sources. The sources can then be saved by reconfiguring the AVR again and turning off **Query sources from AVR** and submitting again. Unwanted sources can be removed from the list, and sources available for each zone can also be selected. Once sources are saved, the integration does not poll the AVR for sources again until **Query sources from AVR** is turned on again, making integration startup quicker.
 
-Additional sources can be manually added by entering them in **Manually configured sources** in the format "_id_:_name_", where _id_ is a two digit number with leading zeros.
+Additional sources can be manually added by entering them in **Manually configured sources** using the format "_id_:_name_", where _id_ is a two digit number with leading zeros.
 
 ## `configuration.yaml` options
 
