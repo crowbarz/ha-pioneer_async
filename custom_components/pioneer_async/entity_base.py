@@ -41,9 +41,9 @@ class PioneerEntityBase(Entity):
     def unique_id(self) -> str:
         """Return the unique id."""
         entry_id = self.platform.config_entry.entry_id
-        name = self._attr_name or "device_entity"
+        name_suffix = "-" + slugify(self._attr_name) if self._attr_name else ""
         zone_suffix = "-" + str(self.zone) if self.zone is not None else ""
-        return f"{entry_id}{zone_suffix}-{slugify(name)}"
+        return f"{entry_id}{zone_suffix}{name_suffix}"
 
     @property
     def available(self) -> bool:
