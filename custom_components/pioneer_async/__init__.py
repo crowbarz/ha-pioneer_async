@@ -206,10 +206,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for device_entry in device_registry.async_entries_for_config_entry(
         dr, entry.entry_id
     ):
-        for zone_id in [f"{device_unique_id}-{str(z)}" for z in pioneer.zones]:
-            if (DOMAIN, zone_id) in device_entry.identifiers:
+        devices_list = [device_unique_id]
+        devices_list += [f"{device_unique_id}-{str(z)}" for z in pioneer.zones]
+        for device_id in devices_list:
+            if (DOMAIN, device_id) in device_entry.identifiers:
                 _LOGGER.warning(
-                    "removing legacy device %s (%s)", device_entry.name, zone_id
+                    "removing legacy device %s (%s)", device_entry.name, device_id
                 )
                 dr.async_remove_device(device_entry.id)
                 break
