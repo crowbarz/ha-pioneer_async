@@ -92,7 +92,7 @@
                 "data_description": {
                     "disable_auto_query": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_auto_query]",
                     "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
-                    "ignore_volume_check": "Enable this when using source query on AVRs  that do not support reporting volume\n[ignore_volume_check] (requires restart)",
+                    "ignore_volume_check": "Enable this when using source query on AVRs that do not support reporting volume\n[ignore_volume_check]",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]",
                     "params": "Additional config parameters to pass to aiopioneer"
                 }
