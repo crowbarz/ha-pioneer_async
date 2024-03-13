@@ -177,14 +177,42 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     software_version = pioneer.software_version
     mac_addr = pioneer.mac_addr
     connections = set()
+    top_identifiers = {(DOMAIN, entry.entry_id)}
     if mac_addr:
         connections = {(device_registry.CONNECTION_NETWORK_MAC, mac_addr)}
+        top_identifiers |= {(DOMAIN, mac_addr)}
 
-    top_identifier = mac_addr or entry.entry_id
+    def get_zone_identifiers(zone: str) -> set[tuple[str, str]]:
+        return {(DOMAIN, i + "-" + zone) for _, i in top_identifiers}
+
+    ## Update devices with new device_unique_ids (config entry and MAC address)
+    ## TODO: remove legacy device_unique_ids from device entries in 0.10.0 or later
+    legacy_unique_id = host + ":" + str(port)
+
+    dr = device_registry.async_get(hass)
+    for device_entry in device_registry.async_entries_for_config_entry(
+        dr, entry.entry_id
+    ):
+        id_list = [(legacy_unique_id, top_identifiers)]
+        id_list += [
+            (legacy_unique_id + "-" + z, get_zone_identifiers(z)) for z in pioneer.zones
+        ]
+        for legacy_id, new_ids in id_list:
+            if (DOMAIN, legacy_id) in device_entry.identifiers and (
+                device_entry.identifiers | new_ids != device_entry.identifiers
+            ):
+                _LOGGER.warning(
+                    "updating legacy device %s (%s)",
+                    device_entry.name,
+                    legacy_id,
+                )
+                dr.async_update_device(device_entry.id, merge_identifiers=new_ids)
+                break
+
     device_entry = device_registry.async_get(hass).async_get_or_create(
         config_entry_id=entry.entry_id,
         connections=connections,
-        identifiers={(DOMAIN, top_identifier)},
+        identifiers=top_identifiers,
         manufacturer="Pioneer",
         name=name,
         model=model,
@@ -194,27 +222,10 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     pioneer_data[ATTR_DEVICE_INFO] = {}
     pioneer_data[ATTR_DEVICE_INFO]["top"] = DeviceInfo(
-        identifiers={(DOMAIN, top_identifier)},
+        identifiers=top_identifiers,
     )
     pioneer_data[ATTR_DEVICE_ENTRY] = {}
     pioneer_data[ATTR_DEVICE_ENTRY]["top"] = device_entry
-
-    ## Remove devices with legacy device_unique_id
-    ## TODO: deprecate in 0.10.0 or later
-    device_unique_id = host + ":" + str(port)
-    dr = device_registry.async_get(hass)
-    for device_entry in device_registry.async_entries_for_config_entry(
-        dr, entry.entry_id
-    ):
-        devices_list = [device_unique_id]
-        devices_list += [f"{device_unique_id}-{str(z)}" for z in pioneer.zones]
-        for device_id in devices_list:
-            if (DOMAIN, device_id) in device_entry.identifiers:
-                _LOGGER.warning(
-                    "removing legacy device %s (%s)", device_entry.name, device_id
-                )
-                dr.async_remove_device(device_entry.id)
-                break
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
     ## TODO: update deviceInfo if more details become available (when AVR is on)
@@ -227,11 +238,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             "Main Zone" if zone == "1" else "HDZone" if zone == "Z" else "Zone " + zone
         )
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
-            identifiers={(DOMAIN, top_identifier + "-" + zone)},
+            identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
             name=(name + " " + zone_name_suffix),
             model=model,
-            via_device=(DOMAIN, top_identifier),
+            via_device=(DOMAIN, entry.entry_id),
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
         coordinator.set_zone_callback()
