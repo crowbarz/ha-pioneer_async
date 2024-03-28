@@ -8,6 +8,7 @@ set_panel_lock:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     panel_lock:
       description: Panel lock setting
       required: true
@@ -33,6 +34,7 @@ set_remote_lock:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     remote_lock:
       description: Enable remote lock
       required: true
@@ -50,24 +52,20 @@ set_dimmer:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     dimmer:
       description: Dimmer mode
       required: true
-      example: "0"
-      default: "0"
+      example: "Bright"
+      default: "Brightest"
       selector:
         select:
           options:  # aiopioneer.const.DIMMER_MODES
-            - label: "Brightness"
-              value: "0"
-            - label: "Bright"
-              value: "1"
-            - label: "Dark"
-              value: "2"
-            - label: "FL OFF"
-              value: "3"
-            - label: "DIMMER (cyclic)"
-              value: "9"
+            - "Brightest"
+            - "Bright"
+            - "Dark"
+            - "Off"
+            - "(cycle)"
 
 set_tone_settings:
   description: Set AVR tone settings for zone
@@ -79,19 +77,18 @@ set_tone_settings:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     tone:
       description: Tone mode
       required: true
-      example: "0"
+      example: "On"
+      default: "Bypass"
       selector:
         select:
           options:  # aiopioneer.const.TONE_MODES
-            - label: "Bypass"
-              value: "0"
-            - label: "ON"
-              value: "1"
-            - label: "TONE (Cyclic)"
-              value: "9"
+            - "Bypass"
+            - "On"
+            - "(cycle)"
     treble:
       description: Tone treble value
       example: 0
@@ -123,6 +120,7 @@ set_tone_settings:
 #       selector:
 #         entity:
 #           integration: pioneer_async
+#           domain: media_player
 
 set_tuner_band:
   description: Set AVR tuner band
@@ -134,6 +132,7 @@ set_tuner_band:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     band:
       required: true
       example: "FM"
@@ -154,6 +153,7 @@ set_fm_tuner_frequency:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     frequency:
       description: Tuner frequency (87.5 MHz -- 108.0 MHz)
       required: true
@@ -177,6 +177,7 @@ set_am_tuner_frequency:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     frequency:
       description: Tuner frequency (530 -- 1700KHz)
       required: true
@@ -200,6 +201,7 @@ set_tuner_preset:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     class:
       description: Tuner preset class
       required: true
@@ -236,6 +238,7 @@ set_channel_levels:
       selector:
         entity:
           integration: pioneer_async
+          domain: media_player
     channel:
       description: Tuner amp channel to modify
       required: true
@@ -307,6 +310,7 @@ set_channel_levels:
 #       selector:
 #         entity:
 #           integration: pioneer_async
+#           domain: media_player
 
 # set_dsp_settings:
 #   description: Set AVR DSP settings for the amplifier
@@ -318,6 +322,7 @@ set_channel_levels:
 #       selector:
 #         entity:
 #           integration: pioneer_async
+#           domain: media_player
 
 # media_control:
 #   description: TODO: implement using standard media functions
@@ -329,3 +334,4 @@ set_channel_levels:
 #       selector:
 #         entity:
 #           integration: pioneer_async
+#           domain: media_player
