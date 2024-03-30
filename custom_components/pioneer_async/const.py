@@ -21,8 +21,12 @@ from homeassistant.const import (
 
 
 DOMAIN = "pioneer_async"
-PLATFORMS = [Platform.MEDIA_PLAYER]
-PLATFORMS_CONFIG_FLOW = [Platform.MEDIA_PLAYER, Platform.SENSOR, Platform.BINARY_SENSOR]
+PLATFORMS_CONFIG_FLOW = [
+    Platform.MEDIA_PLAYER,
+    Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.SELECT,
+]
 VERSION = "0.8.6"
 
 DEFAULT_HOST = "avr"
@@ -85,10 +89,10 @@ SERVICE_SET_REMOTE_LOCK = "set_remote_lock"
 SERVICE_SET_DIMMER = "set_dimmer"
 SERVICE_SET_TONE_SETTINGS = "set_tone_settings"
 SERVICE_SET_AMP_SETTINGS = "set_amp_settings"
-SERVICE_SET_TUNER_BAND = "set_tuner_band"
+SERVICE_SELECT_TUNER_BAND = "select_tuner_band"
 SERVICE_SET_FM_TUNER_FREQUENCY = "set_fm_tuner_frequency"
 SERVICE_SET_AM_TUNER_FREQUENCY = "set_am_tuner_frequency"
-SERVICE_SET_TUNER_PRESET = "set_tuner_preset"
+SERVICE_SELECT_TUNER_PRESET = "select_tuner_preset"
 SERVICE_SET_CHANNEL_LEVELS = "set_channel_levels"
 SERVICE_SET_VIDEO_SETTINGS = "set_video_settings"
 SERVICE_SET_DSP_SETTINGS = "set_dsp_settings"
