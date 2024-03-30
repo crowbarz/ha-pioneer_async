@@ -122,8 +122,8 @@ set_tone_settings:
 #           integration: pioneer_async
 #           domain: media_player
 
-set_tuner_band:
-  description: Set AVR tuner band
+select_tuner_band:
+  description: Select AVR active tuner band
   fields:
     entity_id:
       description: Entity for AVR zone to modify
@@ -191,8 +191,8 @@ set_am_tuner_frequency:
           unit_of_measurement: kHz
           mode: box
 
-set_tuner_preset:
-  description: Set AVR tuner preset
+select_tuner_preset:
+  description: Select pre-defined AVR tuner preset
   fields:
     entity_id:
       description: Entity for AVR zone to modify
