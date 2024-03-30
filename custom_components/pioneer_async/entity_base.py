@@ -1,10 +1,12 @@
 """Pioneer AVR entity base."""
 
+import asyncio
 import logging
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zones, SOURCE_TUNER
 
+from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
@@ -51,3 +53,30 @@ class PioneerEntityBase(Entity):
         return self.pioneer.available and (
             self.zone is None or self.zone in self.pioneer.zones
         )
+
+    async def pioneer_command(self, aw_f, max_count: int = 4) -> None:
+        """Execute a PioneerAVR command, handle exceptions and optionally repeating."""
+        try:
+            count = 0
+            while count < max_count and await aw_f() is False:
+                await asyncio.sleep(1)
+                count += 1
+                if count < max_count:
+                    _LOGGER.warning(
+                        "repeating failed command (%d): %s", count, aw_f.__name__
+                    )
+            if count >= max_count:
+                raise ServiceValidationError(f"AVR command {aw_f.__name__} unavailable")
+        except Exception as exc:
+            raise ServiceValidationError(
+                f"AVR command {aw_f.__name__} failed: {exc}"
+            ) from exc
+
+
+class PioneerTunerEntity(PioneerEntityBase):
+    """Pioneer AVR tuner entity."""
+
+    @property
+    def available(self) -> bool:
+        """Return True if entity is available."""
+        return super().available and SOURCE_TUNER in self.pioneer.source.values()

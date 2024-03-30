@@ -6,7 +6,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY
+from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -18,7 +18,7 @@ from homeassistant.components.media_player.const import (
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
 from homeassistant.core import HomeAssistant
-from homeassistant.exceptions import PlatformNotReady
+from homeassistant.exceptions import PlatformNotReady, ServiceValidationError
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -31,10 +31,10 @@ from .const import (
     SERVICE_SET_DIMMER,
     SERVICE_SET_TONE_SETTINGS,
     # SERVICE_SET_AMP_SETTINGS,
-    SERVICE_SET_TUNER_BAND,
+    SERVICE_SELECT_TUNER_BAND,
     SERVICE_SET_FM_TUNER_FREQUENCY,
     SERVICE_SET_AM_TUNER_FREQUENCY,
-    SERVICE_SET_TUNER_PRESET,
+    SERVICE_SELECT_TUNER_PRESET,
     SERVICE_SET_CHANNEL_LEVELS,
     # SERVICE_SET_VIDEO_SETTINGS,
     # SERVICE_SET_DSP_SETTINGS,
@@ -91,7 +91,7 @@ PIONEER_SET_TONE_SETTINGS_SCHEMA = {
 #     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
 # }
 
-PIONEER_SET_TUNER_BAND_SCHEMA = {
+PIONEER_SELECT_TUNER_BAND_SCHEMA = {
     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_BAND): str,
 }
@@ -111,7 +111,7 @@ PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA = {
     ),
 }
 
-PIONEER_SET_TUNER_PRESET_SCHEMA = {
+PIONEER_SELECT_TUNER_PRESET_SCHEMA = {
     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_CLASS): cv.string,
     vol.Required(ATTR_PRESET): vol.All(vol.Coerce(int), vol.Range(min=1, max=9)),
@@ -194,49 +194,53 @@ async def async_setup_entry(
     platform = entity_platform.async_get_current_platform()
 
     platform.async_register_entity_service(
-        SERVICE_SET_PANEL_LOCK, PIONEER_SET_PANEL_LOCK_SCHEMA, "set_panel_lock"
+        SERVICE_SET_PANEL_LOCK, PIONEER_SET_PANEL_LOCK_SCHEMA, "async_set_panel_lock"
     )
     platform.async_register_entity_service(
-        SERVICE_SET_REMOTE_LOCK, PIONEER_SET_REMOTE_LOCK_SCHEMA, "set_remote_lock"
+        SERVICE_SET_REMOTE_LOCK, PIONEER_SET_REMOTE_LOCK_SCHEMA, "async_set_remote_lock"
     )
     platform.async_register_entity_service(
-        SERVICE_SET_DIMMER, PIONEER_SERVICE_SET_DIMMER_SCHEMA, "set_dimmer"
+        SERVICE_SET_DIMMER, PIONEER_SERVICE_SET_DIMMER_SCHEMA, "async_set_dimmer"
     )
     platform.async_register_entity_service(
-        SERVICE_SET_TONE_SETTINGS, PIONEER_SET_TONE_SETTINGS_SCHEMA, "set_tone_settings"
+        SERVICE_SET_TONE_SETTINGS,
+        PIONEER_SET_TONE_SETTINGS_SCHEMA,
+        "async_set_tone_settings",
     )
     # platform.async_register_entity_service(
-    #     SERVICE_SET_AMP_SETTINGS, PIONEER_SET_AMP_SETTINGS_SCHEMA, "set_amp_settings"
+    #     SERVICE_SET_AMP_SETTINGS, PIONEER_SET_AMP_SETTINGS_SCHEMA, "async_set_amp_settings"
     # )
 
     platform.async_register_entity_service(
-        SERVICE_SET_TUNER_BAND,
-        PIONEER_SET_TUNER_BAND_SCHEMA,
-        "set_tuner_band",
+        SERVICE_SELECT_TUNER_BAND,
+        PIONEER_SELECT_TUNER_BAND_SCHEMA,
+        "async_select_tuner_band",
     )
     platform.async_register_entity_service(
         SERVICE_SET_FM_TUNER_FREQUENCY,
         PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA,
-        "set_fm_tuner_frequency",
+        "async_set_fm_tuner_frequency",
     )
     platform.async_register_entity_service(
         SERVICE_SET_AM_TUNER_FREQUENCY,
         PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA,
-        "set_am_tuner_frequency",
+        "async_set_am_tuner_frequency",
     )
     platform.async_register_entity_service(
-        SERVICE_SET_TUNER_PRESET, PIONEER_SET_TUNER_PRESET_SCHEMA, "set_tuner_preset"
+        SERVICE_SELECT_TUNER_PRESET,
+        PIONEER_SELECT_TUNER_PRESET_SCHEMA,
+        "async_select_tuner_preset",
     )
     platform.async_register_entity_service(
         SERVICE_SET_CHANNEL_LEVELS,
         PIONEER_SET_CHANNEL_LEVELS_SCHEMA,
-        "set_channel_levels",
+        "async_set_channel_levels",
     )
     # platform.async_register_entity_service(
-    #     SERVICE_SET_VIDEO_SETTINGS, PIONEER_SET_VIDEO_SETTINGS_SCHEMA, "set_video_settings"
+    #     SERVICE_SET_VIDEO_SETTINGS, PIONEER_SET_VIDEO_SETTINGS_SCHEMA, "async_set_video_settings"
     # )
     # platform.async_register_entity_service(
-    #     SERVICE_SET_DSP_SETTINGS, PIONEER_SET_DSP_SETTINGS_SCHEMA, "set_dsp_settings"
+    #     SERVICE_SET_DSP_SETTINGS, PIONEER_SET_DSP_SETTINGS_SCHEMA, "async_set_dsp_settings"
     # )
 
 
@@ -359,52 +363,87 @@ class PioneerZone(
             }
         return attrs
 
-    async def async_turn_on(self) -> None:
-        """Turn the media player on."""
-        return await self.pioneer.turn_on(self.zone)
-
-    async def async_turn_off(self) -> None:
-        """Turn off media player."""
-        return await self.pioneer.turn_off(self.zone)
-
-    async def async_select_source(self, source: str) -> None:
-        """Select input source."""
-        return await self.pioneer.select_source(source, self.zone)
-
-    async def async_volume_up(self) -> None:
-        """Volume up media player."""
-        return await self.pioneer.volume_up(self.zone)
-
-    async def async_volume_down(self) -> None:
-        """Volume down media player."""
-        return await self.pioneer.volume_down(self.zone)
-
-    async def async_set_volume_level(self, volume) -> None:
-        """Set volume level, range 0..1."""
-        max_volume = self.pioneer.max_volume.get(self.zone)
-        return await self.pioneer.set_volume_level(
-            round(volume * max_volume), self.zone
-        )
-
-    async def async_mute_volume(self, mute: bool) -> None:
-        """Mute (true) or unmute (false) media player."""
-        if mute:
-            return await self.pioneer.mute_on(self.zone)
-        else:
-            return await self.pioneer.mute_off(self.zone)
-
-    async def async_select_sound_mode(self, sound_mode) -> None:
-        """Select the sound mode."""
-        ## aiopioneer will translate sound modes
-        return await self.pioneer.set_listening_mode(sound_mode, self.zone)
-
     async def async_update(self) -> None:
         """Poll properties on demand."""
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
         return await self.pioneer.update()
 
-    async def set_panel_lock(self, panel_lock: str) -> None:
+    async def async_turn_on(self) -> None:
+        """Turn the media player on."""
+
+        async def turn_on() -> bool:
+            return await self.pioneer.turn_on(self.zone)
+
+        await self.pioneer_command(turn_on)
+
+    async def async_turn_off(self) -> None:
+        """Turn off media player."""
+
+        async def turn_off() -> bool:
+            return await self.pioneer.turn_off(self.zone)
+
+        await self.pioneer_command(turn_off)
+
+    async def async_select_source(self, source: str) -> None:
+        """Select input source."""
+
+        async def select_source() -> bool:
+            return await self.pioneer.select_source(source, self.zone)
+
+        await self.pioneer_command(select_source)
+
+    async def async_volume_up(self) -> None:
+        """Volume up media player."""
+
+        async def volume_up() -> bool:
+            return await self.pioneer.volume_up(self.zone)
+
+        await self.pioneer_command(volume_up, max_count=1)
+
+    async def async_volume_down(self) -> None:
+        """Volume down media player."""
+
+        async def volume_down() -> bool:
+            return await self.pioneer.volume_down(self.zone)
+
+        await self.pioneer_command(volume_down, max_count=1)
+
+    async def async_set_volume_level(self, volume) -> None:
+        """Set volume level, range 0..1."""
+        max_volume = self.pioneer.max_volume.get(self.zone)
+
+        async def set_volume_level() -> bool:
+            return await self.pioneer.set_volume_level(
+                round(volume * max_volume), self.zone
+            )
+
+        if self.pioneer.get_params().get(PARAM_VOLUME_STEP_ONLY):
+            await self.pioneer_command(set_volume_level, max_count=1)
+        else:
+            await self.pioneer_command(set_volume_level)
+
+    async def async_mute_volume(self, mute: bool) -> None:
+        """Mute (true) or unmute (false) media player."""
+
+        async def mute_volume() -> bool:
+            if mute:
+                return await self.pioneer.mute_on(self.zone)
+            else:
+                return await self.pioneer.mute_off(self.zone)
+
+        await self.pioneer_command(mute_volume, max_count=1)
+
+    async def async_select_sound_mode(self, sound_mode) -> None:
+        """Select the sound mode."""
+
+        async def select_sound_mode() -> bool:
+            ## aiopioneer will translate sound modes
+            return await self.pioneer.set_listening_mode(sound_mode, self.zone)
+
+        await self.pioneer_command(select_sound_mode)
+
+    async def async_set_panel_lock(self, panel_lock: str) -> None:
         """Set AVR panel lock."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -412,9 +451,13 @@ class PioneerZone(
                 self.zone,
                 panel_lock,
             )
-        return await self.pioneer.set_panel_lock(panel_lock)
 
-    async def set_remote_lock(self, remote_lock: bool):
+        async def set_panel_lock() -> bool:
+            return await self.pioneer.set_panel_lock(panel_lock)
+
+        await self.pioneer_command(set_panel_lock, max_count=1)
+
+    async def async_set_remote_lock(self, remote_lock: bool) -> None:
         """Set AVR remote lock."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -422,9 +465,13 @@ class PioneerZone(
                 self.zone,
                 remote_lock,
             )
-        return await self.pioneer.set_remote_lock(remote_lock)
 
-    async def set_dimmer(self, dimmer: str):
+        async def set_remote_lock() -> bool:
+            return await self.pioneer.set_remote_lock(remote_lock)
+
+        await self.pioneer_command(set_remote_lock, max_count=1)
+
+    async def async_set_dimmer(self, dimmer: str) -> None:
         """Set AVR display dimmer."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -432,9 +479,13 @@ class PioneerZone(
                 self.zone,
                 dimmer,
             )
-        return await self.pioneer.set_dimmer(dimmer)
 
-    async def set_tone_settings(self, tone: str, treble: int, bass: int):
+        async def set_dimmer() -> bool:
+            return await self.pioneer.set_dimmer(dimmer)
+
+        await self.pioneer_command(set_dimmer, max_count=1)
+
+    async def async_set_tone_settings(self, tone: str, treble: int, bass: int) -> None:
         """Set AVR tone settings for zone."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -444,19 +495,33 @@ class PioneerZone(
                 treble,
                 bass,
             )
-        return await self.pioneer.set_tone_settings(tone, treble, bass, zone=self.zone)
 
-    async def set_tuner_band(self, band: str):
+        async def set_tone_settings() -> bool:
+            rc = await self.pioneer.set_tone_settings(
+                tone, treble, bass, zone=self.zone
+            )
+            if rc is None:
+                raise ServiceValidationError(
+                    f"tone settings not supported for zone {self.zone}"
+                )
+
+        await self.pioneer_command(set_tone_settings, max_count=1)
+
+    async def async_select_tuner_band(self, band: str) -> None:
         """Set AVR tuner band."""
         if _debug_atlevel(1):
             _LOGGER.debug(
-                ">> PioneerZone.set_tuner_band(%s, band=%s)",
+                ">> PioneerZone.select_tuner_band(%s, band=%s)",
                 self.zone,
                 band,
             )
-        return await self.pioneer.set_tuner_frequency(band)
 
-    async def set_fm_tuner_frequency(self, frequency: float):
+        async def select_tuner_band() -> bool:
+            return await self.pioneer.set_tuner_frequency(band)
+
+        await self.pioneer_command(select_tuner_band)
+
+    async def async_set_fm_tuner_frequency(self, frequency: float) -> None:
         """Set AVR AM tuner frequency."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -464,9 +529,13 @@ class PioneerZone(
                 self.zone,
                 frequency,
             )
-        return await self.pioneer.set_tuner_frequency("FM", frequency)
 
-    async def set_am_tuner_frequency(self, frequency: int):
+        async def set_fm_tuner_frequency() -> bool:
+            return await self.pioneer.set_tuner_frequency("FM", frequency)
+
+        await self.pioneer_command(set_fm_tuner_frequency)
+
+    async def async_set_am_tuner_frequency(self, frequency: int) -> None:
         """Set AVR AM tuner frequency."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -474,22 +543,30 @@ class PioneerZone(
                 self.zone,
                 frequency,
             )
-        return await self.pioneer.set_tuner_frequency("AM", float(frequency))
 
-    async def set_tuner_preset(self, **kwargs):
+        async def set_am_tuner_frequency() -> bool:
+            return await self.pioneer.set_tuner_frequency("AM", float(frequency))
+
+        await self.pioneer_command(set_am_tuner_frequency)
+
+    async def async_select_tuner_preset(self, **kwargs) -> None:
         """Set AVR tuner preset."""
         tuner_class = kwargs[ATTR_CLASS]  ## workaround for "class" as argument
         preset = kwargs[ATTR_PRESET]
         if _debug_atlevel(1):
             _LOGGER.debug(
-                ">> PioneerZone.set_tuner_preset(%s, class=%s, preset=%d)",
+                ">> PioneerZone.select_tuner_preset(%s, class=%s, preset=%d)",
                 self.zone,
                 tuner_class,
                 preset,
             )
-        return await self.pioneer.set_tuner_preset(tuner_class, preset)
 
-    async def set_channel_levels(self, channel: str, level: float):
+        async def select_tuner_preset() -> bool:
+            return await self.pioneer.select_tuner_preset(tuner_class, preset)
+
+        await self.pioneer_command(select_tuner_preset)
+
+    async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
         if _debug_atlevel(1):
             _LOGGER.debug(
@@ -498,4 +575,8 @@ class PioneerZone(
                 channel,
                 level,
             )
-        return await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
+
+        async def set_channel_levels() -> bool:
+            return await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
+
+        await self.pioneer_command(set_channel_levels)

@@ -31,7 +31,7 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-from .entity_base import PioneerEntityBase
+from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -114,7 +114,7 @@ async def async_setup_entry(
                 promoted_property="signal_select",
                 exclude_properties=[],
             ),
-            PioneerGenericSensor(
+            PioneerTunerSensor(
                 pioneer,
                 coordinator,
                 device_info,
@@ -289,3 +289,7 @@ class PioneerGenericSensor(PioneerSensor):
         if self.exclude_properties:
             return reject_dict(attrs, self.exclude_properties)
         return attrs
+
+
+class PioneerTunerSensor(PioneerTunerEntity, PioneerGenericSensor):
+    """Pioneer AVR tuner sensor."""
