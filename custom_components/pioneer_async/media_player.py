@@ -274,6 +274,11 @@ class PioneerZone(
         return MediaPlayerState.ON if state else MediaPlayerState.OFF
 
     @property
+    def available(self) -> bool:
+        """Returns whether the AVR is available. Available even when zone is off."""
+        return self.pioneer.available
+
+    @property
     def volume_level(self) -> float:
         """Volume level of the media player (0..1)."""
         volume = self.pioneer.volume.get(self.zone)
