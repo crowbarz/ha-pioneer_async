@@ -6,7 +6,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import SOURCE_TUNER
+from aiopioneer.const import SOURCE_TUNER, Zones, TunerBand
 from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -559,7 +559,7 @@ class PioneerZone(
             )
 
         async def set_fm_tuner_frequency() -> bool:
-            return await self.pioneer.set_tuner_frequency("FM", frequency)
+            return await self.pioneer.set_tuner_frequency(TunerBand.FM, frequency)
 
         await self.pioneer_command(set_fm_tuner_frequency)
 
@@ -573,7 +573,9 @@ class PioneerZone(
             )
 
         async def set_am_tuner_frequency() -> bool:
-            return await self.pioneer.set_tuner_frequency("AM", float(frequency))
+            return await self.pioneer.set_tuner_frequency(
+                TunerBand.AM, float(frequency)
+            )
 
         await self.pioneer_command(set_am_tuner_frequency)
 
