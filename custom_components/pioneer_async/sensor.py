@@ -8,6 +8,7 @@ from typing import Any, Callable
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
+from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
 
 
 from homeassistant.components.sensor import (
@@ -293,3 +294,12 @@ class PioneerGenericSensor(PioneerSensor):
 
 class PioneerTunerSensor(PioneerTunerEntity, PioneerGenericSensor):
     """Pioneer AVR tuner sensor."""
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        attrs = super().extra_state_attributes
+        attrs |= {
+            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.get_param(PARAM_TUNER_AM_FREQ_STEP),
+        }
+        return attrs
