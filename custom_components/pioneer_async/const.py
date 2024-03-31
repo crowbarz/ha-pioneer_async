@@ -26,6 +26,7 @@ PLATFORMS_CONFIG_FLOW = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.SELECT,
+    Platform.NUMBER,
 ]
 VERSION = "0.8.6"
 
