@@ -187,6 +187,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     ## Update devices with new device_unique_ids (config entry and MAC address)
     ## TODO: remove legacy device_unique_ids from device entries in 0.10.0 or later
+    ## NOTE: legacy connections with "unknown" MAC address can't be removed
     legacy_unique_id = host + ":" + str(port)
 
     dr = device_registry.async_get(hass)
@@ -202,7 +203,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 device_entry.identifiers | new_ids != device_entry.identifiers
             ):
                 _LOGGER.warning(
-                    "updating legacy device %s (%s)",
+                    "updating device ID for legacy device %s (%s)",
                     device_entry.name,
                     legacy_id,
                 )
