@@ -42,7 +42,6 @@ from .const import (
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
-    ATTR_ENTITY_ID,
     ATTR_PANEL_LOCK,
     ATTR_REMOTE_LOCK,
     ATTR_DIMMER,
@@ -67,69 +66,57 @@ PARALLEL_UPDATES = 0
 PARAM_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
 
 PIONEER_SET_PANEL_LOCK_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_PANEL_LOCK): cv.string,
 }
 
 PIONEER_SET_REMOTE_LOCK_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_REMOTE_LOCK): cv.boolean,
 }
 
 PIONEER_SERVICE_SET_DIMMER_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_DIMMER): cv.string,
 }
 
 PIONEER_SET_TONE_SETTINGS_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_TONE): cv.string,
     vol.Required(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
     vol.Required(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
 }
 
 # PIONEER_SET_AMP_SETTINGS_SCHEMA = {
-#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
 # }
 
 PIONEER_SELECT_TUNER_BAND_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_BAND): str,
 }
 
 
 PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_FREQUENCY): vol.All(
         vol.Coerce(float), vol.Range(min=87.5, max=108)
     ),
 }
 
 PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_FREQUENCY): vol.All(
         vol.Coerce(int), vol.Range(min=530, max=1700)
     ),
 }
 
 PIONEER_SELECT_TUNER_PRESET_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_CLASS): cv.string,
     vol.Required(ATTR_PRESET): vol.All(vol.Coerce(int), vol.Range(min=1, max=9)),
 }
 
 PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
-    vol.Required(ATTR_ENTITY_ID): cv.entity_id,
     vol.Required(ATTR_CHANNEL): cv.string,
     vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(float), vol.Range(min=-12, max=12)),
 }
 
 # PIONEER_SET_VIDEO_SETTINGS_SCHEMA = {
-#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
 # }
 
 # PIONEER_SET_DSP_SETTINGS_SCHEMA = {
-#     vol.Required(ATTR_ENTITY_ID): cv.entity_id,
 # }
 
 
