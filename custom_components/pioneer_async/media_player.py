@@ -6,6 +6,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
+from aiopioneer.const import SOURCE_TUNER
 from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -312,6 +313,12 @@ class PioneerZone(
         ## Disable sound mode also if autoquery is disabled
         if self.zone == "1" and not pioneer.get_params().get(PARAM_DISABLE_AUTO_QUERY):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
+
+        ## Enable prev/next track if tuner enabled
+        if pioneer.source.get(self.zone) == SOURCE_TUNER:
+            features |= MediaPlayerEntityFeature.PREVIOUS_TRACK
+            features |= MediaPlayerEntityFeature.NEXT_TRACK
+
         return features
 
     @property
@@ -413,6 +420,22 @@ class PioneerZone(
             return await self.pioneer.volume_down(self.zone)
 
         await self.pioneer_command(volume_down, max_count=1)
+
+    async def async_media_previous_track(self) -> None:
+        """Send previous track command."""
+
+        async def tuner_previous_preset() -> bool:
+            return await self.pioneer.tuner_previous_preset(self.zone)
+
+        await self.pioneer_command(tuner_previous_preset, max_count=1)
+
+    async def async_media_next_track(self) -> None:
+        """Send next track command."""
+        async def tuner_next_preset() -> bool:
+            return await self.pioneer.tuner_next_preset(self.zone)
+
+        await self.pioneer_command(tuner_next_preset, max_count=1)
+
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
