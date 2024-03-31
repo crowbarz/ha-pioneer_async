@@ -49,9 +49,10 @@ class PioneerEntityBase(Entity):
 
     @property
     def available(self) -> bool:
-        """Returns whether the device is available."""
+        """Returns whether the AVR is available and the zone is on."""
         return self.pioneer.available and (
-            self.zone is None or self.zone in self.pioneer.zones
+            self.zone is None
+            or (self.zone in self.pioneer.zones and self.pioneer.power.get(self.zone))
         )
 
     async def pioneer_command(self, aw_f, max_count: int = 4) -> None:
@@ -78,5 +79,5 @@ class PioneerTunerEntity(PioneerEntityBase):
 
     @property
     def available(self) -> bool:
-        """Return True if entity is available."""
+        """Returns whether the AVR is available and source is set to tuner."""
         return super().available and SOURCE_TUNER in self.pioneer.source.values()
