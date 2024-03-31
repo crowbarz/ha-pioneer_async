@@ -1,14 +1,10 @@
 set_panel_lock:
   description: Set AVR panel lock
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     panel_lock:
       description: Panel lock setting
       required: true
@@ -26,15 +22,11 @@ set_panel_lock:
 
 set_remote_lock:
   description: Set AVR remote lock
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     remote_lock:
       description: Enable remote lock
       required: true
@@ -44,15 +36,11 @@ set_remote_lock:
 
 set_dimmer:
   description: Set AVR display dimmer
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     dimmer:
       description: Dimmer mode
       required: true
@@ -69,15 +57,11 @@ set_dimmer:
 
 set_tone_settings:
   description: Set AVR tone settings for zone
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     tone:
       description: Tone mode
       required: true
@@ -112,27 +96,18 @@ set_tone_settings:
 
 # set_amp_settings:
 #   description: Set AVR amplifier function settings for zone
-#   fields:
-#     entity_id:
-#       description: Entity for AVR zone to modify
-#       required: true
-#       example: media_player.pioneer_avr
-#       selector:
-#         entity:
-#           integration: pioneer_async
-#           domain: media_player
+#   target:
+#     entity:
+#       integration: pioneer_async
+#       domain: media_player
 
 select_tuner_band:
   description: Select AVR active tuner band
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     band:
       required: true
       example: "FM"
@@ -145,15 +120,11 @@ select_tuner_band:
 
 set_fm_tuner_frequency:
   description: Set AVR FM tuner frequency
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     frequency:
       description: Tuner frequency (87.5 MHz -- 108.0 MHz)
       required: true
@@ -169,15 +140,11 @@ set_fm_tuner_frequency:
 
 set_am_tuner_frequency:
   description: Set AVR AM tuner frequency
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     frequency:
       description: Tuner frequency (530 -- 1700KHz)
       required: true
@@ -193,15 +160,11 @@ set_am_tuner_frequency:
 
 select_tuner_preset:
   description: Select pre-defined AVR tuner preset
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     class:
       description: Tuner preset class
       required: true
@@ -230,15 +193,11 @@ select_tuner_preset:
 
 set_channel_levels:
   description: Set AVR level (gain) for an amplifier channel
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
   fields:
-    entity_id:
-      description: Entity for AVR zone to modify
-      required: true
-      example: media_player.pioneer_avr
-      selector:
-        entity:
-          integration: pioneer_async
-          domain: media_player
     channel:
       description: Tuner amp channel to modify
       required: true
@@ -302,36 +261,21 @@ set_channel_levels:
 
 # set_video_settings:
 #   description: Set video settings for zone
-#   fields:
-#     entity_id:
-#       description: Entity for AVR zone to modify
-#       required: true
-#       example: media_player.pioneer_avr
-#       selector:
-#         entity:
-#           integration: pioneer_async
-#           domain: media_player
+#   target:
+#     entity:
+#       integration: pioneer_async
+#       domain: media_player
 
 # set_dsp_settings:
 #   description: Set AVR DSP settings for the amplifier
-#   fields:
-#     entity_id:
-#       description: Entity for AVR zone to modify
-#       required: true
-#       example: media_player.pioneer_avr
-#       selector:
-#         entity:
-#           integration: pioneer_async
-#           domain: media_player
+#   target:
+#     entity:
+#       integration: pioneer_async
+#       domain: media_player
 
 # media_control:
 #   description: TODO: implement using standard media functions
-#   fields:
-#     entity_id:
-#       description: Entity for AVR zone to modify
-#       required: true
-#       example: media_player.pioneer_avr
-#       selector:
-#         entity:
-#           integration: pioneer_async
-#           domain: media_player
+#   target:
+#     entity:
+#       integration: pioneer_async
+#       domain: media_player
