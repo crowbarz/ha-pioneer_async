@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zones, TunerBand
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
@@ -62,12 +62,19 @@ async def async_setup_entry(
     zone = str(Zones.Z1)  ## TODO: move to Zones.ALL
     device_info = device_info_dict.get("top")
     coordinator = coordinator_list[zone]
-    entities.append(
-        TunerPresetSelect(
-            pioneer,
-            coordinator,
-            device_info,
-        )
+    entities.extend(
+        [
+            TunerPresetSelect(
+                pioneer,
+                coordinator,
+                device_info,
+            ),
+            TunerBandSelect(
+                pioneer,
+                coordinator,
+                device_info,
+            ),
+        ]
     )
 
     async_add_entities(entities)
@@ -123,3 +130,39 @@ class TunerPresetSelect(
             return await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
 
         await self.pioneer_command(select_tuner_preset, max_count=1)
+
+
+class TunerBandSelect(
+    PioneerTunerEntity, SelectEntity, CoordinatorEntity
+):  # pylint: disable=abstract-method
+    """Pioneer tuner frequency band select entity."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Tuner Band"
+    _attr_icon = "mdi:radio"
+    _attr_options = [b.value for b in TunerBand]
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zones | None = None,
+    ) -> None:
+        """Initialize the Pioneer AVR sensor."""
+        super().__init__(pioneer, device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the current tuner band."""
+        band = self.pioneer.tuner.get("band")
+        return band.value if isinstance(band, TunerBand) else None
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+
+        async def select_tuner_band() -> bool:
+            return await self.pioneer.select_tuner_band(TunerBand(option))
+
+        await self.pioneer_command(select_tuner_band, max_count=1)
