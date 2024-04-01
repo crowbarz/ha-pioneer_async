@@ -103,21 +103,17 @@ class TunerPresetSelect(
         super().__init__(pioneer, device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
         self._attr_current_option = None
-        self.preset_frequency = None
 
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
         tuner_class = self.pioneer.tuner.get("class")
         tuner_preset = self.pioneer.tuner.get("preset")
-        tuner_frequency = self.pioneer.tuner.get("frequency")
-        if tuner_class and tuner_preset:
+        if tuner_preset is None or tuner_class is None:
+            self._attr_current_option = None
+        else:
             preset = tuner_class + str(tuner_preset)
-            if self._attr_current_option != preset:
-                self._attr_current_option = preset
-                self.preset_frequency = tuner_frequency
-                ## TODO: need to wait for next frequency update
-            ## TODO: clear state if frequency changes from preset
+            self._attr_current_option = preset
 
         self.async_write_ha_state()
 
