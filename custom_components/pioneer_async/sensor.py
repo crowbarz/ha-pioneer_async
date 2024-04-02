@@ -68,8 +68,8 @@ async def async_setup_entry(
     entities = []
 
     ## Add top level sensors
-    zone = str(Zones.Z1)  ## TODO: move to Zones.ALL
-    device_info = device_info_dict.get("top")
+    zone = Zones.ALL
+    device_info = device_info_dict[zone]
     coordinator = coordinator_list[zone]
     entities.extend(
         [
@@ -133,7 +133,7 @@ async def async_setup_entry(
                 icon="mdi:video-box",
                 base_property="video",
                 promoted_property="signal_output_resolution",
-                exclude_properties=["1", "2", "3", "Z"],
+                exclude_properties=[Zones.Z1, Zones.Z2, Zones.Z3, Zones.HDZ],
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -143,16 +143,16 @@ async def async_setup_entry(
                 icon="mdi:speaker",
                 base_property="audio",
                 promoted_property="input_signal",
-                exclude_properties=["1", "2", "3", "Z"],
+                exclude_properties=[Zones.Z1, Zones.Z2, Zones.Z3, Zones.HDZ],
             ),
         ]
     )
 
     ## Add zone specific sensors
     for zone in pioneer.zones:
-        device_info = device_info_dict.get(zone)
+        device_info = device_info_dict[zone]
         coordinator = coordinator_list[zone]
-        if zone != "Z":
+        if zone != Zones.HDZ:
             entities.extend(
                 [
                     PioneerGenericSensor(
@@ -280,9 +280,10 @@ class PioneerGenericSensor(PioneerSensor):
         """Return device specific state attributes."""
         if self.include_properties is None and self.exclude_properties is None:
             return []
-        attrs = getattr(self.pioneer, self.base_property, {})
+        base_attrs = getattr(self.pioneer, self.base_property, {})
+        attrs = base_attrs
         if self.zone is not None:
-            attrs = attrs.get(self.zone, {})
+            attrs = base_attrs.get(self.zone, {})
         if not isinstance(attrs, dict):
             return []
         if self.include_properties:

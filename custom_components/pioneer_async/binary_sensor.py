@@ -67,8 +67,8 @@ async def async_setup_entry(
     entities = []
 
     ## Add top level sensors
-    zone = str(Zones.Z1)  ## TODO: move to Zones.ALL
-    device_info = device_info_dict.get("top")
+    zone = Zones.ALL
+    device_info = device_info_dict[zone]
     coordinator = coordinator_list[zone]
     entities.extend(
         [
