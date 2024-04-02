@@ -9,6 +9,7 @@ import logging
 from typing import Any
 
 from aiopioneer import PioneerAVR
+from aiopioneer.const import Zones
 from aiopioneer.param import PARAMS_ALL, PARAM_ZONE_SOURCES
 
 from homeassistant.config_entries import ConfigEntry
@@ -93,7 +94,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             except (json.JSONDecodeError, ValueError):
                 _LOGGER.warning(
                     'invalid config for zone %s: "%s", resetting to default',
-                    str(zone),
+                    zone,
                     sources_zone,
                 )
                 sources_zone = []
@@ -247,13 +248,15 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
     for zone in pioneer.zones:
         zone_name_suffix = (
-            "Main Zone" if zone == "1" else "HDZone" if zone == "Z" else "Zone " + zone
+            "Main Zone"
+            if zone == Zones.Z1
+            else "HDZone" if zone == Zones.Z2 else "Zone " + zone
         )
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
             name=(name + " " + zone_name_suffix),
-            model=model,
+            model=zone_name_suffix,
             via_device=(DOMAIN, entry.entry_id),
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)

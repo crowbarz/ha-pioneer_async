@@ -9,7 +9,6 @@ from typing import Any
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
 
-
 from homeassistant.components.binary_sensor import (
     # BinarySensorDeviceClass,
     BinarySensorEntity,
@@ -86,9 +85,9 @@ async def async_setup_entry(
 
     ## Add zone specific sensors
     # for zone in pioneer.zones:
-    #     device_info = device_info_dict.get(zone)
+    #     device_info = device_info_dict[zone]
     #     coordinator = coordinator_list[zone]
-    #     if zone != "Z":
+    #     if zone != Zones.HDZ:
     #         entities.extend(
     #             [
     #                 PioneerGenericSensor(

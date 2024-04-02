@@ -3,6 +3,7 @@
 import logging
 import json
 from typing import Any
+
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
@@ -155,11 +156,11 @@ async def async_setup_entry(
             PioneerZone(
                 pioneer,
                 coordinator_list[zone],
-                device_info_dict.get(zone),
+                device_info_dict[zone],
                 zone,
             )
         )
-        if zone == "1":
+        if zone == Zones.Z1:
             main_entity = True
         _LOGGER.debug("Created entity for zone %s", zone)
     if not main_entity:
@@ -245,7 +246,7 @@ class PioneerZone(
         pioneer: PioneerAVR,
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: str,
+        zone: Zones,
     ) -> None:
         """Initialize the Pioneer zone."""
         if _debug_atlevel(9):
@@ -298,7 +299,9 @@ class PioneerZone(
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
         ## Disable sound mode also if autoquery is disabled
-        if self.zone == "1" and not pioneer.get_params().get(PARAM_DISABLE_AUTO_QUERY):
+        if self.zone == Zones.Z1 and not pioneer.get_params().get(
+            PARAM_DISABLE_AUTO_QUERY
+        ):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
 
         ## Enable prev/next track if tuner enabled
@@ -334,7 +337,7 @@ class PioneerZone(
     @property
     def source_list(self) -> list[str]:
         """List of available input sources."""
-        return self.pioneer.get_source_list(zone=self.zone)
+        return self.pioneer.get_source_list(self.zone)
 
     @property
     def media_title(self) -> str:
@@ -351,7 +354,7 @@ class PioneerZone(
         volume = pioneer.volume.get(self.zone)
         max_volume = pioneer.max_volume.get(self.zone)
         if volume is not None and max_volume is not None:
-            if self.zone == "1":
+            if self.zone == Zones.Z1:
                 volume_db = volume / 2 - 80.5
             else:
                 volume_db = volume - 81
@@ -412,17 +415,17 @@ class PioneerZone(
         """Send previous track command."""
 
         async def tuner_previous_preset() -> bool:
-            return await self.pioneer.tuner_previous_preset(self.zone)
+            return await self.pioneer.tuner_previous_preset()
 
         await self.pioneer_command(tuner_previous_preset, max_count=1)
 
     async def async_media_next_track(self) -> None:
         """Send next track command."""
+
         async def tuner_next_preset() -> bool:
-            return await self.pioneer.tuner_next_preset(self.zone)
+            return await self.pioneer.tuner_next_preset()
 
         await self.pioneer_command(tuner_next_preset, max_count=1)
-
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
@@ -454,7 +457,7 @@ class PioneerZone(
 
         async def select_sound_mode() -> bool:
             ## aiopioneer will translate sound modes
-            return await self.pioneer.set_listening_mode(sound_mode, self.zone)
+            return await self.pioneer.set_listening_mode(sound_mode)
 
         await self.pioneer_command(select_sound_mode)
 
