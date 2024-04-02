@@ -10,7 +10,6 @@ from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
 from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
 
-
 from homeassistant.components.sensor import (
     # SensorDeviceClass,
     SensorEntity,
