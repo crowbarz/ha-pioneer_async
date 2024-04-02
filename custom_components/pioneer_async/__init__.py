@@ -210,7 +210,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 dr.async_update_device(device_entry.id, merge_identifiers=new_ids)
                 break
 
-    device_entry = device_registry.async_get(hass).async_get_or_create(
+    ## Create top level devices
+    device_entry = dr.async_get_or_create(
         config_entry_id=entry.entry_id,
         connections=connections,
         identifiers=top_identifiers,
@@ -222,18 +223,28 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     pioneer_data[ATTR_DEVICE_INFO] = {}
-    pioneer_data[ATTR_DEVICE_INFO]["top"] = DeviceInfo(
+    pioneer_data[ATTR_DEVICE_INFO][Zones.ALL] = DeviceInfo(
         identifiers=top_identifiers,
     )
     pioneer_data[ATTR_DEVICE_ENTRY] = {}
-    pioneer_data[ATTR_DEVICE_ENTRY]["top"] = device_entry
+    pioneer_data[ATTR_DEVICE_ENTRY][Zones.ALL] = device_entry
+
+    ## Create top level DataUpdateCooordinator
+    def update_top_device() -> None:
+        """Update top level device attributes."""
+        _LOGGER.warning("updating device on initial update")
+        device_registry.async_get(hass).async_update_device(
+            device_entry.id,
+            model=pioneer.model,
+            sw_version=pioneer.software_version or UNDEFINED,
+        )
+
+    coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL, update_top_device)
+    coordinator.set_zone_callback()
+    pioneer_data[ATTR_COORDINATORS] = {}
+    pioneer_data[ATTR_COORDINATORS][Zones.ALL] = coordinator
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
-    ## TODO: update deviceInfo if more details become available (when AVR is on)
-    ## device_registry.async_update_device(device_entry.id, merge_connections=set(),
-    ##     serial_number=str | UNDEFINED, sw_version=str | UNDEFINED)
-    ## from homeassistant.helpers.typing import UNDEFINED
-    pioneer_data[ATTR_COORDINATORS] = {}
     for zone in pioneer.zones:
         zone_name_suffix = (
             "Main Zone" if zone == "1" else "HDZone" if zone == "Z" else "Zone " + zone
