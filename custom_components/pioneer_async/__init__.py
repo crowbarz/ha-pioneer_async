@@ -233,7 +233,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ## Create top level DataUpdateCooordinator
     def update_top_device() -> None:
         """Update top level device attributes."""
-        _LOGGER.warning("updating device on initial update")
         device_registry.async_get(hass).async_update_device(
             device_entry.id,
             model=pioneer.model,
@@ -250,7 +249,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         zone_name_suffix = (
             "Main Zone"
             if zone == Zones.Z1
-            else "HDZone" if zone == Zones.Z2 else "Zone " + zone
+            else "HDZone" if zone == Zones.HDZ else "Zone " + zone
         )
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
