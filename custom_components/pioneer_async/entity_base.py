@@ -57,6 +57,8 @@ class PioneerEntityBase(Entity):
 
     async def pioneer_command(self, aw_f, max_count: int = 4) -> None:
         """Execute a PioneerAVR command, handle exceptions and optionally repeating."""
+        options = self.platform.config_entry.options
+
         try:
             count = 0
             while count < max_count and await aw_f() is False:
@@ -80,4 +82,12 @@ class PioneerTunerEntity(PioneerEntityBase):
     @property
     def available(self) -> bool:
         """Returns whether the AVR is available and source is set to tuner."""
-        return super().available and SOURCE_TUNER in self.pioneer.source.values()
+        if not super().available:
+            return False
+        return bool(
+            [
+                z
+                for z, s in self.pioneer.source.items()
+                if s == SOURCE_TUNER and self.pioneer.power.get(Zones(z))
+            ]
+        )
