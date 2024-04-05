@@ -221,6 +221,12 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self.host = user_input[CONF_HOST]
             self.port = int(user_input[CONF_PORT])
             self.query_sources = user_input[CONF_QUERY_SOURCES]
+            ignore_volume_check = user_input[PARAM_IGNORE_VOLUME_CHECK]
+            if ignore_volume_check != "default":
+                opts_all = {"on": True, "off": False}
+                self.options = {
+                    PARAM_IGNORE_VOLUME_CHECK: opts_all[ignore_volume_check]
+                }
 
             try:
                 try:
@@ -249,7 +255,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             finally:
                 await pioneer.shutdown()
                 await asyncio.sleep(0)  # yield to pending shutdown tasks
-                del pioneer  ## TODO: does this cause task was destroyed error?
+                del pioneer
 
             if not errors:
                 return await self.async_step_basic_options()
@@ -268,6 +274,17 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_QUERY_SOURCES, default=True
                 ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_IGNORE_VOLUME_CHECK, default="default"
+                ): selector.SelectSelector(
+                    selector.SelectSelectorConfig(
+                        options=[
+                            {"label": "AVR default", "value": "default"},
+                            {"label": "Enabled", "value": "on"},
+                            {"label": "Disabled", "value": "off"},
+                        ]
+                    )
+                ),
             }
         )
 
