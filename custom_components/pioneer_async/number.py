@@ -94,7 +94,7 @@ class TunerFrequencyNumber(
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_device_class = NumberDeviceClass.FREQUENCY
-    _attr_icon = "mdi:radio"
+    _attr_icon = "mdi:radio-tower"
 
     def __init__(
         self,
