@@ -191,7 +191,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Initialise Pioneer AVR config flow."""
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerAVRConfigFlow.__init__()")
-        self.pioneer = None
         self.name = None
         self.host = None
         self.port = None
@@ -225,29 +224,32 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
             try:
                 try:
-                    self.pioneer = (pioneer := PioneerAVR(self.host, self.port))
+                    pioneer = PioneerAVR(self.host, self.port, params=self.options)
                     await pioneer.connect()
                 except Exception as exc:  # pylint: disable=broad-except
                     raise CannotConnect(str(exc)) from exc
 
                 await pioneer.query_device_info()
-                self.sources = {}
+                await pioneer.query_zones()
                 if self.query_sources:
                     await pioneer.build_source_dict()
-                    self.sources = pioneer.get_source_dict() or {}
-                ## TODO: use default set of sources and disable query sources if no sources?
+                    self.sources = pioneer.get_source_dict()
+                self.defaults = OPTIONS_DEFAULTS | pioneer.get_default_params()
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
             except CannotConnect as exc:
                 errors["base"] = "cannot_connect"
                 description_placeholders["exception"] = str(exc)
-                del pioneer
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("unexpected exception: %s", str(exc))
                 return self.async_abort(
                     reason="exception", description_placeholders={"exception", str(exc)}
                 )
+            finally:
+                await pioneer.shutdown()
+                await asyncio.sleep(0)  # yield to pending shutdown tasks
+                del pioneer  ## TODO: does this cause task was destroyed error?
 
             if not errors:
                 return await self.async_step_basic_options()
@@ -290,7 +292,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         description_placeholders = {}
 
         if user_input is not None:
-            self.options = {**user_input}
+            self.options |= user_input
             self.sources, sources_invalid = _validate_sources(user_input[CONF_SOURCES])
             if self.sources is None:
                 errors[CONF_SOURCES] = "invalid_sources"
@@ -302,11 +304,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         else:
             user_input = {CONF_SOURCES: _convert_sources(self.sources)}
 
-        pioneer = self.pioneer
-        self.defaults = {
-            **OPTIONS_DEFAULTS,  ## defaults
-            **pioneer.get_default_params(),  ## aiopioneer defaults
-        }
         data_schema = vol.Schema(_get_schema_basic_options(self.defaults))
 
         return self.async_show_form(
@@ -319,12 +316,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     async def _create_config_entry(self) -> FlowResult:
         """Create config entry using submitted options."""
-        ## TODO: pass through PioneerAVR to async_setup_entry
-        pioneer = self.pioneer
-        await pioneer.shutdown()
-        await asyncio.sleep(0)  # yield to pending shutdown tasks
-        del pioneer
-
         return self.async_create_entry(
             title=self.name,
             data={
