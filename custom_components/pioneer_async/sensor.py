@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-
 from typing import Any, Callable
 
 from aiopioneer import PioneerAVR
@@ -28,6 +27,7 @@ from .const import (
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
+    ATTR_OPTIONS,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -52,30 +52,31 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the sensor platform."""
+    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
+    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
+    coordinators = pioneer_data[ATTR_COORDINATORS]
+    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     if _debug_atlevel(9):
         _LOGGER.debug(
             ">> sensor.async_setup_entry(entry_id=%s, data=%s, options=%s)",
             config_entry.entry_id,
             config_entry.data,
-            config_entry.options,
+            options,
         )
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    coordinator_list = pioneer_data[ATTR_COORDINATORS]
-    device_info_dict: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
-
-    entities = []
 
     ## Add top level sensors
+    entities = []
     zone = Zones.ALL
-    device_info = device_info_dict[zone]
-    coordinator = coordinator_list[zone]
+    device_info = zone_device_info[zone]
+    coordinator = coordinators[zone]
     entities.extend(
         [
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="Display",
                 icon="mdi:fullscreen",
                 base_property="amp",
@@ -86,8 +87,9 @@ async def async_setup_entry(
             ),
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="System",
                 icon="mdi:audio-video",
                 base_property="system",
@@ -96,8 +98,9 @@ async def async_setup_entry(
             ),
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="Amp",
                 icon="mdi:amplifier",
                 base_property="amp",
@@ -106,8 +109,9 @@ async def async_setup_entry(
             ),
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="DSP",
                 icon="mdi:surround-sound",
                 base_property="dsp",
@@ -116,8 +120,9 @@ async def async_setup_entry(
             ),
             PioneerTunerSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="Tuner",
                 icon="mdi:radio",
                 base_property="tuner",
@@ -126,8 +131,9 @@ async def async_setup_entry(
             ),
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="Video Parameters",
                 icon="mdi:video-box",
                 base_property="video",
@@ -136,8 +142,9 @@ async def async_setup_entry(
             ),
             PioneerGenericSensor(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
                 name="Audio Parameters",
                 icon="mdi:speaker",
                 base_property="audio",
@@ -149,15 +156,16 @@ async def async_setup_entry(
 
     ## Add zone specific sensors
     for zone in pioneer.zones:
-        device_info = device_info_dict[zone]
-        coordinator = coordinator_list[zone]
+        device_info = zone_device_info[zone]
+        coordinator = coordinators[zone]
         if zone != Zones.HDZ:
             entities.extend(
                 [
                     PioneerGenericSensor(
                         pioneer,
-                        coordinator,
-                        device_info,
+                        options,
+                        coordinator=coordinator,
+                        device_info=device_info,
                         zone=zone,
                         name="Video Parameters",
                         icon="mdi:video-box",
@@ -167,8 +175,9 @@ async def async_setup_entry(
                     ),
                     PioneerGenericSensor(
                         pioneer,
-                        coordinator,
-                        device_info,
+                        options,
+                        coordinator=coordinator,
+                        device_info=device_info,
                         zone=zone,
                         name="Audio Parameters",
                         icon="mdi:speaker",
@@ -178,8 +187,9 @@ async def async_setup_entry(
                     ),
                     PioneerGenericSensor(
                         pioneer,
-                        coordinator,
-                        device_info,
+                        options,
+                        coordinator=coordinator,
+                        device_info=device_info,
                         zone=zone,
                         name="Tone",
                         icon="mdi:circle-half-full",
@@ -189,8 +199,9 @@ async def async_setup_entry(
                     ),
                     PioneerGenericSensor(
                         pioneer,
-                        coordinator,
-                        device_info,
+                        options,
+                        coordinator=coordinator,
+                        device_info=device_info,
                         zone=zone,
                         name="Channel Level",
                         icon="mdi:surround-sound",
@@ -213,26 +224,28 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         zone: Zones | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, device_info, zone=zone)
+        """Initialize the Pioneer sensor base class."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
 
 class PioneerGenericSensor(PioneerSensor):
-    """Pioneer AVR generic sensor."""
+    """Pioneer generic sensor."""
 
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         name: str,
         base_property: str,
-        promoted_property: str | None,
+        promoted_property: str | None = None,
         include_properties: list[str] | None = None,
         exclude_properties: list[str] | None = None,
         value_func: Callable[[str], str] | None = None,
@@ -240,8 +253,14 @@ class PioneerGenericSensor(PioneerSensor):
         zone: Zones | None = None,
         icon: str | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, coordinator, device_info, zone=zone)
+        """Initialize the Pioneer generic sensor."""
+        super().__init__(
+            pioneer,
+            options,
+            coordinator=coordinator,
+            device_info=device_info,
+            zone=zone,
+        )
         self._attr_name = name
         self._attr_icon = icon
         self._attr_entity_registry_enabled_default = enabled_default
@@ -251,7 +270,7 @@ class PioneerGenericSensor(PioneerSensor):
         self.exclude_properties = exclude_properties
         self.value_func = value_func
 
-        ## Exclude promoted_property from extra_attributes
+        ## TODO: Exclude promoted_property from extra_attributes
         # if (
         #     isinstance(exclude_properties, list)
         #     and promoted_property is not None
@@ -266,7 +285,7 @@ class PioneerGenericSensor(PioneerSensor):
         base_property_value = getattr(self.pioneer, self.base_property, {})
         if self.zone is not None:
             base_property_value = base_property_value.get(self.zone, {})
-        if not self.promoted_property:
+        if self.promoted_property is None:
             value = str(base_property_value)
         else:
             value = base_property_value.get(self.promoted_property)

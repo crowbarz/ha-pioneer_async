@@ -51,6 +51,7 @@ from .const import (
     DOMAIN,
     CONF_SOURCES,
     CONF_PARAMS,
+    CONF_REPEAT_COUNT,
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_HDZONE,
@@ -111,6 +112,16 @@ def _get_schema_basic_options(defaults: list) -> dict:
                 max=1.0,
                 step=0.1,
                 unit_of_measurement="s",
+                mode=selector.NumberSelectorMode.SLIDER,
+            )
+        ),
+        vol.Optional(
+            CONF_REPEAT_COUNT, default=defaults[CONF_REPEAT_COUNT]
+        ): selector.NumberSelector(
+            selector.NumberSelectorConfig(
+                min=1,
+                max=10,
+                step=1,
                 mode=selector.NumberSelectorMode.SLIDER,
             )
         ),

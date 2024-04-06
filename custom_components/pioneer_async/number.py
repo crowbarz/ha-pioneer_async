@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones, TunerBand
@@ -20,6 +21,7 @@ from .const import (
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
+    ATTR_OPTIONS,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -58,29 +60,41 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
-    if _debug_atlevel(9):
-        _LOGGER.debug(
-            ">> select.async_setup_entry(entry_id=%s, data=%s, options=%s)",
-            config_entry.entry_id,
-            config_entry.data,
-            config_entry.options,
-        )
+    """Set up the number platform."""
     pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
     pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    coordinator_list = pioneer_data[ATTR_COORDINATORS]
-    device_info_dict: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
+    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
+    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
+    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
+    if _debug_atlevel(9):
+        _LOGGER.debug(
+            ">> number.async_setup_entry(entry_id=%s, data=%s, options=%s)",
+            config_entry.entry_id,
+            config_entry.data,
+            options,
+        )
 
+    ## Add top level numbers
     entities = []
-
-    ## Add top level selects
     zone = Zones.ALL
-    device_info = device_info_dict[zone]
-    coordinator = coordinator_list[zone]
+    device_info = zone_device_info[zone]
+    coordinator = coordinators[zone]
     entities.extend(
         [
-            TunerFrequencyNumber(pioneer, coordinator, device_info, band=TunerBand.FM),
-            TunerFrequencyNumber(pioneer, coordinator, device_info, band=TunerBand.AM),
+            TunerFrequencyNumber(
+                pioneer,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
+                band=TunerBand.FM,
+            ),
+            TunerFrequencyNumber(
+                pioneer,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
+                band=TunerBand.AM,
+            ),
         ]
     )
 
@@ -90,7 +104,7 @@ async def async_setup_entry(
 class TunerFrequencyNumber(
     PioneerTunerEntity, NumberEntity, CoordinatorEntity
 ):  # pylint: disable=abstract-method
-    """Pioneer tuner preset select entity."""
+    """Pioneer tuner frequency number entity."""
 
     _attr_entity_category = EntityCategory.CONFIG
     _attr_device_class = NumberDeviceClass.FREQUENCY
@@ -99,13 +113,14 @@ class TunerFrequencyNumber(
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         band: TunerBand,
         zone: Zones | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, device_info, zone=zone)
+        """Initialize the Pioneer tuner frequency number entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
         self.band = band
         tuner_freq_attrs = TUNER_FREQ_ATTRS[band]
@@ -131,4 +146,4 @@ class TunerFrequencyNumber(
         async def set_tuner_frequency() -> bool:
             return await self.pioneer.set_tuner_frequency(self.band, value)
 
-        await self.pioneer_command(set_tuner_frequency)
+        await self.pioneer_command(set_tuner_frequency, repeat=True)

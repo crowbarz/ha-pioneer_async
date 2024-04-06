@@ -1,5 +1,7 @@
 """Pioneer AVR entity base."""
 
+from typing import Any
+
 import asyncio
 import logging
 
@@ -11,6 +13,7 @@ from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
+from .const import CONF_REPEAT_COUNT
 from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
@@ -21,7 +24,7 @@ def _debug_atlevel(level: int, category: str = __name__):
 
 
 class PioneerEntityBase(Entity):
-    """Pioneer AVR base entity class."""
+    """Pioneer AVR entity base class."""
 
     _attr_should_poll = False
     _attr_has_entity_name = True
@@ -29,13 +32,15 @@ class PioneerEntityBase(Entity):
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         device_info: DeviceInfo,
         zone: Zones | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR display sensor."""
+        """Initialize the Pioneer AVR entity base class."""
         if _debug_atlevel(9):
             _LOGGER.debug("%s.__init__()", type(self).__name__)
         self.pioneer = pioneer
+        self.entry_options = options
         self.zone = zone
         self._attr_device_info = device_info
 
@@ -55,20 +60,21 @@ class PioneerEntityBase(Entity):
             or (self.zone in self.pioneer.zones and self.pioneer.power.get(self.zone))
         )
 
-    async def pioneer_command(self, aw_f, max_count: int = 4) -> None:
+    async def pioneer_command(self, aw_f, repeat: bool = False) -> None:
         """Execute a PioneerAVR command, handle exceptions and optionally repeating."""
-        options = self.platform.config_entry.options
+        options = self.entry_options
+        repeat_count = options[CONF_REPEAT_COUNT] if repeat else 1
 
         try:
             count = 0
-            while count < max_count and await aw_f() is False:
+            while count < repeat_count and await aw_f() is False:
                 await asyncio.sleep(1)
                 count += 1
-                if count < max_count:
+                if count < repeat_count:
                     _LOGGER.warning(
                         "repeating failed command (%d): %s", count, aw_f.__name__
                     )
-            if count >= max_count:
+            if count >= repeat_count:
                 raise ServiceValidationError(f"AVR command {aw_f.__name__} unavailable")
         except Exception as exc:
             raise ServiceValidationError(

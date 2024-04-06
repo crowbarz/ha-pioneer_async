@@ -40,6 +40,7 @@ from .const import (
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
     ATTR_DEVICE_ENTRY,
+    ATTR_OPTIONS,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -119,6 +120,21 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     if CONF_DEBUG_CONFIG in entry.options:
         Debug.setconfig(None, entry.options[CONF_DEBUG_CONFIG])
 
+    hass.data.setdefault(DOMAIN, {})
+    pioneer_data = {}
+    host = entry.data[CONF_HOST]
+    port = entry.data[CONF_PORT]
+    name = entry.data[CONF_NAME]
+
+    ## Compile options and params
+    entry_options = entry.options if entry.options else {}
+    pioneer_data[ATTR_OPTIONS] = (options := OPTIONS_DEFAULTS | entry_options)
+    scan_interval = options[CONF_SCAN_INTERVAL]
+    timeout = options[CONF_TIMEOUT]
+    sources = options[CONF_SOURCES]
+    params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
+    params |= options.get(CONF_PARAMS, {})
+
     if _debug_atlevel(9):
         _LOGGER.debug(
             ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
@@ -127,21 +143,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             entry.options,
         )
 
-    host = entry.data[CONF_HOST]
-    port = entry.data[CONF_PORT]
-    name = entry.data[CONF_NAME]
-
-    ## Compile options and params
-    entry_options = entry.options if entry.options else {}
-    options = {**OPTIONS_DEFAULTS, **entry_options}
-    scan_interval = options[CONF_SCAN_INTERVAL]
-    timeout = options[CONF_TIMEOUT]
-    sources = options[CONF_SOURCES]
-    params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
-    params.update(options.get(CONF_PARAMS, {}))
-    pioneer = None
-
     ## Create PioneerAVR API object
+    pioneer = None
     try:
         pioneer = PioneerAVR(
             host,
@@ -169,8 +172,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             await pioneer.shutdown()
         raise ConfigEntryNotReady from exc
 
-    hass.data.setdefault(DOMAIN, {})
-    pioneer_data = {}
     pioneer_data[ATTR_PIONEER] = pioneer
 
     ## Set up parent device for Pioneer AVR

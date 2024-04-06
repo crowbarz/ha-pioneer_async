@@ -1,5 +1,7 @@
 """Pioneer AVR media_player platform."""
 
+from __future__ import annotations
+
 import logging
 import json
 from typing import Any
@@ -43,6 +45,7 @@ from .const import (
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
+    ATTR_OPTIONS,
     ATTR_PANEL_LOCK,
     ATTR_REMOTE_LOCK,
     ATTR_DIMMER,
@@ -135,37 +138,38 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the Pioneer AVR media_player from config entry."""
+    """Set up the media_player platform."""
+    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
+    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
+    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
+    zone_device_info = pioneer_data[ATTR_DEVICE_INFO]
     if _debug_atlevel(9):
         _LOGGER.debug(
             ">> media_player.async_setup_entry(entry_id=%s, data=%s, options=%s)",
             config_entry.entry_id,
             config_entry.data,
-            config_entry.options,
+            options,
         )
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    coordinator_list = pioneer_data[ATTR_COORDINATORS]
-    device_info_dict = pioneer_data[ATTR_DEVICE_INFO]
 
-    _LOGGER.info("Adding entities for zones %s", pioneer.zones)
+    if Zones.Z1 not in pioneer.zones:
+        _LOGGER.error("Main zone not found on AVR")
+        raise PlatformNotReady  # pylint: disable=raise-missing-from
+
+    ## Add zone specific media_players
     entities = []
-    main_entity = False
+    _LOGGER.info("Adding entities for zones %s", pioneer.zones)
     for zone in pioneer.zones:
         entities.append(
             PioneerZone(
                 pioneer,
-                coordinator_list[zone],
-                device_info_dict[zone],
-                zone,
+                options,
+                coordinator=coordinators[zone],
+                device_info=zone_device_info[zone],
+                zone=zone,
             )
         )
-        if zone == Zones.Z1:
-            main_entity = True
         _LOGGER.debug("Created entity for zone %s", zone)
-    if not main_entity:
-        _LOGGER.error("Main zone not found on AVR")
-        raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     try:
         await pioneer.update()
@@ -236,7 +240,7 @@ async def async_setup_entry(
 class PioneerZone(
     PioneerEntityBase, MediaPlayerEntity, CoordinatorEntity
 ):  # pylint: disable=abstract-method
-    """Representation of a Pioneer zone."""
+    """Pioneer media_player class."""
 
     _attr_device_class = CLASS_PIONEER
     _attr_name = None
@@ -244,14 +248,15 @@ class PioneerZone(
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         zone: Zones,
     ) -> None:
-        """Initialize the Pioneer zone."""
+        """Initialize the Pioneer media_player class."""
         if _debug_atlevel(9):
             _LOGGER.debug("PioneerZone.__init__(%s)", zone)
-        super().__init__(pioneer, device_info, zone=zone)
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
     @property
@@ -377,7 +382,7 @@ class PioneerZone(
         async def turn_on() -> bool:
             return await self.pioneer.turn_on(self.zone)
 
-        await self.pioneer_command(turn_on)
+        await self.pioneer_command(turn_on, repeat=True)
 
     async def async_turn_off(self) -> None:
         """Turn off media player."""
@@ -385,7 +390,7 @@ class PioneerZone(
         async def turn_off() -> bool:
             return await self.pioneer.turn_off(self.zone)
 
-        await self.pioneer_command(turn_off)
+        await self.pioneer_command(turn_off, repeat=True)
 
     async def async_select_source(self, source: str) -> None:
         """Select input source."""
@@ -393,7 +398,7 @@ class PioneerZone(
         async def select_source() -> bool:
             return await self.pioneer.select_source(source, self.zone)
 
-        await self.pioneer_command(select_source)
+        await self.pioneer_command(select_source, repeat=True)
 
     async def async_volume_up(self) -> None:
         """Volume up media player."""
@@ -401,7 +406,7 @@ class PioneerZone(
         async def volume_up() -> bool:
             return await self.pioneer.volume_up(self.zone)
 
-        await self.pioneer_command(volume_up, max_count=1)
+        await self.pioneer_command(volume_up)
 
     async def async_volume_down(self) -> None:
         """Volume down media player."""
@@ -409,7 +414,7 @@ class PioneerZone(
         async def volume_down() -> bool:
             return await self.pioneer.volume_down(self.zone)
 
-        await self.pioneer_command(volume_down, max_count=1)
+        await self.pioneer_command(volume_down)
 
     async def async_media_previous_track(self) -> None:
         """Send previous track command."""
@@ -417,7 +422,7 @@ class PioneerZone(
         async def tuner_previous_preset() -> bool:
             return await self.pioneer.tuner_previous_preset()
 
-        await self.pioneer_command(tuner_previous_preset, max_count=1)
+        await self.pioneer_command(tuner_previous_preset)
 
     async def async_media_next_track(self) -> None:
         """Send next track command."""
@@ -425,7 +430,7 @@ class PioneerZone(
         async def tuner_next_preset() -> bool:
             return await self.pioneer.tuner_next_preset()
 
-        await self.pioneer_command(tuner_next_preset, max_count=1)
+        await self.pioneer_command(tuner_next_preset)
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
@@ -437,9 +442,9 @@ class PioneerZone(
             )
 
         if self.pioneer.get_params().get(PARAM_VOLUME_STEP_ONLY):
-            await self.pioneer_command(set_volume_level, max_count=1)
-        else:
             await self.pioneer_command(set_volume_level)
+        else:
+            await self.pioneer_command(set_volume_level, repeat=True)
 
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute (true) or unmute (false) media player."""
@@ -450,7 +455,7 @@ class PioneerZone(
             else:
                 return await self.pioneer.mute_off(self.zone)
 
-        await self.pioneer_command(mute_volume, max_count=1)
+        await self.pioneer_command(mute_volume, repeat=True)
 
     async def async_select_sound_mode(self, sound_mode) -> None:
         """Select the sound mode."""
@@ -459,7 +464,7 @@ class PioneerZone(
             ## aiopioneer will translate sound modes
             return await self.pioneer.set_listening_mode(sound_mode)
 
-        await self.pioneer_command(select_sound_mode)
+        await self.pioneer_command(select_sound_mode, repeat=True)
 
     async def async_set_panel_lock(self, panel_lock: str) -> None:
         """Set AVR panel lock."""
@@ -473,7 +478,7 @@ class PioneerZone(
         async def set_panel_lock() -> bool:
             return await self.pioneer.set_panel_lock(panel_lock)
 
-        await self.pioneer_command(set_panel_lock, max_count=1)
+        await self.pioneer_command(set_panel_lock)
 
     async def async_set_remote_lock(self, remote_lock: bool) -> None:
         """Set AVR remote lock."""
@@ -487,7 +492,7 @@ class PioneerZone(
         async def set_remote_lock() -> bool:
             return await self.pioneer.set_remote_lock(remote_lock)
 
-        await self.pioneer_command(set_remote_lock, max_count=1)
+        await self.pioneer_command(set_remote_lock)
 
     async def async_set_dimmer(self, dimmer: str) -> None:
         """Set AVR display dimmer."""
@@ -501,7 +506,7 @@ class PioneerZone(
         async def set_dimmer() -> bool:
             return await self.pioneer.set_dimmer(dimmer)
 
-        await self.pioneer_command(set_dimmer, max_count=1)
+        await self.pioneer_command(set_dimmer)
 
     async def async_set_tone_settings(self, tone: str, treble: int, bass: int) -> None:
         """Set AVR tone settings for zone."""
@@ -523,7 +528,7 @@ class PioneerZone(
                     f"tone settings not supported for zone {self.zone}"
                 )
 
-        await self.pioneer_command(set_tone_settings, max_count=1)
+        await self.pioneer_command(set_tone_settings, repeat=True)
 
     async def async_select_tuner_band(self, band: str) -> None:
         """Set AVR tuner band."""
@@ -537,7 +542,7 @@ class PioneerZone(
         async def select_tuner_band() -> bool:
             return await self.pioneer.set_tuner_frequency(band)
 
-        await self.pioneer_command(select_tuner_band)
+        await self.pioneer_command(select_tuner_band, repeat=True)
 
     async def async_set_fm_tuner_frequency(self, frequency: float) -> None:
         """Set AVR AM tuner frequency."""
@@ -551,7 +556,7 @@ class PioneerZone(
         async def set_fm_tuner_frequency() -> bool:
             return await self.pioneer.set_tuner_frequency(TunerBand.FM, frequency)
 
-        await self.pioneer_command(set_fm_tuner_frequency)
+        await self.pioneer_command(set_fm_tuner_frequency, repeat=True)
 
     async def async_set_am_tuner_frequency(self, frequency: int) -> None:
         """Set AVR AM tuner frequency."""
@@ -567,7 +572,7 @@ class PioneerZone(
                 TunerBand.AM, float(frequency)
             )
 
-        await self.pioneer_command(set_am_tuner_frequency)
+        await self.pioneer_command(set_am_tuner_frequency, repeat=True)
 
     async def async_select_tuner_preset(self, **kwargs) -> None:
         """Set AVR tuner preset."""
@@ -584,7 +589,7 @@ class PioneerZone(
         async def select_tuner_preset() -> bool:
             return await self.pioneer.select_tuner_preset(tuner_class, preset)
 
-        await self.pioneer_command(select_tuner_preset)
+        await self.pioneer_command(select_tuner_preset, repeat=True)
 
     async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
@@ -599,4 +604,4 @@ class PioneerZone(
         async def set_channel_levels() -> bool:
             return await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
 
-        await self.pioneer_command(set_channel_levels)
+        await self.pioneer_command(set_channel_levels, repeat=True)

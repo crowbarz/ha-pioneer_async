@@ -19,14 +19,16 @@
                     "sources": "Manually configured sources",
                     "scan_interval": "Scan interval",
                     "timeout": "Timeout",
-                    "command_delay": "Command delay"
+                    "command_delay": "Command delay",
+                    "repeat_count": "Repeat action commands"
                 },
                 "data_description": {
                     "query_sources": "Disable for AVRs that do not support source discovery",
                     "sources": "Add source mappings using the format: \"00:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands sent to the AVR"
+                    "command_delay": "Delay between commands sent to the AVR",
+                    "repeat_count": "Repeat action commands on failure up to the specified count"
                 }
             }
         },
@@ -50,14 +52,16 @@
                     "sources": "Manually configured sources",
                     "scan_interval": "Scan interval",
                     "timeout": "Timeout",
-                    "command_delay": "Command delay"
+                    "command_delay": "Command delay",
+                    "repeat_count": "Repeat action commands"
                 },
                 "data_description": {
                     "query_sources": "When enabled, sources will be discovered from the AVR and replace manually configured sources",
                     "sources": "Add source mappings using the format: \"00:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands sent to the AVR"
+                    "command_delay": "Delay between commands sent to the AVR",
+                    "repeat_count": "Repeat action commands on failure up to the specified count"
                 }
             },
             "zone_options": {
