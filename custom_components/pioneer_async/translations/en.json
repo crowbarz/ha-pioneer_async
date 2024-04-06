@@ -9,7 +9,11 @@
                     "name": "Device Name",
                     "host": "Host",
                     "port": "Port",
-                    "query_sources": "Query sources from AVR"
+                    "query_sources": "Query sources from AVR",
+                    "ignore_volume_check": "Don't check volume when querying AVR source"
+                },
+                "data_description": {
+                    "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically.\n[ignore_volume_check]"
                 }
             },
             "basic_options": {
@@ -69,9 +73,9 @@
                 "description": "Configure Pioneer AVR Zone options",
                 "data": {
                     "max_source_id": "Maximum source ID",
-                    "ignore_zone_2": "Don't create an entity for Zone 2",
-                    "ignore_zone_3": "Don't create an entity for Zone 3",
-                    "ignore_hdzone": "Don't create an entity for HDZone",
+                    "ignore_zone_2": "Don't create entities for Zone 2",
+                    "ignore_zone_3": "Don't create entities for Zone 3",
+                    "ignore_hdzone": "Don't create entities for HDZone",
                     "zone_1_sources": "Available sources for Zone 1",
                     "zone_2_sources": "Available sources for Zone 2",
                     "zone_3_sources": "Available sources for Zone 3",
