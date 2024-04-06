@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones, TunerBand
@@ -20,6 +21,7 @@ from .const import (
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
+    ATTR_OPTIONS,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -43,36 +45,38 @@ async def async_setup_entry(
     config_entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
-    """Set up the sensor platform."""
+    """Set up the select platform."""
+    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
+    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
+    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
+    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     if _debug_atlevel(9):
         _LOGGER.debug(
             ">> select.async_setup_entry(entry_id=%s, data=%s, options=%s)",
             config_entry.entry_id,
             config_entry.data,
-            config_entry.options,
+            options,
         )
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    coordinator_list = pioneer_data[ATTR_COORDINATORS]
-    device_info_dict: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
-
-    entities = []
 
     ## Add top level selects
+    entities = []
     zone = Zones.ALL
-    device_info = device_info_dict[zone]
-    coordinator = coordinator_list[zone]
+    device_info = zone_device_info[zone]
+    coordinator = coordinators[zone]
     entities.extend(
         [
             TunerPresetSelect(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
             ),
             TunerBandSelect(
                 pioneer,
-                coordinator,
-                device_info,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
             ),
         ]
     )
@@ -95,12 +99,13 @@ class TunerPresetSelect(
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         zone: Zones | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, device_info, zone=zone)
+        """Initialize the Pioneer tuner preset select entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
         self._attr_current_option = None
 
@@ -125,7 +130,7 @@ class TunerPresetSelect(
         async def select_tuner_preset() -> bool:
             return await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
 
-        await self.pioneer_command(select_tuner_preset, max_count=1)
+        await self.pioneer_command(select_tuner_preset, repeat=True)
 
 
 class TunerBandSelect(
@@ -141,12 +146,13 @@ class TunerBandSelect(
     def __init__(
         self,
         pioneer: PioneerAVR,
+        options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         zone: Zones | None = None,
     ) -> None:
-        """Initialize the Pioneer AVR sensor."""
-        super().__init__(pioneer, device_info, zone=zone)
+        """Initialize the Pioneer tuner frequency band select entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
     @property
@@ -161,4 +167,4 @@ class TunerBandSelect(
         async def select_tuner_band() -> bool:
             return await self.pioneer.select_tuner_band(TunerBand(option))
 
-        await self.pioneer_command(select_tuner_band, max_count=1)
+        await self.pioneer_command(select_tuner_band, repeat=True)

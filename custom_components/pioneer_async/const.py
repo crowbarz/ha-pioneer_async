@@ -39,6 +39,7 @@ DEFAULT_SOURCES = {}
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"
+CONF_REPEAT_COUNT = "repeat_count"
 CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
@@ -68,6 +69,7 @@ OPTIONS_DEFAULTS = {
     CONF_TIMEOUT: DEFAULT_TIMEOUT,
     CONF_SOURCES: {},
     CONF_PARAMS: {},
+    CONF_REPEAT_COUNT: 4,
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_HDZONE: False,
@@ -103,6 +105,7 @@ ATTR_PIONEER = "pioneer"
 ATTR_COORDINATORS = "coordinators"
 ATTR_DEVICE_INFO = "device_info"
 ATTR_DEVICE_ENTRY = "device_entry"
+ATTR_OPTIONS = "options"
 
 ## Config attributes
 ATTR_ENTITY_ID = "entity_id"
