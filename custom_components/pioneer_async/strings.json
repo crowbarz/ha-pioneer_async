@@ -6,7 +6,7 @@
                 "title": "AVR details",
                 "description": "Enter the details for the Pioneer AVR:",
                 "data": {
-                    "name": "Device Name",
+                    "name": "Device name",
                     "host": "Host",
                     "port": "Port",
                     "query_sources": "Query sources from AVR",
@@ -90,15 +90,15 @@
                 "description": "Configure Pioneer AVR advanced options",
                 "data": {
                     "disable_auto_query": "Query basic AVR parameters only",
-                    "power_on_volume_bounce": "Workaround for Main Zone initial volume reporting",
+                    "power_on_volume_bounce": "Workaround for Zone 1 initial volume reporting",
                     "ignore_volume_check": "Don't check volume when querying AVR source",
                     "volume_step_only": "Step volume up/down to set volume level",
-                    "max_volume": "Maximum volume units for Main Zone",
-                    "max_volume_zonex": "Maximum volume units for other Zones",
+                    "max_volume": "Maximum volume units for Zone 1",
+                    "max_volume_zonex": "Maximum volume units for other zones",
                     "params": "Extra aiopioneer parameters"
                 },
                 "data_description": {
-                    "disable_auto_query": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVRs\n[disable_auto_query]",
+                    "disable_auto_query": "Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVR models\n[disable_auto_query]",
                     "power_on_volume_bounce": "Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on when an initial volume is configured (eg. VSX-930)\n[power_on_volume_bounce]",
                     "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically\n[ignore_volume_check]",
                     "volume_step_only": "Emulate volume level set by stepping volume up/down (eg. VSX-S510)\n[volume_step_only]",

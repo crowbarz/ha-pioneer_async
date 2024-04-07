@@ -228,14 +228,16 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         description_placeholders = {}
 
         if user_input is not None:
+            self.options = {}
             self.name = user_input[CONF_NAME]
             self.host = user_input[CONF_HOST]
             self.port = int(user_input[CONF_PORT])
             self.query_sources = user_input[CONF_QUERY_SOURCES]
+            self.options |= {PARAM_MAX_SOURCE_ID: user_input[PARAM_MAX_SOURCE_ID]}
             ignore_volume_check = user_input[PARAM_IGNORE_VOLUME_CHECK]
             if ignore_volume_check != "default":
                 opts_all = {"on": True, "off": False}
-                self.options = {
+                self.options |= {
                     PARAM_IGNORE_VOLUME_CHECK: opts_all[ignore_volume_check]
                 }
 
@@ -285,6 +287,18 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Optional(
                     CONF_QUERY_SOURCES, default=True
                 ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_MAX_SOURCE_ID, default=PARAM_DEFAULTS[PARAM_MAX_SOURCE_ID]
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=99,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                ),
                 vol.Optional(
                     PARAM_IGNORE_VOLUME_CHECK, default="default"
                 ): selector.SelectSelector(
@@ -470,6 +484,10 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             if result is True:
                 if user_input[CONF_QUERY_SOURCES]:
                     pioneer = self.pioneer
+                    pioneer.set_user_params(  # update max_source_id before query
+                        pioneer.get_user_params()
+                        | {PARAM_MAX_SOURCE_ID: user_input[PARAM_MAX_SOURCE_ID]}
+                    )
                     await pioneer.build_source_dict()
                     sources = pioneer.get_source_dict() or {}
                     self.options[CONF_SOURCES] = _convert_sources(sources)
@@ -486,6 +504,18 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_QUERY_SOURCES, default=True
                 ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_MAX_SOURCE_ID, default=defaults[PARAM_MAX_SOURCE_ID]
+                ): vol.Coerce(
+                    int,
+                    selector.NumberSelector(
+                        selector.NumberSelectorConfig(
+                            min=1,
+                            max=99,
+                            mode=selector.NumberSelectorMode.BOX,
+                        )
+                    ),
+                ),
                 **_get_schema_basic_options(defaults),
             }
         )
@@ -561,18 +591,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                         options=zone_options(Zones.HDZ),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
-                    ),
-                ),
-                vol.Optional(
-                    PARAM_MAX_SOURCE_ID, default=defaults[PARAM_MAX_SOURCE_ID]
-                ): vol.Coerce(
-                    int,
-                    selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1,
-                            max=99,
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
                     ),
                 ),
                 vol.Optional(
