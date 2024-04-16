@@ -325,7 +325,10 @@ class PioneerZone(
     @property
     def sound_mode_list(self) -> list[str]:
         """Returns all valid sound modes from aiopioneer."""
-        listening_modes = self.pioneer.get_zone_listening_modes(self.zone)
+        if self.zone != Zones.Z1:
+            return None
+
+        listening_modes = self.pioneer.get_zone_listening_modes()
         return (
             [v for _, v in sorted(listening_modes.items())] if listening_modes else None
         )
