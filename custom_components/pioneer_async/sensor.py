@@ -82,7 +82,6 @@ async def async_setup_entry(
                 base_property="amp",
                 promoted_property="display",
                 value_func=lambda x: x.strip(),
-                enabled_default=True,
                 include_properties=["dimmer"],
             ),
             PioneerGenericSensor(
@@ -128,6 +127,7 @@ async def async_setup_entry(
                 base_property="tuner",
                 promoted_property="frequency",
                 exclude_properties=[],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -196,6 +196,7 @@ async def async_setup_entry(
                         base_property="tone",
                         promoted_property="status",
                         exclude_properties=[],
+                        enabled_default=True,
                     ),
                     PioneerGenericSensor(
                         pioneer,
@@ -249,7 +250,7 @@ class PioneerGenericSensor(PioneerSensor):
         include_properties: list[str] | None = None,
         exclude_properties: list[str] | None = None,
         value_func: Callable[[str], str] | None = None,
-        enabled_default: bool = True,  ## TODO: disable when debug over
+        enabled_default: bool = False,
         zone: Zones | None = None,
         icon: str | None = None,
     ) -> None:
@@ -270,14 +271,14 @@ class PioneerGenericSensor(PioneerSensor):
         self.exclude_properties = exclude_properties
         self.value_func = value_func
 
-        ## TODO: Exclude promoted_property from extra_attributes
-        # if (
-        #     isinstance(exclude_properties, list)
-        #     and promoted_property is not None
-        #     and promoted_property not in exclude_properties
-        #     and f"!{promoted_property}" not in exclude_properties
-        # ):
-        #     self.exclude_properties.append(promoted_property)
+        ## Exclude promoted_property from extra_attributes
+        if (
+            isinstance(exclude_properties, list)
+            and promoted_property is not None
+            and promoted_property not in exclude_properties
+            and f"!{promoted_property}" not in exclude_properties
+        ):
+            self.exclude_properties.append(promoted_property)
 
     @property
     def native_value(self) -> str:
