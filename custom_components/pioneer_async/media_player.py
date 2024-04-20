@@ -465,7 +465,7 @@ class PioneerZone(
 
         async def select_sound_mode() -> bool:
             ## aiopioneer will translate sound modes
-            return await self.pioneer.set_listening_mode(sound_mode)
+            return await self.pioneer.select_listening_mode(sound_mode)
 
         await self.pioneer_command(select_sound_mode, repeat=True)
 
