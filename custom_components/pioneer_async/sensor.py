@@ -7,7 +7,6 @@ from typing import Any, Callable
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
-from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
 
 from homeassistant.components.sensor import (
     # SensorDeviceClass,
@@ -31,7 +30,7 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-from .entity_base import PioneerEntityBase, PioneerTunerEntity
+from .entity_base import PioneerEntityBase
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -116,18 +115,6 @@ async def async_setup_entry(
                 base_property="dsp",
                 promoted_property="signal_select",
                 exclude_properties=[],
-            ),
-            PioneerTunerSensor(
-                pioneer,
-                options,
-                coordinator=coordinator,
-                device_info=device_info,
-                name="Tuner",
-                icon="mdi:radio",
-                base_property="tuner",
-                promoted_property="frequency",
-                exclude_properties=[],
-                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -298,28 +285,15 @@ class PioneerGenericSensor(PioneerSensor):
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         if self.include_properties is None and self.exclude_properties is None:
-            return []
+            return None
         base_attrs = getattr(self.pioneer, self.base_property, {})
         attrs = base_attrs
         if self.zone is not None:
             attrs = base_attrs.get(self.zone, {})
         if not isinstance(attrs, dict):
-            return []
+            return None
         if self.include_properties:
             attrs = select_dict(attrs, self.include_properties)
         if self.exclude_properties:
             return reject_dict(attrs, self.exclude_properties)
-        return attrs
-
-
-class PioneerTunerSensor(PioneerTunerEntity, PioneerGenericSensor):
-    """Pioneer AVR tuner sensor."""
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return device specific state attributes."""
-        attrs = super().extra_state_attributes
-        attrs |= {
-            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.get_param(PARAM_TUNER_AM_FREQ_STEP),
-        }
         return attrs

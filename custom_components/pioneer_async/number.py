@@ -7,6 +7,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones, TunerBand
+from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
 
 from homeassistant.components.number import NumberEntity, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -139,6 +140,18 @@ class TunerFrequencyNumber(
     def native_value(self) -> float | None:
         """Return the tuner frequency."""
         return self.pioneer.tuner.get("frequency")
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return device specific state attributes."""
+        if self.band != TunerBand.AM:
+            return None
+
+        attrs = super().extra_state_attributes or {}
+        attrs |= {
+            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.get_param(PARAM_TUNER_AM_FREQ_STEP),
+        }
+        return attrs
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the tuner frequency."""
