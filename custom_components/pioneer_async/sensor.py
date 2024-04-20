@@ -220,7 +220,7 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
     """Pioneer sensor base class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    # _attr_entity_registry_enabled_default = False  ## TODO: disable when debug over
+    _attr_entity_registry_enabled_default = False
 
     def __init__(
         self,
