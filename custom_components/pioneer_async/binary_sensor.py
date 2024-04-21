@@ -80,6 +80,7 @@ async def async_setup_entry(
                 icon="mdi:surround-sound",
                 base_property="audio",
                 promoted_property="input_multichannel",
+                enabled_default=True,
             ),
         ]
     )
@@ -91,7 +92,7 @@ class PioneerBinarySensor(PioneerEntityBase, BinarySensorEntity, CoordinatorEnti
     """Pioneer binary sensor class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
-    # _attr_entity_registry_enabled_default = False  ## TODO: disable when debug over
+    _attr_entity_registry_enabled_default = False
     _attr_entity_registry_visible_default = True
 
     def __init__(
@@ -121,7 +122,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         promoted_property: str | None,
         include_properties: list[str] | None = None,
         exclude_properties: list[str] | None = None,
-        enabled_default: bool = True,  ## TODO: disable when debug over
+        enabled_default: bool = False,
         zone: Zones | None = None,
         icon: str | None = None,
     ) -> None:
@@ -138,13 +139,13 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         self.exclude_properties = exclude_properties
 
         ## Exclude promoted_property from extra_attributes
-        # if (
-        #     isinstance(exclude_properties, list)
-        #     and promoted_property is not None
-        #     and promoted_property not in exclude_properties
-        #     and f"!{promoted_property}" not in exclude_properties
-        # ):
-        #     self.exclude_properties.append(promoted_property)
+        if (
+            isinstance(exclude_properties, list)
+            and promoted_property is not None
+            and promoted_property not in exclude_properties
+            and f"!{promoted_property}" not in exclude_properties
+        ):
+            self.exclude_properties.append(promoted_property)
 
     @property
     def is_on(self) -> bool:
@@ -152,20 +153,24 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         base_property_value = getattr(self.pioneer, self.base_property, {})
         if self.zone is not None:
             base_property_value = base_property_value.get(self.zone, {})
-        if not self.promoted_property:
-            return str(base_property_value)
-        return True if base_property_value.get(self.promoted_property) else False
+        if self.promoted_property is None:
+            value = base_property_value
+        else:
+            value = base_property_value.get(self.promoted_property)
+        if value is None:
+            return None
+        return True if value else False
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         if self.include_properties is None and self.exclude_properties is None:
-            return []
+            return None
         attrs = getattr(self.pioneer, self.base_property, {})
         if self.zone is not None:
             attrs = attrs.get(self.zone, {})
         if not isinstance(attrs, dict):
-            return []
+            return None
         if self.include_properties:
             attrs = select_dict(attrs, self.include_properties)
         if self.exclude_properties:
