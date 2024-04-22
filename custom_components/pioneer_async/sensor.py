@@ -88,7 +88,7 @@ async def async_setup_entry(
                 options,
                 coordinator=coordinator,
                 device_info=device_info,
-                name="System",
+                name="Speaker System",
                 icon="mdi:audio-video",
                 base_property="system",
                 promoted_property="speaker_system",
@@ -136,7 +136,13 @@ async def async_setup_entry(
                 icon="mdi:speaker",
                 base_property="audio",
                 promoted_property="input_signal",
-                exclude_properties=[Zones.Z1, Zones.Z2, Zones.Z3, Zones.HDZ],
+                exclude_properties=[
+                    "input_multichannel",
+                    Zones.Z1,
+                    Zones.Z2,
+                    Zones.Z3,
+                    Zones.HDZ,
+                ],
             ),
         ]
     )
