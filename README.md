@@ -3,118 +3,189 @@
 
 Home Assistant `media_player` custom integration for Pioneer AVRs.
 Inspired by the [original Pioneer integration](https://www.home-assistant.io/integrations/pioneer/).
-Tested on a VSX-930 (Main Zone and HDZone outputs).
+Connects to a network capable AVR that supports the Pioneer API, typically used in pre-2016 Pioneer AVR models.
+Developed and tested on a VSX-930 (with Main Zone and HDZone outputs), and [on other models by the community](https://github.com/crowbarz/ha-pioneer_async/issues/20).
 
-Added support for the following features:
+This integration supports the following features (not all features are supported by all AVR models):
 
-- Supports integration config flow (**Configuration > Integrations > +** to add) as well as configuration via `configuration.yaml`.
-- Uses the [`aiopioneer`](http://github.com/crowbarz/aiopioneer) package to communicate with the AVR via its API.
-- Auto-detect and create entities for Zones 1, 2, 3 and HDZone.
-- Automatically poll AVR for source names - no longer need to manually code them in your config any more if your AVR supports their retrieval.
-- Specify the sources that are available for each zone, selected from all AVR sources.
-- Create devices and populate with model, software version and MAC address queried from AVR (if supported) when configured via the UI.
+- Control power, volume and mute for zones available on the AVR
+- Select the active input source for each available zone, which are detected from the AVR
+- Set the tuner band and frequency, and select tuner presets
+- Set audio parameters such as listening modes, tone and channel levels
+- Set amp, DSP and video parameters
 
 ## Installation
 
 This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
 
-## Configuration
+## Adding an instance
 
-> **WARNING:** as of 0.8.6, support for YAML configuration via `configuration.yaml` is deprecated, and will be removed in 0.9.0.
+> [!WARNING]
+> As of 0.9.0, support for YAML configuration via `configuration.yaml` is no longer supported. The configuration is ignored and an error is logged if YAML configuration is detected.
 
-This integration may be configured via the UI (**Configuration > Integrations > +**) or through YAML in `configuration.yaml`. All AVRs should be configured using the same configuration method.
+This integration is configured via the UI. Once installed, add an instance for the AVR in Home Assistant by navigating to **Settings > Devices & Services > Integrations > Add Integration** and searching for **Pioneer AVR**. (Note that the **Pioneer** integration is the original integration built into Home Assistant)
 
-**NOTE:** Unlike other similar integrations, this integration will create separate `media_player` entities for all zones that are discovered on an AVR. It is not necessary to configure a separate instance of the integration for each zone.
+The following options that configure the connection to the AVR are available from the initial setup page:
 
-**NOTE:** Some AVR system attributes are not available when the AVR main zone is not powered on when the integration is added to HA. To include all available attributes, ensure that the AVR is turned on when adding the integration.
+| Option | Default | Function
+| --- | --- | ---
+| Device name | Pioneer AVR | Default base name for the AVR
+| Host | avr | DNS name/IP address for AVR to be added
+| Port | 8102 | Port to be used to communicate with the AVR API. Use port `23` if your AVR doesn't respond on the default port
+| Query sources from AVR | on | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
+| Maximum source ID | 60 | The highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
+| Don't check volume when querying AVR source | AVR default | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
 
-Be aware that some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. This integration uses a single connection, and each instance of the Pioneer iControlAV5 application will use another connection. (eg. if iControlAV5 is open on two phones, then two connections will be used.)
+Once the integration is successfully added, devices representing the AVR and each supported zone are created, along with entities that are registered to the devices. The main entities are the `media_player` entities corresponding to each discovered zone that are used to control the basic functions for the zone: power, volume and mute.
 
-## Configuration via the UI
+Some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. Each instance of this integration uses one connection to the AVR, and each instance of the Pioneer **iControlAV5** application will use another connection. For example, if **iControlAV5** is open on two phones, then two connections will be in use.
 
-On the Integrations page, click **Configure** on the Pioneer AVR integration to specify configuration parameters.
+**NOTE:** Some AVR device attributes (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is added.
 
-If **Query sources from AVR** is selected and the options flow is submitted, then the integration will poll the AVR for available sources. The sources can then be saved by reconfiguring the AVR again and turning off **Query sources from AVR** and submitting again. Unwanted sources can be removed from the list, and sources available for each zone can also be selected. Once sources are saved, the integration does not poll the AVR for sources again until **Query sources from AVR** is turned on again, making integration startup quicker.
+## Instance options
 
-Additional sources can be manually added by entering them in **Manually configured sources** using the format "_id_:_name_", where _id_ is a two digit number with leading zeros.
+After an instance is added, options that modify how the integration operates can be changed by clicking **Configure** on the appropriate instance on the integration's **Hubs** page. The available options are described in the subsections below.
 
-## `configuration.yaml` options
+### Basic options
 
-> **WARNING:** as of 0.8.6, support for YAML configuration via `configuration.yaml` is deprecated, and will be removed in 0.9.0.
+| Option | Default | Function
+| --- | --- | ---
+| Query sources from AVR | off | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
+| Maximum source ID | 60 | Highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
+| Manually configured sources | | List of all input sources available on the AVR. See [AVR sources](#avr-sources)
+| Scan interval | 60s | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, and these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling
+| Timeout | 5s | Number of seconds to wait for the initial connection and for responses to commands sent to the AVR. Also used to set the TCP connection idle timeout
+| Command delay | 0.1s | Delay between commands sent to the AVR. Increase the delay if you are experiencing errors with basic commands that are sent to the AVR
 
-Configure these settings under `media_player`:
+### Zone options
 
-| Name | Type | Default | Description
-| ---- | ---- | ------- | -----------
-| `platform` | string | | Set to `pioneer_async` to use this integration for the `media_player` entity.
-| `name` | string | `Pioneer AVR` | The friendly name that you would like to give to the receiver.
-| `host` | string | **Required** | The DNS name or IP of the Pioneer device, eg., `192.168.0.10`.
-| `port` | integer | `8102` | The port on which the Pioneer device listens. This may be `23` if your AVR doesn't respond on port `8102`.
-| `scan_interval` | time_period | `60s` | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling.
-| `timeout` | float | `5.0` | Number of seconds to wait for the initial connection and for responses to commands. Also used to set the TCP connection idle timeout.
-| `sources` | list | `{}` | A mapping of source friendly-names to AVR source IDs, see [AVR sources](#avr-sources) below.
-| `params` | object | `{}` | A mapping of configuration parameters to pass to the Pioneer AVR API to modify its functionality, see [`params` object](#params-object) below.
-| `debug_config` | object | `{}` | A mapping of integration module names to debug levels. See [Enabling debugging](#enabling-debugging) for more details.
+| Option | Default | Function
+| --- | --- | ---
+| Available sources for _zone_ | all | List of sources available for selection as input for each zone. Use this option to limit the sources available for a zone in accordance with your AVR's capabilities. If no sources are specified, then all available sources as configured in [Basic options](#basic-options) are made available
+| Don't create entities for _zone_ | off | Disable the creation of entities for a specific zone. Used when the integration detects a zone that does not exist for your AVR
 
-**NOTE:** See [Breaking Changes](#breaking-changes) if you are upgrading from version 0.2 or earlier as configuration options have changed.
+### Advanced options
 
-### AVR sources
+These options enable functionality and workarounds that are required for some AVR models. Some of these are enabled by default for specific AVR models when these are detected by the integration.
 
-If the `sources` property is not specified, then the integration will attempt to query them from the AVR on startup and when options are updated, and use the friendly names configured on the AVR. This functionality is not supported by all AVR models. If the integration does not detect sources, or only a subset of sources should be selectable, then a mapping can be manually configured via the `sources` property.
+The Advanced options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
 
-The configured mapping maps friendly names to IDs. Valid IDs are dependent on the receiver model, and are always two characters in length. The IDs must be defined as YAML strings (ie. between single or double quotes) so that `05` is not implicitly transformed to `5`, which is not a valid source ID.
+| Option | Default | Function
+| --- | --- | ---
+| Query basic AVR parameters only | | Disable AVR queries for additional parameters (audio, video, amp, DSP, tuner, channel levels) which may not be supported on some AVR models
+| Workaround for Zone 1 initial volume reporting | | Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on and an initial volume is configured
+| Don't check volume when querying AVR source | | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
+| Step volume up/down to set volume level | | Emulate volume level set by stepping volume up/down on AVR models that cannot set the volume level to a specific level
+| Maximum volume units for Zone 1 | 185 | The highest volume unit for Zone 1
+| Maximum volume units for other zones | 81 | The highest volume unit for other zones
+| Extra aiopioneer parameters | | Additional config parameters to pass to the aiopioneer package. See [Extra `aiopioneer` params](#extra-aiopioneer-parameters)
 
-Example source mapping (`configuration.yaml`): `{ TV: '05', Cable: '06' }`
+### Debug options
 
-### `params` object
+These options enable additional debugging to be output to the Home Assistant log. Debug level logging must also be enabled in Home Assistant for the integration to generate debug.
 
-The `params` object contains configuration parameters that are passed onto the Pioneer AVR API to modify its functionality. Configuration parameters can be configured via the `Configure` button when the integration is added via the UI, or in `configuration.yaml` if the integration is configured there. See the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer/blob/main/README.md) for the configuration parameters that can be set.
+The Debug options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
 
-Many configuration parameters are configurable from the UI. Other parameters can be added through the **Extra aiopioneer parameters** by specifying the parameter name (without quotes) and the value in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by entering `am_frequency_step:9`.
+| Option | Function
+| --- |  ---
+| Enable listener task debug logging | (`debug_responder` parameter) Enables additional debug messages in the listener task
+| Enable responder task debug logging | (`debug_responder` parameter) Enables additional debug messages in the responder task
+| Enable updater task debug logging | (`debug_responder` parameter) Enables additional debug messages in the updater task
+| Enable command debug logging | (`debug_responder` parameter) Enables additional debug messages in the AVR command sending and command queue methods
+| Integration debug | Enables additional per-module debug messages in this integration
 
-**NOTE**: Changing `ignored_zones` or `ignore_volume_check` via the UI requires Home Assistant to be restarted before fully taking effect.
+## Enabling debugging
 
-### Example YAML configuration
+If the integration is not functioning as expected, then you will need to include the debug logging when logging an issue. See the [Debug logs and diagnostics section in the Home Assistant Troubleshooting page](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics) for instructions for enabling debug logging for the integration and downloading the log.
 
-```yaml
-# Example configuration.yaml entry
-media_player:
-  - platform: pioneer_async
-    name: Pioneer AVR
-    host: avr
-    port: 8102
-    scan_interval: 60
-    timeout: 5.0
-    sources: { TV: '05', Cable: '06' }
-    params:
-      ignore_volume_check: true
-```
+Further module level debug logging for the integration can be enabled by adding entries in **Integration debug configuration** on the [Debug options](#debug-options) configuration page. The entries are in the format: `_module_:_debug_level_`. For example, `config_flow:9` will enable full debugging output for the `config_flow` module. To enable full debugging for all modules, use `*:9`.
+
+## AVR sources
+
+The integration saves a master list of available sources on the AVR, and a subset of these sources can be made available for selection as the zone's input source. On some models of AVR, some zones do not support the use of certain sources for input, and also some sources may only be selected on one zone.
+
+The master list of sources can be queried from the AVR when adding an integration instance by enabling **Query sources from AVR**. They can also be re-queried when reconfiguring the integration instance from the **Basic options** page. To do this, enable the **Query sources from AVR** option then click **Next**. Note that the current list of sources will be replaced by the list returned by the AVR.
+
+Source mappings in the master source list can be edited in the **Basic options** screen by removing unwanted mappings and adding extra mappings via the **Manually configured sources** option. Additional mappings can be added if your AVR does not automatically detect them. Each source mapping is in the form `id:name`, where `id` is a 2 digit identifier for the source (including a leading zero for single digit source IDs), and `name` is the friendly name for the source. You can rename a source mapping by removing the mapping and adding a new mapping with the same `id`.
+
+Source IDs can be found in the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#source-list)
+
+On the **Zone options** page, the available sources for each zone can be selected. If no sources are selected for a zone, then all sources are made available for selection.
+
+### Extra `aiopioneer` parameters
+
+Additional parameters can be configured in the Home Assistant integration and are passed to the `aiopioneer` packaged used by this integration for communication with the Pioneer AVR via its API. The parameters modify the package functionality to account for the operational differences between the various Pioneer AVR models.
+See [aiopioneer documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#params) for a list of parameters that can be set.
+
+Most configuration parameters are configurable via UI settings. Other parameters can be added through entries in the **Extra `aiopioneer` parameters**. Each entry is in the format `parameter_name: value` with _value_ expressed in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by adding the entry `am_frequency_step: 9`.
+
+### Tuner entities
+
+The entities below show the current tuner settings, and can also be used to change the tuner settings. These entities are available only when the tuner is selected as the input for a powered on zone.
+
+| Name | Type | Description
+| --- | --- | ---
+| Tuner Band | select | Current tuner band (`AM`, `FM`)
+| Tuner AM Frequency | number | Current AM frequency (in kHz)
+| Tuner FM Frequency | number | Current FM frequency (in MHz)
+| Tuner Preset | select | Currently selected tuner preset, or `unknown` if no preset is. The preset is also reset to `unknown` when the frequency is changed
 
 ## Entity attributes
+
+### `media_player` entity attributes
 
 In addition to the standard `media_player` entity attributes, this integration exposes additional attributes for the Pioneer AVR:
 
 | Entity attribute | Type | Description
-| --- | --- | --- | ---
-| sources_json | JSON | JSON mapping of zone source names to source IDs
-| device_volume_db | float | Current volume of zone (in dB)
-| device_volume | int | Current volume of zone (in device units)
-| device_max_volume | int | Maximum supported volume of zone (in device units)
+| --- | --- | ---
+| `sources_json` | JSON | JSON mapping of zone source names to source IDs
+| `device_volume_db` | float | Current volume of zone (in dB)
+| `device_volume` | int | Current volume of zone (in device units)
+| `device_max_volume` | int | Maximum supported volume of zone (in device units)
 
-**BETA (>= 0.7.3)**: The following AVR wide attributes may be reported by your AVR. Currently, these attributes appear on the Zone 1 entity, but is likely to move to sensors in a future release.
+### `tuner_am_frequency` entity attributes
+
+The `tuner_am_frequency` number entity exposes the following additional attributes:
 
 | Entity attribute | Type | Description
-| --- | --- | --- | ---
-| amp | dict | Amp attributes: eg. front panel display
-| tuner | dict | Tuner attributes: eg. current frequency
-| channel_levels | dict | Surround channel levels
-| dsp | dict | DSP parameters
-| video | dict | Video parameters: inputs and outputs, eg. aspect, colour format, resolution/refresh frequency
-| system | dict | System information from the AVR
+| --- | --- | ---
+| `am_frequency_step` | int | The kHz step between valid AM frequencies. This value differs across regions. If not specified as a parameter, then this is calculated by stepping up and down the frequency when the band is first changed to `AM`
+
+## AVR properties (>= 0.9)
+
+The following AVR properties are available as entities where supported and reported by your AVR model.
+
+> [!CAUTION]
+> Property group entities are **beta** and may change in future releases as additional entities are created for individual properties.
+
+### Global AVR properties
+
+Sensor entities for global AVR properties and property groups are registered to the parent device created for the AVR.
+
+| Property | Type | Description
+| --- | --- | ---
+| Display | sensor | Current value shown on AVR front panel display
+| Speaker System | sensor | AVR speaker system currently in use
+| Amp | sensor | Amp property group, main sensor property: `speakers`
+| DSP | sensor | DSP property group, main sensor property: `signal_select`
+| Video Parameters | sensor | Video parameters property group, main sensor property: `signal_output_resolution`
+| Audio Parameters | sensor | Audio parameters property group, main sensor property: `input_signal`
+| Input Multichannel | binary_sensor | **on** if current input audio source is a multi-channel source
+
+### Zone AVR properties
+
+Zone entities are registered to the zone device.
+
+| Property | Type | Description
+| --- | --- | ---
+| channel_levels | sensor | Surround channel levels
+| tone | sensor | Tone setting, and bass and treble levels
+| Video | sensor | Zone video parameters property group
+| Audio | sensor |  Zone audio parameters property group
 
 ## Services (>= 0.7.3)
 
-A number of service calls are supported by the integration to invoke functions and change parameters on the AVR. These can be called from scripts and automations, and can also be triggered via **Developer Tools > Services**.
+Service calls are used to invoke actions and change parameters on the AVR. They can be called from scripts, automations and UI elements, and can also be triggered via **Developer Tools > Services**.
 
 ### Service `set_tone_settings`
 
@@ -249,13 +320,3 @@ Under the hood, this integration uses [crowbarz/aiopioneer](https://github.com/c
 - Eliminate polling where AVR sends keepalive responses (on port 8102).
 
 **NOTE:** On the VSX-930, the telnet API can become quite unstable when telnet connections are made to it repeatedly. The original integration established a new telnet connection for each command sent to the AVR, including the commands used to poll status. This integration establishes a single telnet connection when loaded, and re-connects automatically if it disconnects. The connection is used for sending commands, receiving responses, and receiving status updates which are reflected in Home Assistant in real time.
-
-## Enabling debugging
-
-The Home Assistant integration logs messages to the `custom_components.pioneer_async` namespace, and the underlying API logs messages to the `aiopioneer` namespace. See the [Logger integration documentation](https://www.home-assistant.io/integrations/logger/) for the procedure for enabling logging for these namespaces.
-
-Additional debugging for the integration can be enabled by setting the `debug_config` config option in `configuration.yaml`, or by specifying debug options in `Integration debug configuration` in the UI. Use the format "_module_:_debug_level_" to enter the debug level for the module. For example, `config_flow:9` will enable full debugging output for the `config_flow` module. To enable full debugging for all modules, enter `*:9`.
-
-Home Assistant debug level logging must also be enabled for the integration to generate debug.
-
-The [`debug_*`](#params-object) configuration parameters can be set to enable additional debugging messages from the API. These debug options generate significant additional logging, so are turned off by default.
