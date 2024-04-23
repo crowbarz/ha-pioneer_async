@@ -28,7 +28,7 @@ PLATFORMS_CONFIG_FLOW = [
     Platform.SELECT,
     Platform.NUMBER,
 ]
-VERSION = "0.8.6"
+VERSION = "0.9.0rc1"
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
