@@ -15,8 +15,14 @@ check:
 	@[ "$(VERSION_PYTHON)" == "$(VERSION_MANIFEST)" ] || { echo "ERROR: versions don't match, aborting" ; exit 1 ; }
 
 main: check
-	@echo Pushing dev to main for version $(VERSION)
+	@echo Merging dev to main for version $(VERSION)
 	git checkout main
 	git merge --ff-only dev
-	git push
+	git push origin main
+	git push local main
 	git checkout dev
+
+local: check
+	@echo Pushing dev and main to local for version $(VERSION)
+	git push local dev
+	git push local main
