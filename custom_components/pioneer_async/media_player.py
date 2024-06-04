@@ -543,7 +543,7 @@ class PioneerZone(
             )
 
         async def select_tuner_band() -> bool:
-            return await self.pioneer.set_tuner_frequency(band)
+            return await self.pioneer.set_tuner_frequency(TunerBand(band))
 
         await self.pioneer_command(select_tuner_band, repeat=True)
 
