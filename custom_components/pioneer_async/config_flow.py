@@ -241,6 +241,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     PARAM_IGNORE_VOLUME_CHECK: opts_all[ignore_volume_check]
                 }
 
+            pioneer = None
             try:
                 try:
                     pioneer = PioneerAVR(self.host, self.port, params=self.options)
@@ -263,12 +264,14 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("unexpected exception: %s", str(exc))
                 return self.async_abort(
-                    reason="exception", description_placeholders={"exception", str(exc)}
+                    reason="exception",
+                    description_placeholders={"exception": str(exc)},
                 )
             finally:
-                await pioneer.shutdown()
-                await asyncio.sleep(0)  # yield to pending shutdown tasks
-                del pioneer
+                if pioneer:
+                    await pioneer.shutdown()
+                    await asyncio.sleep(0)  # yield to pending shutdown tasks
+                    del pioneer
 
             if not errors:
                 return await self.async_step_basic_options()
