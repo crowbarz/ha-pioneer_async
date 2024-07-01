@@ -1,3 +1,25 @@
+send_command:
+  description: Send command to AVR
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
+  fields:
+    command:
+      description: Command to send to AVR
+      required: true
+      example: "PO"
+      selector:
+        text:
+    prefix:
+      description: Prefix argument for command
+      selector:
+        text:
+    suffix:
+      description: Suffix argument for command
+      selector:
+        text:
+
 set_panel_lock:
   description: Set AVR panel lock
   target:

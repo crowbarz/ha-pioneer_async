@@ -10,6 +10,7 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import SOURCE_TUNER, Zones, TunerBand
+from aiopioneer.exceptions import PioneerException
 from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -21,7 +22,12 @@ from homeassistant.components.media_player.const import (
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import STATE_UNKNOWN
-from homeassistant.core import HomeAssistant
+from homeassistant.core import (
+    HomeAssistant,
+    ServiceCall,
+    ServiceResponse,
+    SupportsResponse,
+)
 from homeassistant.exceptions import PlatformNotReady, ServiceValidationError
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.entity import DeviceInfo
@@ -30,6 +36,7 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import (
     DOMAIN,
     CLASS_PIONEER,
+    SERVICE_SEND_COMMAND,
     SERVICE_SET_PANEL_LOCK,
     SERVICE_SET_REMOTE_LOCK,
     SERVICE_SET_DIMMER,
@@ -46,6 +53,9 @@ from .const import (
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
     ATTR_OPTIONS,
+    ATTR_COMMAND,
+    ATTR_PREFIX,
+    ATTR_SUFFIX,
     ATTR_PANEL_LOCK,
     ATTR_REMOTE_LOCK,
     ATTR_DIMMER,
@@ -68,6 +78,12 @@ _LOGGER = logging.getLogger(__name__)
 PARALLEL_UPDATES = 0
 
 PARAM_SCHEMA = vol.Schema({}, extra=vol.ALLOW_EXTRA)
+
+PIONEER_SEND_COMMAND_SCHEMA = {
+    vol.Required(ATTR_COMMAND): cv.string,
+    vol.Optional(ATTR_PREFIX): cv.string,
+    vol.Optional(ATTR_SUFFIX): cv.string,
+}
 
 PIONEER_SET_PANEL_LOCK_SCHEMA = {
     vol.Required(ATTR_PANEL_LOCK): cv.string,
@@ -186,6 +202,12 @@ async def async_setup_entry(
     ## Register platform specific services
     platform = entity_platform.async_get_current_platform()
 
+    platform.async_register_entity_service(
+        SERVICE_SEND_COMMAND,
+        PIONEER_SEND_COMMAND_SCHEMA,
+        PioneerZone.async_send_command,
+        supports_response=SupportsResponse.OPTIONAL,
+    )
     platform.async_register_entity_service(
         SERVICE_SET_PANEL_LOCK, PIONEER_SET_PANEL_LOCK_SCHEMA, "async_set_panel_lock"
     )
@@ -468,6 +490,38 @@ class PioneerZone(
             return await self.pioneer.select_listening_mode(sound_mode)
 
         await self.pioneer_command(select_sound_mode, repeat=True)
+
+    async def async_send_command(self, service_call: ServiceCall) -> ServiceResponse:
+        """Send command to the AVR."""
+        command = service_call.data[ATTR_COMMAND]
+        prefix = service_call.data.get(ATTR_PREFIX, "")
+        suffix = service_call.data.get(ATTR_SUFFIX, "")
+        _LOGGER.info(
+            ">> send_command(%s, command=%s, prefix=%s, suffix=%s)",
+            self.zone,
+            command,
+            prefix,
+            suffix,
+        )
+
+        resp = None
+        try:
+            resp = await self.pioneer.send_command(
+                command, self.zone, prefix=prefix, suffix=suffix
+            )
+        except PioneerException as exc:
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key=getattr(exc, "translation_key", "unknown_exception"),
+                translation_placeholders={
+                    "command": command,
+                    "zone": self.zone,
+                    "exc": str(exc),
+                },
+            ) from exc
+
+        if service_call.return_response:
+            return resp
 
     async def async_set_panel_lock(self, panel_lock: str) -> None:
         """Set AVR panel lock."""

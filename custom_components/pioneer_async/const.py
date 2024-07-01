@@ -87,6 +87,7 @@ DEFAULTS_EXCLUDE = [
 
 CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
 
+SERVICE_SEND_COMMAND = "send_command"
 SERVICE_SET_PANEL_LOCK = "set_panel_lock"
 SERVICE_SET_REMOTE_LOCK = "set_remote_lock"
 SERVICE_SET_DIMMER = "set_dimmer"
@@ -108,6 +109,9 @@ ATTR_DEVICE_ENTRY = "device_entry"
 ATTR_OPTIONS = "options"
 
 ## Config attributes
+ATTR_COMMAND = "command"
+ATTR_PREFIX = "prefix"
+ATTR_SUFFIX = "suffix"
 ATTR_ENTITY_ID = "entity_id"
 ATTR_PANEL_LOCK = "panel_lock"
 ATTR_REMOTE_LOCK = "remote_lock"
