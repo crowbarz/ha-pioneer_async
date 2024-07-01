@@ -270,7 +270,6 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             finally:
                 if pioneer:
                     await pioneer.shutdown()
-                    await asyncio.sleep(0)  # yield to pending shutdown tasks
                     del pioneer
 
             if not errors:
