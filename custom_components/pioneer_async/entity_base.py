@@ -7,13 +7,14 @@ import logging
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones, SOURCE_TUNER
+from aiopioneer.exceptions import AVRCommandError
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
-from .const import CONF_REPEAT_COUNT
+from .const import DOMAIN, CONF_REPEAT_COUNT
 from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,26 +61,43 @@ class PioneerEntityBase(Entity):
             or (self.zone in self.pioneer.zones and self.pioneer.power.get(self.zone))
         )
 
-    async def pioneer_command(self, aw_f, repeat: bool = False) -> None:
+    async def pioneer_command(self, aw_f, command: str = None, repeat: bool = False):
         """Execute a PioneerAVR command, handle exceptions and optionally repeating."""
         options = self.entry_options
         repeat_count = options[CONF_REPEAT_COUNT] if repeat else 1
 
-        try:
-            count = 0
-            while count < repeat_count and await aw_f() is False:
+        count = 0
+        while count < repeat_count:
+            try:
+                resp = await aw_f()
+                return resp
+            except AVRCommandError as exc:
                 await asyncio.sleep(1)
                 count += 1
-                if count < repeat_count:
-                    _LOGGER.warning(
-                        "repeating failed command (%d): %s", count, aw_f.__name__
-                    )
-            if count >= repeat_count:
-                raise ServiceValidationError(f"AVR command {aw_f.__name__} unavailable")
-        except Exception as exc:
-            raise ServiceValidationError(
-                f"AVR command {aw_f.__name__} failed: {exc}"
-            ) from exc
+                if count >= repeat_count:
+                    raise ServiceValidationError(
+                        translation_domain=DOMAIN,
+                        translation_key="command_error",
+                        translation_placeholders={
+                            "command": command or aw_f.__name__,
+                            "exc": str(exc),
+                        },
+                    ) from exc
+                _LOGGER.warning(
+                    "repeating failed command (%d): %s", count, aw_f.__name__
+                )
+            except Exception as exc:
+                raise ServiceValidationError(
+                    translation_domain=DOMAIN,
+                    translation_key=getattr(
+                        exc, "translation_key", "unknown_exception"
+                    ),
+                    translation_placeholders={
+                        "command": command or aw_f.__name__,
+                        "zone": self.zone,
+                        "exc": str(exc),
+                    },
+                ) from exc
 
 
 class PioneerTunerEntity(PioneerEntityBase):
