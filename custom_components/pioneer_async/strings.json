@@ -137,6 +137,188 @@
             "not_set_up": "Integration is not set up"
         }
     },
+    "selector": {
+        "panel_lock": {
+            "options": {
+                "0": "OFF",
+                "1": "PANEL ONLY",
+                "2": "PANEL + VOLUME"
+            }
+        },
+        "dimmer_mode": {
+            "options": {
+                "Brightest": "Brightest",
+                "Bright": "Bright",
+                "Dark": "Dark",
+                "Off": "Off",
+                "(cycle)": "(cycle)"
+            }
+        },
+        "tone_mode": {
+            "options": {
+                "Bypass": "Bypass",
+                "On": "On",
+                "(cycle)": "(cycle)"
+            }
+        },
+        "tuner_band": {
+            "options": {
+                "FM": "FM",
+                "AM": "AM"
+            }
+        },
+        "channel": {
+            "options": {
+                "L": "Front Left",
+                "R": "Front Right",
+                "C": "Center",
+                "SL": "Surround Left",
+                "SR": "Surround Right",
+                "SBL": "Surround Back Left",
+                "SBR": "Surround Back Right",
+                "SW": "Subwoofer",
+                "LH": "Front Height Left",
+                "RH": "Front Height Right",
+                "LW": "Front Wide Left",
+                "RW": "Front Wide Right",
+                "TML": "Top Middle Left",
+                "TMR": "Top Middle Right",
+                "TFL": "Top Forward Left",
+                "TFR": "Top Forward Right",
+                "TRL": "Top Backward Left",
+                "TRR": "Top Backward Right",
+                "SW1": "SubWoofer 1",
+                "SW2": "SubWoofer 2",
+                "ALL": "INPUT LEVEL ADJUST(ALL ch Level)"
+            }
+        }
+    },
+    "services": {
+        "send_command": {
+            "name": "Send AVR command",
+            "description": "Send command to AVR.",
+            "fields": {
+                "command": {
+                    "name": "Command",
+                    "description": "Command to send to AVR."
+                },
+                "prefix": {
+                    "name": "Prefix",
+                    "description": "Prefix argument for command."
+                },
+                "suffix": {
+                    "name": "Suffix",
+                    "description": "Suffix argument for command."
+                }
+            }
+        },
+        "set_panel_lock": {
+            "name": "Set Panel Lock",
+            "description": "Set AVR panel lock.",
+            "fields": {
+                "panel_lock": {
+                    "name": "Panel Lock",
+                    "description": "Panel lock setting."
+                }
+            }
+        },
+        "set_remote_lock": {
+            "name": "Set Remote Lock",
+            "description": "Set AVR remote lock.",
+            "fields": {
+                "remote_lock": {
+                    "name": "Remote Lock",
+                    "description": "Enable remote lock."
+                }
+            }
+        },
+        "set_dimmer": {
+            "name": "Set Dimmer",
+            "description": "Set AVR display dimmer.",
+            "fields": {
+                "dimmer": {
+                    "name": "Dimmer",
+                    "description": "Dimmer mode."
+                }
+            }
+        },
+        "set_tone_settings": {
+            "name": "Set Tone Settings",
+            "description": "Set AVR tone settings for zone.",
+            "fields": {
+                "tone": {
+                    "name": "Tone",
+                    "description": "Tone mode."
+                },
+                "treble": {
+                    "name": "Treble",
+                    "description": "Tone treble value."
+                },
+                "bass": {
+                    "name": "Bass",
+                    "description": "Tone bass value."
+                }
+            }
+        },
+        "select_tuner_band": {
+            "name": "Select Tuner Band",
+            "description": "Select AVR active tuner band.",
+            "fields": {
+                "band": {
+                    "name": "Band",
+                    "description": "Frequency band."
+                }
+            }
+        },
+        "set_fm_tuner_frequency": {
+            "name": "Set FM Tuner Frequency",
+            "description": "Set AVR FM tuner frequency.",
+            "fields": {
+                "frequency": {
+                    "name": "Frequency",
+                    "description": "Tuner frequency (87.5 MHz -- 108.0 MHz)."
+                }
+            }
+        },
+        "set_am_tuner_frequency": {
+            "name": "Set AM Tuner Frequency",
+            "description": "Set AVR AM tuner frequency.",
+            "fields": {
+                "frequency": {
+                    "name": "Frequency",
+                    "description": "Tuner frequency (530 -- 1700KHz)."
+                }
+            }
+        },
+        "select_tuner_preset": {
+            "name": "Set Tuner Preset",
+            "description": "Select pre-defined AVR tuner preset.",
+            "fields": {
+                "class": {
+                    "name": "Class",
+                    "description": "Tuner preset class."
+                },
+                "preset": {
+                    "name": "Preset",
+                    "description": "Tuner preset ID."
+                }
+            }
+        },
+        "set_channel_levels": {
+            "name": "Set Channel Levels",
+            "description": "Set AVR level (gain) for an amplifier channel.",
+            "fields": {
+                "channel": {
+                    "name": "Channel",
+                    "description": "Tuner amp channel to modify."
+                },
+                "level": {
+                    "name": "Level",
+                    "description": "Tuner amp channel level."
+                }
+            }
+        }
+    },
     "exceptions": {
         "avr_unavailable": {
             "message": "AVR connection is not available"

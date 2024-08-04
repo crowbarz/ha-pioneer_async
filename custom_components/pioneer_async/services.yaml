@@ -1,75 +1,64 @@
 send_command:
-  description: Send command to AVR
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     command:
-      description: Command to send to AVR
       required: true
       example: "PO"
       selector:
         text:
     prefix:
-      description: Prefix argument for command
       selector:
         text:
     suffix:
-      description: Suffix argument for command
       selector:
         text:
 
 set_panel_lock:
-  description: Set AVR panel lock
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     panel_lock:
-      description: Panel lock setting
       required: true
       example: "0"
       default: "0"
       selector:
         select:
+          translation_key: "panel_lock"
           options:  # aiopioneer.const.PANEL_LOCK
-            - label: "OFF"
-              value: "0"
-            - label: "PANEL ONLY"
-              value: "1"
-            - label: "PANEL + VOLUME"
-              value: "2"
+            - "0"
+            - "1"
+            - "2"
 
 set_remote_lock:
-  description: Set AVR remote lock
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     remote_lock:
-      description: Enable remote lock
       required: true
       example: false
       selector:
         boolean:
 
 set_dimmer:
-  description: Set AVR display dimmer
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     dimmer:
-      description: Dimmer mode
       required: true
       example: "Bright"
       default: "Brightest"
       selector:
         select:
+          translation_key: "dimmer_mode"
           options:  # aiopioneer.const.DIMMER_MODES
             - "Brightest"
             - "Bright"
@@ -91,6 +80,7 @@ set_tone_settings:
       default: "Bypass"
       selector:
         select:
+          translation_key: "tone_mode"
           options:  # aiopioneer.const.TONE_MODES
             - "Bypass"
             - "On"
@@ -124,7 +114,6 @@ set_tone_settings:
 #       domain: media_player
 
 select_tuner_band:
-  description: Select AVR active tuner band
   target:
     entity:
       integration: pioneer_async
@@ -135,20 +124,19 @@ select_tuner_band:
       example: "FM"
       selector:
         select:
+          translation_key: "tuner_band"
           options:
             - "FM"
             - "AM"
 
 
 set_fm_tuner_frequency:
-  description: Set AVR FM tuner frequency
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     frequency:
-      description: Tuner frequency (87.5 MHz -- 108.0 MHz)
       required: true
       example: 106.1
       selector:
@@ -161,14 +149,12 @@ set_fm_tuner_frequency:
           mode: box
 
 set_am_tuner_frequency:
-  description: Set AVR AM tuner frequency
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     frequency:
-      description: Tuner frequency (530 -- 1700KHz)
       required: true
       example: 988
       selector:
@@ -181,14 +167,12 @@ set_am_tuner_frequency:
           mode: box
 
 select_tuner_preset:
-  description: Select pre-defined AVR tuner preset
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     class:
-      description: Tuner preset class
       required: true
       example: "C"
       default: "A"
@@ -203,7 +187,6 @@ select_tuner_preset:
             - "F"
             - "G"
     preset:
-      description: Tuner preset ID
       required: true
       example: 5
       default: 1
@@ -214,63 +197,39 @@ select_tuner_preset:
           step: 1
 
 set_channel_levels:
-  description: Set AVR level (gain) for an amplifier channel
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     channel:
-      description: Tuner amp channel to modify
       required: true
       example: "L"
       selector:
         select:
           options:
-            - label: "Front Left"
-              value: "L"
-            - label: "Front Right"
-              value: "R"
-            - label: "Center"
-              value: "C"
-            - label: "Surround Left"
-              value: "SL"
-            - label: "Surround Right"
-              value: "SR"
-            - label: "Surround Back Left"
-              value: "SBL"
-            - label: "Surround Back Right"
-              value: "SBR"
-            - label: "Subwoofer"
-              value: "SW"
-            - label: "Front Height Left"
-              value: "LH"
-            - label: "Front Height Right"
-              value: "RH"
-            - label: "Front Wide Left"
-              value: "LW"
-            - label: "Front Wide Right"
-              value: "RW"
-            - label: "Top Middle Left"
-              value: "TML"
-            - label: "Top Middle Right"
-              value: "TMR"
-            - label: "Top Forward Left"
-              value: "TFL"
-            - label: "Top Forward Right"
-              value: "TFR"
-            - label: "Top Backward Left"
-              value: "TRL"
-            - label: "Top Backward Right"
-              value: "TRR"
-            - label: "SubWoofer 1"
-              value: "SW1"
-            - label: "SubWoofer 2"
-              value: "SW2"
-            - label: "INPUT LEVEL ADJUST(ALL ch Level)"
-              value: "ALL"
+            - "L"
+            - "R"
+            - "C"
+            - "SL"
+            - "SR"
+            - "SBL"
+            - "SBR"
+            - "SW"
+            - "LH"
+            - "RH"
+            - "LW"
+            - "RW"
+            - "TML"
+            - "TMR"
+            - "TFL"
+            - "TFR"
+            - "TRL"
+            - "TRR"
+            - "SW1"
+            - "SW2"
+            - "ALL"
     level:
-      description: Tuner amp channel level
       required: true
       example: 0.0
       default: 0.0
