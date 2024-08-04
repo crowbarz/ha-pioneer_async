@@ -76,6 +76,7 @@
                 "title": "Zone options",
                 "description": "Configure Pioneer AVR Zone options",
                 "data": {
+                    "max_source_id": "Maximum source ID",
                     "ignore_zone_2": "Don't create entities for Zone 2",
                     "ignore_zone_3": "Don't create entities for Zone 3",
                     "ignore_hdzone": "Don't create entities for HDZone",
@@ -83,6 +84,9 @@
                     "zone_2_sources": "Available sources for Zone 2",
                     "zone_3_sources": "Available sources for Zone 3",
                     "hdzone_sources": "Available sources for HDZone"
+                },
+                "data_description": {
+                    "max_source_id": "Maximum source ID that AVR source query will check"
                 }
             },
             "advanced_options": {

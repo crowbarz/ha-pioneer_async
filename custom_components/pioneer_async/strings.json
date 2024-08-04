@@ -10,9 +10,11 @@
                     "host": "Host",
                     "port": "Port",
                     "query_sources": "Query sources from AVR",
+                    "max_source_id": "Maximum source ID",
                     "ignore_volume_check": "Don't check volume when querying AVR source"
                 },
-                "data_descriptions": {
+                "data_description": {
+                    "max_source_id": "Maximum source ID that AVR source query will check",
                     "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically.\n[ignore_volume_check]"
                 }
             },
@@ -53,6 +55,7 @@
                 "description": "Configure Pioneer AVR basic options",
                 "data": {
                     "query_sources": "Query sources from AVR",
+                    "max_source_id": "Maximum source ID",
                     "sources": "Manually configured sources",
                     "scan_interval": "Scan interval",
                     "timeout": "Timeout",
@@ -61,6 +64,7 @@
                 },
                 "data_description": {
                     "query_sources": "When enabled, sources will be discovered from the AVR and replace manually configured sources",
+                    "max_source_id": "Maximum source ID that AVR source query will check",
                     "sources": "Add source mappings using the format: \"00:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
