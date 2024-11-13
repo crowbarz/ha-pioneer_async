@@ -9,7 +9,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import SOURCE_TUNER, Zones, TunerBand
+from aiopioneer.const import Zones, TunerBand
 from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -336,10 +336,18 @@ class PioneerZone(
         ):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
 
-        ## Enable prev/next track if tuner enabled
-        if pioneer.source.get(self.zone) == SOURCE_TUNER:
-            features |= MediaPlayerEntityFeature.PREVIOUS_TRACK
-            features |= MediaPlayerEntityFeature.NEXT_TRACK
+        control_commands = pioneer.get_supported_media_controls(self.zone)
+        if control_commands:
+            if "play" in control_commands:
+                features |= MediaPlayerEntityFeature.PLAY
+            if "pause" in control_commands:
+                features |= MediaPlayerEntityFeature.PAUSE
+            if "stop" in control_commands:
+                features |= MediaPlayerEntityFeature.STOP
+            if "previous" in control_commands:
+                features |= MediaPlayerEntityFeature.PREVIOUS_TRACK
+            if "next" in control_commands:
+                features |= MediaPlayerEntityFeature.NEXT_TRACK
 
         return features
 
@@ -446,21 +454,45 @@ class PioneerZone(
 
         await self.pioneer_command(volume_down)
 
+    async def async_media_play(self) -> None:
+        """Send play command."""
+
+        async def media_play() -> None:
+            await self.pioneer.media_control("play")
+
+        await self.pioneer_command(media_play)
+
+    async def async_media_pause(self) -> None:
+        """Send pause command."""
+
+        async def media_pause() -> None:
+            await self.pioneer.media_control("pause")
+
+        await self.pioneer_command(media_pause)
+
+    async def async_media_stop(self) -> None:
+        """Send stop command."""
+
+        async def media_stop() -> None:
+            await self.pioneer.media_control("stop")
+
+        await self.pioneer_command(media_stop)
+
     async def async_media_previous_track(self) -> None:
         """Send previous track command."""
 
-        async def tuner_previous_preset() -> None:
-            await self.pioneer.tuner_previous_preset()
+        async def media_previous_track() -> None:
+            await self.pioneer.media_control("previous")
 
-        await self.pioneer_command(tuner_previous_preset)
+        await self.pioneer_command(media_previous_track)
 
     async def async_media_next_track(self) -> None:
         """Send next track command."""
 
-        async def tuner_next_preset() -> None:
-            return await self.pioneer.tuner_next_preset()
+        async def media_next_track() -> None:
+            return await self.pioneer.media_control("next")
 
-        await self.pioneer_command(tuner_next_preset)
+        await self.pioneer_command(media_next_track)
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
