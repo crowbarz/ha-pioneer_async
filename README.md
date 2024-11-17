@@ -172,6 +172,18 @@ Sensor entities for global AVR properties and property groups are registered to 
 | Audio Parameters | sensor | Audio parameters property group, main sensor property: `input_signal`
 | Input Multichannel | binary_sensor | **on** if current input audio source is a multi-channel source
 
+**NOTE:** On supported AVRs, enabling the **Display** property may generate more recorder database update entries than expected. The sensor state changes every time the display changes. This includes every change when a long message is scrolled across the display, such as a long radio channel name.
+
+To prevent these state changes from being recorded by the [Recorder integration](https://www.home-assistant.io/integrations/recorder/), add the following filter to `configuration.yaml`:
+
+```yaml
+# Example configuration.yaml entry
+recorder:
+  exclude:
+    entities:
+      - sensor.pioneer_avr_display
+```
+
 ### Zone AVR properties
 
 Zone entities are registered to the zone device.
