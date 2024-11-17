@@ -241,6 +241,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
 
     coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL, update_top_device)
+    await coordinator.async_config_entry_first_refresh()
     coordinator.set_zone_callback()
     pioneer_data[ATTR_COORDINATORS] = {}
     pioneer_data[ATTR_COORDINATORS][Zones.ALL] = coordinator
