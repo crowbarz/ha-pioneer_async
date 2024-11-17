@@ -265,6 +265,12 @@ class PioneerZone(
 
     _attr_device_class = CLASS_PIONEER
     _attr_name = None
+    _unrecorded_attributes = frozenset(
+        {
+            "sources_json",
+            "device_max_volume",
+        }
+    )
 
     def __init__(
         self,
