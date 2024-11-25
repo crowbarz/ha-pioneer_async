@@ -240,7 +240,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             sw_version=pioneer.software_version or UNDEFINED,
         )
 
-    coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL, update_top_device)
+    coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL)
     await coordinator.async_config_entry_first_refresh()
     coordinator.set_zone_callback()
     pioneer_data[ATTR_COORDINATORS] = {}
@@ -250,8 +250,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     for zone in pioneer.zones:
         zone_name_suffix = (
             "Main Zone"
-            if zone == Zones.Z1
-            else "HDZone" if zone == Zones.HDZ else "Zone " + zone
+            if zone is Zones.Z1
+            else "HDZone" if zone is Zones.HDZ else "Zone " + zone
         )
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
@@ -262,6 +262,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
         coordinator.set_zone_callback()
+        if zone is Zones.Z1:
+            coordinator.set_initial_refresh_callback(update_top_device)
         pioneer_data[ATTR_COORDINATORS][zone] = coordinator
 
     hass.data[DOMAIN][entry.entry_id] = pioneer_data
