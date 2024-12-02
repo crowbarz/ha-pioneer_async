@@ -244,7 +244,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             try:
                 try:
                     pioneer = PioneerAVR(self.host, self.port, params=self.options)
-                    await pioneer.connect()
+                    await pioneer.connect(reconnect=False)
                 except Exception as exc:  # pylint: disable=broad-except
                     raise CannotConnect(str(exc)) from exc
 
