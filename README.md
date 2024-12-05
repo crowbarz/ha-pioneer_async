@@ -18,7 +18,11 @@ This integration supports the following features (not all features are supported
 
 This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
 
-## Adding an instance
+## AVR configuration
+
+Some AVR models stop responding on the network when all zones are powered off to reduce the AVR's power consumption. On such models, Network Standby must be enabled in order for the integration to successfully power on any zone. Consult your AVR manual for the procedure to enable Network Standby.
+
+## Adding an AVR instance to Home Assistant
 
 > [!WARNING]
 > As of 0.9.0, support for YAML configuration via `configuration.yaml` is no longer supported. The configuration is ignored and an error is logged if YAML configuration is detected.
@@ -42,7 +46,7 @@ Some AVRs have a maximum simultaneous connection limit, and will refuse to accep
 
 **NOTE:** Some AVR device attributes (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is added.
 
-## Instance options
+## AVR instance options
 
 After an instance is added, options that modify how the integration operates can be changed by clicking **Configure** on the appropriate instance on the integration's **Hubs** page. The available options are described in the subsections below.
 
