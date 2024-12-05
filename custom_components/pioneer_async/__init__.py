@@ -154,7 +154,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             params=params,
         )
         await pioneer.connect()
-        await pioneer.query_device_info()
+        await pioneer.query_device_model()
         await pioneer.query_zones()
         if sources:
             pioneer.set_source_dict(sources)

@@ -248,7 +248,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 except Exception as exc:  # pylint: disable=broad-except
                     raise CannotConnect(str(exc)) from exc
 
-                await pioneer.query_device_info()
+                await pioneer.query_device_model()
                 await pioneer.query_zones()
                 if self.query_sources:
                     await pioneer.build_source_dict()
