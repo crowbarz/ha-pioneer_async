@@ -253,7 +253,7 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if self.query_sources:
                     await pioneer.build_source_dict()
                     self.sources = pioneer.get_source_dict()
-                self.defaults = OPTIONS_DEFAULTS | pioneer.get_default_params()
+                self.defaults = OPTIONS_DEFAULTS | pioneer.default_params
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
@@ -429,7 +429,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         defaults = {
             **OPTIONS_DEFAULTS,  ## defaults
-            **pioneer.get_default_params(),  ## aiopioneer defaults
+            **pioneer.default_params,  ## aiopioneer defaults
         }
         entry_options = config_entry.options
         defaults_inherit = {
@@ -486,7 +486,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 if user_input[CONF_QUERY_SOURCES]:
                     pioneer = self.pioneer
                     pioneer.set_user_params(  # update max_source_id before query
-                        pioneer.get_user_params()
+                        pioneer.user_params
                         | {PARAM_MAX_SOURCE_ID: user_input[PARAM_MAX_SOURCE_ID]}
                     )
                     await pioneer.build_source_dict()

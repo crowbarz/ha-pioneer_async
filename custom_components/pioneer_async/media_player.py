@@ -331,9 +331,7 @@ class PioneerZone(
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
         ## Disable sound mode also if autoquery is disabled
-        if self.zone == Zones.Z1 and not pioneer.get_params().get(
-            PARAM_DISABLE_AUTO_QUERY
-        ):
+        if self.zone == Zones.Z1 and not pioneer.get_param(PARAM_DISABLE_AUTO_QUERY):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
 
         control_commands = pioneer.get_supported_media_controls(self.zone)
@@ -503,7 +501,7 @@ class PioneerZone(
                 round(volume * max_volume), zone=self.zone
             )
 
-        if self.pioneer.get_params().get(PARAM_VOLUME_STEP_ONLY):
+        if self.pioneer.get_param(PARAM_VOLUME_STEP_ONLY):
             await self.pioneer_command(set_volume_level)
         else:
             await self.pioneer_command(set_volume_level, repeat=True)
