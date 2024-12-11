@@ -112,8 +112,8 @@ class TunerPresetSelect(
     @callback
     def _handle_coordinator_update(self) -> None:
         """Handle updated data from the coordinator."""
-        tuner_class = self.pioneer.tuner.get("class")
-        tuner_preset = self.pioneer.tuner.get("preset")
+        tuner_class = self.pioneer.properties.tuner.get("class")
+        tuner_preset = self.pioneer.properties.tuner.get("preset")
         if tuner_preset is None or tuner_class is None:
             self._attr_current_option = None
         else:
@@ -158,7 +158,7 @@ class TunerBandSelect(
     @property
     def current_option(self) -> str | None:
         """Return the current tuner band."""
-        band = self.pioneer.tuner.get("band")
+        band = self.pioneer.properties.tuner.get("band")
         return band.value if isinstance(band, TunerBand) else None
 
     async def async_select_option(self, option: str) -> None:

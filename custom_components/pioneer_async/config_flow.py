@@ -191,7 +191,9 @@ class InvalidSources(HomeAssistantError):
     """Error to indicate invalid sources specified."""
 
 
-class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
+class PioneerAVRConfigFlow(
+    config_entries.ConfigFlow, domain=DOMAIN
+):  # pylint:disable=abstract-method
     """Handle Pioneer AVR config flow."""
 
     VERSION = 4
@@ -252,8 +254,8 @@ class PioneerAVRConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 await pioneer.query_zones()
                 if self.query_sources:
                     await pioneer.build_source_dict()
-                    self.sources = pioneer.get_source_dict()
-                self.defaults = OPTIONS_DEFAULTS | pioneer.default_params
+                    self.sources = pioneer.properties.get_source_dict()
+                self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
@@ -398,7 +400,9 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerOptionsFlow.update_zone_source_subsets()")
         defaults = self.defaults
-        sources = self.options_parsed.get(CONF_SOURCES, pioneer.get_source_dict() or {})
+        sources = self.options_parsed.get(
+            CONF_SOURCES, pioneer.properties.get_source_dict() or {}
+        )
         source_ids = sources.values()
         for zone, param_sources in PARAM_ZONE_SOURCES.items():
             zone_valid_ids = [
@@ -429,7 +433,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         defaults = {
             **OPTIONS_DEFAULTS,  ## defaults
-            **pioneer.default_params,  ## aiopioneer defaults
+            **pioneer.params.default_params,  ## aiopioneer defaults
         }
         entry_options = config_entry.options
         defaults_inherit = {
@@ -441,7 +445,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         sources = options[CONF_SOURCES]
         options[CONF_QUERY_SOURCES] = False
         if not sources:
-            sources = pioneer.get_source_dict() or {}
+            sources = pioneer.properties.get_source_dict() or {}
             options[CONF_QUERY_SOURCES] = True
         options[CONF_SOURCES] = _convert_sources(sources)
         self.options_parsed[CONF_SOURCES] = sources
@@ -485,12 +489,12 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             if result is True:
                 if user_input[CONF_QUERY_SOURCES]:
                     pioneer = self.pioneer
-                    pioneer.set_user_params(  # update max_source_id before query
-                        pioneer.user_params
+                    pioneer.params.set_user_params(  # update max_source_id before query
+                        pioneer.params.user_params
                         | {PARAM_MAX_SOURCE_ID: user_input[PARAM_MAX_SOURCE_ID]}
                     )
                     await pioneer.build_source_dict()
-                    sources = pioneer.get_source_dict() or {}
+                    sources = pioneer.properties.get_source_dict() or {}
                     self.options[CONF_SOURCES] = _convert_sources(sources)
                     self.options[CONF_QUERY_SOURCES] = False
                 else:

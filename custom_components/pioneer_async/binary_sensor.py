@@ -150,7 +150,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
     @property
     def is_on(self) -> bool:
         """Retrieve boolean state."""
-        base_property_value = getattr(self.pioneer, self.base_property, {})
+        base_property_value = getattr(self.pioneer.properties, self.base_property, {})
         if self.zone is not None:
             base_property_value = base_property_value.get(self.zone, {})
         if self.promoted_property is None:
@@ -166,7 +166,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         """Return device specific state attributes."""
         if self.include_properties is None and self.exclude_properties is None:
             return None
-        attrs = getattr(self.pioneer, self.base_property, {})
+        attrs = getattr(self.pioneer.properties, self.base_property, {})
         if self.zone is not None:
             attrs = attrs.get(self.zone, {})
         if not isinstance(attrs, dict):

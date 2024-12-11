@@ -167,14 +167,14 @@ async def async_setup_entry(
             options,
         )
 
-    if Zones.Z1 not in pioneer.zones:
+    if Zones.Z1 not in pioneer.properties.zones:
         _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     ## Add zone specific media_players
     entities = []
-    _LOGGER.info("Adding entities for zones %s", pioneer.zones)
-    for zone in pioneer.zones:
+    _LOGGER.info("Adding entities for zones %s", pioneer.properties.zones)
+    for zone in pioneer.properties.zones:
         entities.append(
             PioneerZone(
                 pioneer,
@@ -289,7 +289,7 @@ class PioneerZone(
     @property
     def state(self) -> MediaPlayerState:
         """Return the state of the zone."""
-        state = self.pioneer.power.get(self.zone)
+        state = self.pioneer.properties.power.get(self.zone)
         if state is None:
             return STATE_UNKNOWN
         return MediaPlayerState.ON if state else MediaPlayerState.OFF
@@ -302,14 +302,14 @@ class PioneerZone(
     @property
     def volume_level(self) -> float:
         """Volume level of the media player (0..1)."""
-        volume = self.pioneer.volume.get(self.zone)
-        max_volume = self.pioneer.max_volume.get(self.zone)
+        volume = self.pioneer.properties.volume.get(self.zone)
+        max_volume = self.pioneer.properties.max_volume.get(self.zone)
         return volume / max_volume if (volume and max_volume) else float(0)
 
     @property
     def is_volume_muted(self) -> bool:
         """Boolean if volume is currently muted."""
-        return self.pioneer.mute.get(self.zone, False)
+        return self.pioneer.properties.mute.get(self.zone, False)
 
     @property
     def supported_features(self) -> MediaPlayerEntityFeature:
@@ -317,24 +317,26 @@ class PioneerZone(
         ## Automatically detect what features are supported by what parameters are available
         features = MediaPlayerEntityFeature(0)
         pioneer = self.pioneer
-        if pioneer.power.get(self.zone) is not None:
+        if pioneer.properties.power.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.TURN_ON
             features |= MediaPlayerEntityFeature.TURN_OFF
-        if pioneer.volume.get(self.zone) is not None:
+        if pioneer.properties.volume.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.VOLUME_SET
             features |= MediaPlayerEntityFeature.VOLUME_STEP
-        if pioneer.mute.get(self.zone) is not None:
+        if pioneer.properties.mute.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.VOLUME_MUTE
-        if pioneer.source.get(self.zone) is not None:
+        if pioneer.properties.source.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.SELECT_SOURCE
 
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
         ## Disable sound mode also if autoquery is disabled
-        if self.zone == Zones.Z1 and not pioneer.get_param(PARAM_DISABLE_AUTO_QUERY):
+        if self.zone == Zones.Z1 and not pioneer.params.get_param(
+            PARAM_DISABLE_AUTO_QUERY
+        ):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
 
-        control_commands = pioneer.get_supported_media_controls(self.zone)
+        control_commands = pioneer.properties.get_supported_media_controls(self.zone)
         if control_commands:
             if "play" in control_commands:
                 features |= MediaPlayerEntityFeature.PLAY
@@ -353,7 +355,7 @@ class PioneerZone(
     def sound_mode(self) -> str | None:
         """Return the current sound mode."""
         ## Sound modes only supported on zones with speakers, return null if nothing found
-        return self.pioneer.listening_mode
+        return self.pioneer.properties.listening_mode
 
     @property
     def sound_mode_list(self) -> list[str]:
@@ -369,16 +371,16 @@ class PioneerZone(
     @property
     def source(self) -> str | None:
         """Return the current input source."""
-        source_id = self.pioneer.source.get(self.zone)
+        source_id = self.pioneer.properties.source.get(self.zone)
         if source_id:
-            return self.pioneer.get_source_name(source_id)
+            return self.pioneer.properties.get_source_name(source_id)
         else:
             return None
 
     @property
     def source_list(self) -> list[str]:
         """List of available input sources."""
-        return self.pioneer.get_source_list(self.zone)
+        return self.pioneer.properties.get_source_list(self.zone)
 
     @property
     def media_title(self) -> str:
@@ -389,11 +391,13 @@ class PioneerZone(
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
         pioneer = self.pioneer
-        attrs = {"sources_json": json.dumps(pioneer.get_source_dict(self.zone))}
+        attrs = {
+            "sources_json": json.dumps(pioneer.properties.get_source_dict(self.zone))
+        }
 
         ## Return max volume attributes
-        volume = pioneer.volume.get(self.zone)
-        max_volume = pioneer.max_volume.get(self.zone)
+        volume = pioneer.properties.volume.get(self.zone)
+        max_volume = pioneer.properties.max_volume.get(self.zone)
         if volume is not None and max_volume is not None:
             if self.zone == Zones.Z1:
                 volume_db = volume / 2 - 80.5
@@ -494,14 +498,14 @@ class PioneerZone(
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
-        max_volume = self.pioneer.max_volume.get(self.zone)
+        max_volume = self.pioneer.properties.max_volume.get(self.zone)
 
         async def set_volume_level() -> None:
             await self.pioneer.set_volume_level(
                 round(volume * max_volume), zone=self.zone
             )
 
-        if self.pioneer.get_param(PARAM_VOLUME_STEP_ONLY):
+        if self.pioneer.params.get_param(PARAM_VOLUME_STEP_ONLY):
             await self.pioneer_command(set_volume_level)
         else:
             await self.pioneer_command(set_volume_level, repeat=True)
