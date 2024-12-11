@@ -58,7 +58,10 @@ class PioneerEntityBase(Entity):
         """Returns whether the AVR is available and the zone is on."""
         return self.pioneer.available and (
             self.zone is None
-            or (self.zone in self.pioneer.zones and self.pioneer.power.get(self.zone))
+            or (
+                self.zone in self.pioneer.properties.zones
+                and self.pioneer.properties.power.get(self.zone)
+            )
         )
 
     async def pioneer_command(self, aw_f, command: str = None, repeat: bool = False):
@@ -111,7 +114,7 @@ class PioneerTunerEntity(PioneerEntityBase):
         return bool(
             [
                 z
-                for z, s in self.pioneer.source.items()
-                if s == SOURCE_TUNER and self.pioneer.power.get(Zones(z))
+                for z, s in self.pioneer.properties.source.items()
+                if s == SOURCE_TUNER and self.pioneer.properties.power.get(Zones(z))
             ]
         )
