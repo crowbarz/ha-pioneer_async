@@ -148,7 +148,7 @@ async def async_setup_entry(
     )
 
     ## Add zone specific sensors
-    for zone in pioneer.zones:
+    for zone in pioneer.properties.zones:
         device_info = zone_device_info[zone]
         coordinator = coordinators[zone]
         if zone != Zones.HDZ:
@@ -276,7 +276,7 @@ class PioneerGenericSensor(PioneerSensor):
     @property
     def native_value(self) -> str:
         """Retrieve sensor value."""
-        base_property_value = getattr(self.pioneer, self.base_property, {})
+        base_property_value = getattr(self.pioneer.properties, self.base_property, {})
         if self.zone is not None:
             base_property_value = base_property_value.get(self.zone, {})
         if self.promoted_property is None:
@@ -292,7 +292,7 @@ class PioneerGenericSensor(PioneerSensor):
         """Return device specific state attributes."""
         if self.include_properties is None and self.exclude_properties is None:
             return None
-        base_attrs = getattr(self.pioneer, self.base_property, {})
+        base_attrs = getattr(self.pioneer.properties, self.base_property, {})
         attrs = base_attrs
         if self.zone is not None:
             attrs = base_attrs.get(self.zone, {})

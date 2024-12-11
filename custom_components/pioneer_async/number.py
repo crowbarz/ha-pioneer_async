@@ -134,12 +134,14 @@ class TunerFrequencyNumber(
     @property
     def available(self) -> bool:
         """Returns whether the tuner is available and band is selected."""
-        return super().available and self.pioneer.tuner.get("band") == self.band
+        return (
+            super().available and self.pioneer.properties.tuner.get("band") == self.band
+        )
 
     @property
     def native_value(self) -> float | None:
         """Return the tuner frequency."""
-        return self.pioneer.tuner.get("frequency")
+        return self.pioneer.properties.tuner.get("frequency")
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
@@ -149,7 +151,9 @@ class TunerFrequencyNumber(
 
         attrs = super().extra_state_attributes or {}
         attrs |= {
-            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.get_param(PARAM_TUNER_AM_FREQ_STEP),
+            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.params.get_param(
+                PARAM_TUNER_AM_FREQ_STEP
+            ),
         }
         return attrs
 

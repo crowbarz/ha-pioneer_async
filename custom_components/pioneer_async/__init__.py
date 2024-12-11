@@ -157,7 +157,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         await pioneer.query_device_model()
         await pioneer.query_zones()
         if sources:
-            pioneer.set_source_dict(sources)
+            pioneer.properties.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
     except (
@@ -175,9 +175,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer_data[ATTR_PIONEER] = pioneer
 
     ## Set up parent device for Pioneer AVR
-    model = pioneer.model
-    software_version = pioneer.software_version
-    mac_addr = pioneer.mac_addr
+    model = pioneer.properties.model
+    software_version = pioneer.properties.software_version
+    mac_addr = pioneer.properties.mac_addr
     connections = set()
     top_identifiers = {(DOMAIN, entry.entry_id)}
     if mac_addr:
@@ -198,7 +198,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ):
         id_list = [(legacy_unique_id, top_identifiers)]
         id_list += [
-            (legacy_unique_id + "-" + z, get_zone_identifiers(z)) for z in pioneer.zones
+            (legacy_unique_id + "-" + z, get_zone_identifiers(z))
+            for z in pioneer.properties.zones
         ]
         for legacy_id, new_ids in id_list:
             if (DOMAIN, legacy_id) in device_entry.identifiers and (
@@ -236,8 +237,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Update top level device attributes."""
         device_registry.async_get(hass).async_update_device(
             device_entry.id,
-            model=pioneer.model,
-            sw_version=pioneer.software_version or UNDEFINED,
+            model=pioneer.properties.model,
+            sw_version=pioneer.properties.software_version or UNDEFINED,
         )
 
     coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL)
@@ -247,7 +248,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer_data[ATTR_COORDINATORS][Zones.ALL] = coordinator
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
-    for zone in pioneer.zones:
+    for zone in pioneer.properties.zones:
         zone_name_suffix = (
             "Main Zone"
             if zone is Zones.Z1
