@@ -189,11 +189,7 @@ async def async_setup_entry(
     try:
         await pioneer.update()
     except Exception as exc:  # pylint: disable=broad-except
-        _LOGGER.error(
-            "Could not perform AVR initial update: %s: %s",
-            type(exc).__name__,
-            str(exc),
-        )
+        _LOGGER.error("Could not perform AVR initial update: %s", repr(exc))
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
     async_add_entities(entities)

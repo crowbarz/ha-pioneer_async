@@ -83,7 +83,7 @@ class PioneerEntityBase(Entity):
                         translation_key="command_error",
                         translation_placeholders={
                             "command": command or aw_f.__name__,
-                            "exc": str(exc),
+                            "exc": repr(exc),
                         },
                     ) from exc
                 _LOGGER.warning(
@@ -98,7 +98,7 @@ class PioneerEntityBase(Entity):
                     translation_placeholders={
                         "command": command or aw_f.__name__,
                         "zone": self.zone,
-                        "exc": str(exc),
+                        "exc": repr(exc),
                     },
                 ) from exc
 

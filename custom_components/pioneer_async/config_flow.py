@@ -248,7 +248,7 @@ class PioneerAVRConfigFlow(
                     pioneer = PioneerAVR(self.host, self.port, params=self.options)
                     await pioneer.connect(reconnect=False)
                 except Exception as exc:  # pylint: disable=broad-except
-                    raise CannotConnect(str(exc)) from exc
+                    raise CannotConnect(repr(exc)) from exc
 
                 await pioneer.query_device_model()
                 await pioneer.query_zones()
@@ -261,12 +261,12 @@ class PioneerAVRConfigFlow(
                 return self.async_abort(reason="already_configured")
             except CannotConnect as exc:
                 errors["base"] = "cannot_connect"
-                description_placeholders["exception"] = str(exc)
+                description_placeholders["exception"] = repr(exc)
             except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("unexpected exception: %s", str(exc))
+                _LOGGER.error("unexpected exception: %s", repr(exc))
                 return self.async_abort(
                     reason="exception",
-                    description_placeholders={"exception": str(exc)},
+                    description_placeholders={"exception": repr(exc)},
                 )
             finally:
                 if pioneer:
@@ -728,6 +728,10 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_DEBUG_COMMAND, default=defaults[PARAM_DEBUG_COMMAND]
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_DEBUG_COMMAND_QUEUE,
+                    default=defaults[PARAM_DEBUG_COMMAND_QUEUE],
                 ): selector.BooleanSelector(),
                 vol.Optional(CONF_DEBUG_CONFIG, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(

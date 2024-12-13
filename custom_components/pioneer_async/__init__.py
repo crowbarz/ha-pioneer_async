@@ -167,7 +167,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         AttributeError,
         RuntimeError,
     ) as exc:
-        _LOGGER.error("exception on initialising Pioneer AVR: %s", exc)
+        _LOGGER.error("exception initialising Pioneer AVR: %s", repr(exc))
         if pioneer:
             await pioneer.shutdown()
         raise ConfigEntryNotReady from exc
