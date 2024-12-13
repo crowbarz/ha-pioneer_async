@@ -117,6 +117,7 @@
                     "debug_responder": "Enable responder task debug logging",
                     "debug_updater": "Enable updater task debug logging",
                     "debug_command": "Enable command debug logging",
+                    "debug_command_queue": "Enable command queue debug logging",
                     "debug_config": "Integration debug"
                 },
                 "data_description": {
