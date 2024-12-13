@@ -54,9 +54,16 @@ def _debug_atlevel(level: int, category: str = __name__):
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate Pioneer AVR config entry."""
-    _LOGGER.debug("migrating config from version %d", config_entry.version)
+    _LOGGER.debug(
+        "migrating config from version %d.%d",
+        config_entry.version,
+        config_entry.minor_version,
+    )
 
-    if config_entry.version < PioneerAVRConfigFlow.VERSION:
+    if config_entry.version > PioneerAVRConfigFlow.VERSION:
+        return False
+
+    if config_entry.version <= PioneerAVRConfigFlow.VERSION:
         data_current = config_entry.data
         data_new = {**data_current}
         options_current = config_entry.options
@@ -106,12 +113,19 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         if isinstance(scan_interval, timedelta):
             options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
-        config_entry.version = PioneerAVRConfigFlow.VERSION
         hass.config_entries.async_update_entry(
-            config_entry, data=data_new, options=options_new
+            config_entry,
+            data=data_new,
+            options=options_new,
+            version=PioneerAVRConfigFlow.VERSION,
+            minor_version=PioneerAVRConfigFlow.VERSION_MINOR,
         )
 
-    _LOGGER.info("config migration to version %s successful", config_entry.version)
+    _LOGGER.info(
+        "config migration to version %d.%d successful",
+        config_entry.version,
+        config_entry.minor_version,
+    )
     return True
 
 

@@ -198,6 +198,7 @@ class PioneerAVRConfigFlow(
     """Handle Pioneer AVR config flow."""
 
     VERSION = 4
+    VERSION_MINOR = 1
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
