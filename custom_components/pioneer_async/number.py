@@ -110,6 +110,7 @@ class TunerFrequencyNumber(
     _attr_entity_category = EntityCategory.CONFIG
     _attr_device_class = NumberDeviceClass.FREQUENCY
     _attr_icon = "mdi:radio-tower"
+    _unrecorded_attributes = frozenset({PARAM_TUNER_AM_FREQ_STEP})
 
     def __init__(
         self,
