@@ -92,7 +92,7 @@ async def async_setup_entry(
                 icon="mdi:audio-video",
                 base_property="system",
                 promoted_property="speaker_system",
-                exclude_properties=[],
+                include_properties=["speaker_system_raw"],
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -143,6 +143,17 @@ async def async_setup_entry(
                     Zones.Z3,
                     Zones.HDZ,
                 ],
+            ),
+            PioneerGenericSensor(
+                pioneer,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
+                name="System",
+                icon="mdi:cog",
+                base_property="system",
+                promoted_property="status",  # TODO: to identify
+                exclude_properties=["speaker_system", "speaker_system_raw"],
             ),
         ]
     )
