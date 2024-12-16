@@ -6,7 +6,6 @@ from collections.abc import Callable
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zones
-from aiopioneer.param import PARAM_ZONES_INITIAL_REFRESH
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -49,13 +48,10 @@ class PioneerAVRZoneCoordinator(DataUpdateCoordinator):
         """Set aiopioneer zone callback to trigger HA zone update."""
 
         def callback_zone_update() -> None:
-            zones_initial_refresh: set[Zones] = self.pioneer.params.get_system_param(
-                PARAM_ZONES_INITIAL_REFRESH, set()
-            )
             if (
                 self._initial_refresh_callback is not None
                 and not self._initial_refresh
-                and self.zone in zones_initial_refresh
+                and self.zone in self.pioneer.params.zones_initial_refresh
             ):
                 self._initial_refresh = True
                 self._initial_refresh_callback()
