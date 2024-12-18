@@ -114,7 +114,7 @@ class PioneerTunerEntity(PioneerEntityBase):
         return bool(
             [
                 z
-                for z, s in self.pioneer.properties.source.items()
+                for z, s in self.pioneer.properties.source_id.items()
                 if s == SOURCE_TUNER and self.pioneer.properties.power.get(Zones(z))
             ]
         )

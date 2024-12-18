@@ -321,7 +321,7 @@ class PioneerZone(
             features |= MediaPlayerEntityFeature.VOLUME_STEP
         if pioneer.properties.mute.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.VOLUME_MUTE
-        if pioneer.properties.source.get(self.zone) is not None:
+        if pioneer.properties.source_id.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.SELECT_SOURCE
 
         ## Sound mode is only available on main zone, also it does not return an
