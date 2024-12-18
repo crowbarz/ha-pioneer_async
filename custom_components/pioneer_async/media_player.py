@@ -367,11 +367,7 @@ class PioneerZone(
     @property
     def source(self) -> str | None:
         """Return the current input source."""
-        source_id = self.pioneer.properties.source.get(self.zone)
-        if source_id:
-            return self.pioneer.properties.get_source_name(source_id)
-        else:
-            return None
+        return self.pioneer.properties.source_name.get(self.zone)
 
     @property
     def source_list(self) -> list[str]:
