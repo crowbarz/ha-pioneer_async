@@ -9,7 +9,7 @@ from typing import Any, Tuple
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zone
 from aiopioneer.param import (
     PARAM_IGNORED_ZONES,
     PARAM_ZONE_1_SOURCES,
@@ -561,7 +561,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             [(v, k) for k, v in (self.options_parsed[CONF_SOURCES]).items()]
         )
 
-        def zone_options(zone: Zones):
+        def zone_options(zone: Zone):
             return sorted(
                 (
                     dict([("label", zone_labels.get(v, f"Source {v}")), ("value", v)])
@@ -574,28 +574,28 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             {
                 vol.Optional(PARAM_ZONE_1_SOURCES, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.Z1),
+                        options=zone_options(Zone.Z1),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(PARAM_ZONE_2_SOURCES, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.Z2),
+                        options=zone_options(Zone.Z2),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(PARAM_ZONE_3_SOURCES, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.Z3),
+                        options=zone_options(Zone.Z3),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
                 vol.Optional(PARAM_HDZONE_SOURCES, default=[]): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zones.HDZ),
+                        options=zone_options(Zone.HDZ),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),

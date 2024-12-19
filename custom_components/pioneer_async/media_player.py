@@ -9,7 +9,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones, TunerBand
+from aiopioneer.const import Zone, TunerBand
 from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -167,7 +167,7 @@ async def async_setup_entry(
             options,
         )
 
-    if Zones.Z1 not in pioneer.properties.zones:
+    if Zone.Z1 not in pioneer.properties.zones:
         _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
@@ -274,7 +274,7 @@ class PioneerZone(
         options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: Zones,
+        zone: Zone,
     ) -> None:
         """Initialize the Pioneer media_player class."""
         if _debug_atlevel(9):
@@ -327,7 +327,7 @@ class PioneerZone(
         ## Sound mode is only available on main zone, also it does not return an
         ## output if the AVR is off so add this manually until we figure out a better way
         ## Disable sound mode also if autoquery is disabled
-        if self.zone == Zones.Z1 and not pioneer.params.get_param(
+        if self.zone == Zone.Z1 and not pioneer.params.get_param(
             PARAM_DISABLE_AUTO_QUERY
         ):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
@@ -356,7 +356,7 @@ class PioneerZone(
     @property
     def sound_mode_list(self) -> list[str]:
         """Returns all valid sound modes from aiopioneer."""
-        if self.zone != Zones.Z1:
+        if self.zone != Zone.Z1:
             return None
 
         listening_modes = self.pioneer.get_listening_modes()
@@ -391,7 +391,7 @@ class PioneerZone(
         volume = pioneer.properties.volume.get(self.zone)
         max_volume = pioneer.properties.max_volume.get(self.zone)
         if volume is not None and max_volume is not None:
-            if self.zone == Zones.Z1:
+            if self.zone == Zone.Z1:
                 volume_db = volume / 2 - 80.5
             else:
                 volume_db = volume - 81

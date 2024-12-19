@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zone
 
 from homeassistant.components.binary_sensor import (
     # BinarySensorDeviceClass,
@@ -66,7 +66,7 @@ async def async_setup_entry(
 
     ## Add top level binary_sensors
     entities = []
-    zone = Zones.ALL
+    zone = Zone.ALL
     device_info = zone_device_info[zone]
     coordinator = coordinators[zone]
     entities.extend(
@@ -101,7 +101,7 @@ class PioneerBinarySensor(PioneerEntityBase, BinarySensorEntity, CoordinatorEnti
         options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer AVR binary sensor."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
@@ -123,7 +123,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         include_properties: list[str] | None = None,
         exclude_properties: list[str] | None = None,
         enabled_default: bool = False,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
         icon: str | None = None,
     ) -> None:
         """Initialize the Pioneer AVR sensor."""

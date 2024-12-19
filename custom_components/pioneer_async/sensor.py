@@ -6,7 +6,7 @@ import logging
 from typing import Any, Callable
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zone
 
 from homeassistant.components.sensor import (
     # SensorDeviceClass,
@@ -66,7 +66,7 @@ async def async_setup_entry(
 
     ## Add top level sensors
     entities = []
-    zone = Zones.ALL
+    zone = Zone.ALL
     device_info = zone_device_info[zone]
     coordinator = coordinators[zone]
     entities.extend(
@@ -125,7 +125,7 @@ async def async_setup_entry(
                 icon="mdi:video-box",
                 base_property="video",
                 promoted_property="signal_output_resolution",
-                exclude_properties=[Zones.Z1, Zones.Z2, Zones.Z3, Zones.HDZ],
+                exclude_properties=[Zone.Z1, Zone.Z2, Zone.Z3, Zone.HDZ],
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -138,10 +138,10 @@ async def async_setup_entry(
                 promoted_property="input_signal",
                 exclude_properties=[
                     "input_multichannel",
-                    Zones.Z1,
-                    Zones.Z2,
-                    Zones.Z3,
-                    Zones.HDZ,
+                    Zone.Z1,
+                    Zone.Z2,
+                    Zone.Z3,
+                    Zone.HDZ,
                 ],
             ),
             PioneerGenericSensor(
@@ -162,7 +162,7 @@ async def async_setup_entry(
     for zone in pioneer.properties.zones:
         device_info = zone_device_info[zone]
         coordinator = coordinators[zone]
-        if zone != Zones.HDZ:
+        if zone != Zone.HDZ:
             entities.extend(
                 [
                     PioneerGenericSensor(
@@ -232,7 +232,7 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
         options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer sensor base class."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
@@ -255,7 +255,7 @@ class PioneerGenericSensor(PioneerSensor):
         exclude_properties: list[str] | None = None,
         value_func: Callable[[str], str] | None = None,
         enabled_default: bool = False,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
         icon: str | None = None,
     ) -> None:
         """Initialize the Pioneer generic sensor."""

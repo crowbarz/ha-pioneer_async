@@ -6,7 +6,7 @@ import asyncio
 import logging
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones, SOURCE_TUNER
+from aiopioneer.const import Zone, SOURCE_TUNER
 from aiopioneer.exceptions import AVRCommandError
 
 from homeassistant.exceptions import ServiceValidationError
@@ -35,7 +35,7 @@ class PioneerEntityBase(Entity):
         pioneer: PioneerAVR,
         options: dict[str, Any],
         device_info: DeviceInfo,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer AVR entity base class."""
         if _debug_atlevel(9):
@@ -115,6 +115,6 @@ class PioneerTunerEntity(PioneerEntityBase):
             [
                 z
                 for z, s in self.pioneer.properties.source_id.items()
-                if s == SOURCE_TUNER and self.pioneer.properties.power.get(Zones(z))
+                if s == SOURCE_TUNER and self.pioneer.properties.power.get(Zone(z))
             ]
         )

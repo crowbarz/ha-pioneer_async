@@ -5,7 +5,7 @@ import logging
 from collections.abc import Callable
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zone
 
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
@@ -22,7 +22,7 @@ class PioneerAVRZoneCoordinator(DataUpdateCoordinator):
         self,
         hass: HomeAssistant,
         pioneer: PioneerAVR,
-        zone: Zones,
+        zone: Zone,
     ) -> None:
         """Initialise Pioneer AVR coordinator."""
         super().__init__(

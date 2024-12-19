@@ -9,7 +9,7 @@ import logging
 from typing import Any
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones
+from aiopioneer.const import Zone
 from aiopioneer.param import PARAMS_ALL, PARAM_ZONE_SOURCES
 
 from homeassistant.config_entries import ConfigEntry
@@ -240,11 +240,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     )
 
     pioneer_data[ATTR_DEVICE_INFO] = {}
-    pioneer_data[ATTR_DEVICE_INFO][Zones.ALL] = DeviceInfo(
+    pioneer_data[ATTR_DEVICE_INFO][Zone.ALL] = DeviceInfo(
         identifiers=top_identifiers,
     )
     pioneer_data[ATTR_DEVICE_ENTRY] = {}
-    pioneer_data[ATTR_DEVICE_ENTRY][Zones.ALL] = device_entry
+    pioneer_data[ATTR_DEVICE_ENTRY][Zone.ALL] = device_entry
 
     ## Create top level DataUpdateCooordinator
     def update_top_device() -> None:
@@ -255,18 +255,18 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             sw_version=pioneer.properties.software_version or UNDEFINED,
         )
 
-    coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zones.ALL)
+    coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zone.ALL)
     await coordinator.async_config_entry_first_refresh()
     coordinator.set_zone_callback()
     pioneer_data[ATTR_COORDINATORS] = {}
-    pioneer_data[ATTR_COORDINATORS][Zones.ALL] = coordinator
+    pioneer_data[ATTR_COORDINATORS][Zone.ALL] = coordinator
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
     for zone in pioneer.properties.zones:
         zone_name_suffix = (
             "Main Zone"
-            if zone is Zones.Z1
-            else "HDZone" if zone is Zones.HDZ else "Zone " + zone
+            if zone is Zone.Z1
+            else "HDZone" if zone is Zone.HDZ else "Zone " + zone
         )
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
@@ -277,7 +277,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
         coordinator.set_zone_callback()
-        if zone is Zones.Z1:
+        if zone is Zone.Z1:
             coordinator.set_initial_refresh_callback(update_top_device)
         pioneer_data[ATTR_COORDINATORS][zone] = coordinator
 

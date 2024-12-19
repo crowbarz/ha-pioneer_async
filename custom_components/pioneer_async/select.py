@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones, TunerBand
+from aiopioneer.const import Zone, TunerBand
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
@@ -61,7 +61,7 @@ async def async_setup_entry(
 
     ## Add top level selects
     entities = []
-    zone = Zones.ALL
+    zone = Zone.ALL
     device_info = zone_device_info[zone]
     coordinator = coordinators[zone]
     entities.extend(
@@ -102,7 +102,7 @@ class TunerPresetSelect(
         options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer tuner preset select entity."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
@@ -149,7 +149,7 @@ class TunerBandSelect(
         options: dict[str, Any],
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer tuner frequency band select entity."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)

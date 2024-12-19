@@ -6,7 +6,7 @@ import logging
 from typing import Any
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zones, TunerBand
+from aiopioneer.const import Zone, TunerBand
 from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
 
 from homeassistant.components.number import NumberEntity, NumberDeviceClass
@@ -77,7 +77,7 @@ async def async_setup_entry(
 
     ## Add top level numbers
     entities = []
-    zone = Zones.ALL
+    zone = Zone.ALL
     device_info = zone_device_info[zone]
     coordinator = coordinators[zone]
     entities.extend(
@@ -119,7 +119,7 @@ class TunerFrequencyNumber(
         coordinator: PioneerAVRZoneCoordinator,
         device_info: DeviceInfo,
         band: TunerBand,
-        zone: Zones | None = None,
+        zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer tuner frequency number entity."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
