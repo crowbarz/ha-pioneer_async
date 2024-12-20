@@ -2,7 +2,7 @@
 
 from datetime import timedelta
 
-from aiopioneer.param import (
+from aiopioneer.params import (
     PARAM_HDZONE_SOURCES,
     PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,

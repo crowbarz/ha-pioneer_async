@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.param import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
+from aiopioneer.params import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback

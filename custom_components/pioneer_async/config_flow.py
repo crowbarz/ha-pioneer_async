@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
-from aiopioneer.param import (
+from aiopioneer.params import (
     PARAM_IGNORED_ZONES,
     PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,

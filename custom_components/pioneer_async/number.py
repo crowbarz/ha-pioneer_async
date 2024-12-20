@@ -7,7 +7,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.param import PARAM_TUNER_AM_FREQ_STEP
+from aiopioneer.params import PARAM_TUNER_AM_FREQ_STEP
 
 from homeassistant.components.number import NumberEntity, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
