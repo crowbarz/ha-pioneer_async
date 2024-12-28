@@ -217,7 +217,7 @@ class PioneerAVRConfigFlow(
         config_entry: config_entries.ConfigEntry,
     ) -> PioneerOptionsFlow:
         """Get the options flow for this handler."""
-        return PioneerOptionsFlow(config_entry)
+        return PioneerOptionsFlow()
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -379,11 +379,10 @@ class PioneerAVRConfigFlow(
 class PioneerOptionsFlow(config_entries.OptionsFlow):
     """Handle Pioneer AVR options."""
 
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+    def __init__(self) -> None:
         """Initialise Pioneer AVR options flow."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerOptionsFlow.__init__()")
-        self.config_entry = config_entry
         self.pioneer = None
         self.defaults = {}
         self.options = {}
