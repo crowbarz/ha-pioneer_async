@@ -537,7 +537,7 @@ class PioneerZone(
 
     async def async_set_panel_lock(self, panel_lock: str) -> None:
         """Set AVR panel lock."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(">> PioneerZone.set_panel_lock(panel_lock=%s)", panel_lock)
 
         async def set_panel_lock() -> None:
@@ -547,7 +547,7 @@ class PioneerZone(
 
     async def async_set_remote_lock(self, remote_lock: bool) -> None:
         """Set AVR remote lock."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(">> PioneerZone.set_remote_lock(remote_lock=%s)", remote_lock)
 
         async def set_remote_lock() -> None:
@@ -557,7 +557,7 @@ class PioneerZone(
 
     async def async_set_dimmer(self, dimmer: str) -> None:
         """Set AVR display dimmer."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(">> PioneerZone.set_dimmer(dimmer=%s)", dimmer)
 
         async def set_dimmer() -> None:
@@ -567,7 +567,7 @@ class PioneerZone(
 
     async def async_set_tone_settings(self, tone: str, treble: int, bass: int) -> None:
         """Set AVR tone settings for zone."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.set_tone_settings(%s, tone=%s, treble=%d, bass=%d)",
                 self.zone,
@@ -583,7 +583,7 @@ class PioneerZone(
 
     async def async_select_tuner_band(self, band: str) -> None:
         """Set AVR tuner band."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.select_tuner_band(band=%s)",
                 band,
@@ -596,7 +596,7 @@ class PioneerZone(
 
     async def async_set_fm_tuner_frequency(self, frequency: float) -> None:
         """Set AVR AM tuner frequency."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.set_fm_tuner_frequency(frequency=%f)",
                 frequency,
@@ -609,7 +609,7 @@ class PioneerZone(
 
     async def async_set_am_tuner_frequency(self, frequency: int) -> None:
         """Set AVR AM tuner frequency."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.set_am_tuner_frequency(frequency=%d)",
                 frequency,
@@ -624,7 +624,7 @@ class PioneerZone(
         """Set AVR tuner preset."""
         tuner_class = kwargs[ATTR_CLASS]  ## workaround for "class" as argument
         preset = kwargs[ATTR_PRESET]
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.select_tuner_preset(class=%s, preset=%d)",
                 tuner_class,
@@ -638,7 +638,7 @@ class PioneerZone(
 
     async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
-        if Debug.service:
+        if Debug.action:
             _LOGGER.debug(
                 ">> PioneerZone.set_channel_levels(%s, channel=%s, level=%f)",
                 self.zone,

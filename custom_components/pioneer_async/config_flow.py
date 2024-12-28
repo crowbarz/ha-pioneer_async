@@ -58,7 +58,7 @@ from .const import (
     CONF_QUERY_SOURCES,
     CONF_DEBUG_INTEGRATION,
     CONF_DEBUG_CONFIG_FLOW,
-    CONF_DEBUG_SERVICE,
+    CONF_DEBUG_ACTION,
     DEFAULT_NAME,
     DEFAULT_HOST,
     DEFAULT_PORT,
@@ -734,8 +734,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                     default=defaults[CONF_DEBUG_CONFIG_FLOW],
                 ): selector.BooleanSelector(),
                 vol.Optional(
-                    CONF_DEBUG_SERVICE,
-                    default=defaults[CONF_DEBUG_SERVICE],
+                    CONF_DEBUG_ACTION,
+                    default=defaults[CONF_DEBUG_ACTION],
                 ): selector.BooleanSelector(),
             }
         )

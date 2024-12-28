@@ -2,7 +2,7 @@
 
 import logging
 from .const import (
-    CONF_DEBUG_SERVICE,
+    CONF_DEBUG_ACTION,
     CONF_DEBUG_CONFIG_FLOW,
     CONF_DEBUG_INTEGRATION,
 )
@@ -16,7 +16,7 @@ class Debug:
     ## Debug classes
     integration: bool = None
     config_flow: bool = None
-    service: bool = None
+    action: bool = None
 
     @staticmethod
     def setconfig(options: dict[str, int] | None) -> None:
@@ -27,4 +27,4 @@ class Debug:
         )
         Debug.integration = options.get(CONF_DEBUG_INTEGRATION, False)
         Debug.config_flow = options.get(CONF_DEBUG_CONFIG_FLOW, False)
-        Debug.service = options.get(CONF_DEBUG_SERVICE, False)
+        Debug.action = options.get(CONF_DEBUG_ACTION, False)

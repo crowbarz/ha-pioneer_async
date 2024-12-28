@@ -46,7 +46,7 @@ CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
 CONF_QUERY_SOURCES = "query_sources"  ## UI option only, inferred from CONF_SOURCES
 CONF_DEBUG_INTEGRATION = "debug_integration"  # integration load/unload
 CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
-CONF_DEBUG_SERVICE = "debug_service"  # service calls
+CONF_DEBUG_ACTION = "debug_action"  # action
 
 ## Deprecated options
 OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
@@ -78,7 +78,7 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_HDZONE: False,
     CONF_DEBUG_INTEGRATION: False,
     CONF_DEBUG_CONFIG_FLOW: False,
-    CONF_DEBUG_SERVICE: False,
+    CONF_DEBUG_ACTION: False,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 
