@@ -403,10 +403,10 @@ class PioneerZone(
         return attrs
 
     async def async_update(self) -> None:
-        """Poll properties on demand."""
+        """Refresh zone properties on demand."""
         if _debug_atlevel(8):
             _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
-        return await self.pioneer.update()
+        return await self.pioneer.update(zone=self.zone)
 
     async def async_turn_on(self) -> None:
         """Turn the media player on."""
