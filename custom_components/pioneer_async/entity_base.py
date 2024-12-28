@@ -20,10 +20,6 @@ from .debug import Debug
 _LOGGER = logging.getLogger(__name__)
 
 
-def _debug_atlevel(level: int, category: str = __name__):
-    return Debug.atlevel(None, level, category)
-
-
 class PioneerEntityBase(Entity):
     """Pioneer AVR entity base class."""
 
@@ -38,7 +34,7 @@ class PioneerEntityBase(Entity):
         zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer AVR entity base class."""
-        if _debug_atlevel(9):
+        if Debug.integration:
             _LOGGER.debug("%s.__init__()", type(self).__name__)
         self.pioneer = pioneer
         self.entry_options = options

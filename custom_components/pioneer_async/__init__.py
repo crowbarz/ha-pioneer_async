@@ -35,7 +35,6 @@ from .const import (
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
     CONF_PARAMS,
-    CONF_DEBUG_CONFIG,
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
@@ -46,10 +45,6 @@ from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _debug_atlevel(level: int, category: str = __name__):
-    return Debug.atlevel(None, level, category)
 
 
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
@@ -131,8 +126,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Pioneer AVR from a config entry."""
-    if CONF_DEBUG_CONFIG in entry.options:
-        Debug.setconfig(None, entry.options[CONF_DEBUG_CONFIG])
+    Debug.setconfig(entry.options)
 
     hass.data.setdefault(DOMAIN, {})
     pioneer_data = {}
@@ -149,7 +143,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
     params |= options.get(CONF_PARAMS, {})
 
-    if _debug_atlevel(9):
+    if Debug.integration:
         _LOGGER.debug(
             ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
             entry.entry_id,
@@ -302,7 +296,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if _debug_atlevel(9):
+    if Debug.integration:
         _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)

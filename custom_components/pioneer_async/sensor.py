@@ -36,15 +36,6 @@ from .entity_base import PioneerEntityBase
 _LOGGER = logging.getLogger(__name__)
 
 
-## Debug levels:
-##  1: service calls
-##  7: callback calls
-##  8: update options flow
-##  9: component load/unload
-def _debug_atlevel(level: int, category: str = __name__):
-    return Debug.atlevel(None, level, category)
-
-
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -56,7 +47,7 @@ async def async_setup_entry(
     options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
     coordinators = pioneer_data[ATTR_COORDINATORS]
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
-    if _debug_atlevel(9):
+    if Debug.integration:
         _LOGGER.debug(
             ">> sensor.async_setup_entry(entry_id=%s, data=%s, options=%s)",
             config_entry.entry_id,

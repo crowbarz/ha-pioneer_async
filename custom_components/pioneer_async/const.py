@@ -44,11 +44,14 @@ CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
 CONF_QUERY_SOURCES = "query_sources"  ## UI option only, inferred from CONF_SOURCES
-CONF_DEBUG_CONFIG = "debug_config"
+CONF_DEBUG_INTEGRATION = "debug_integration"  # integration load/unload
+CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
+CONF_DEBUG_SERVICE = "debug_service"  # service calls
 
 ## Deprecated options
 OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
 OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
+OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated (not removed)
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
 
@@ -73,7 +76,9 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_HDZONE: False,
-    CONF_DEBUG_CONFIG: {},
+    CONF_DEBUG_INTEGRATION: False,
+    CONF_DEBUG_CONFIG_FLOW: False,
+    CONF_DEBUG_SERVICE: False,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 

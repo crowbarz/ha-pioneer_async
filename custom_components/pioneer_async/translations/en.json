@@ -118,7 +118,9 @@
                     "debug_updater": "Enable updater task debug logging",
                     "debug_command": "Enable command debug logging",
                     "debug_command_queue": "Enable command queue debug logging",
-                    "debug_config": "Integration debug"
+                    "debug_integration": "Integration load/unload debug logging",
+                    "debug_config_flow": "Integration config/options flow debug logging",
+                    "debug_service": "Integration service call debug logging"
                 },
                 "data_description": {
                     "debug_config": "Additional integration debug configuration. See https://github.com/crowbarz/ha-pioneer_async?tab=readme-ov-file#enabling-debugging for available options"
