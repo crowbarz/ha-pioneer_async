@@ -25,6 +25,7 @@ from aiopioneer.params import (
     PARAM_VOLUME_STEP_ONLY,
     PARAM_IGNORE_VOLUME_CHECK,
     PARAM_DISABLE_AUTO_QUERY,
+    PARAM_ALWAYS_POLL,
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_RESPONDER,
     PARAM_DEBUG_UPDATER,
@@ -49,6 +50,8 @@ from homeassistant.helpers import selector
 
 from .const import (
     DOMAIN,
+    CONFIG_ENTRY_VERSION,
+    CONFIG_ENTRY_VERSION_MINOR,
     CONF_SOURCES,
     CONF_PARAMS,
     CONF_REPEAT_COUNT,
@@ -195,8 +198,8 @@ class PioneerAVRConfigFlow(
 ):  # pylint:disable=abstract-method
     """Handle Pioneer AVR config flow."""
 
-    VERSION = 4
-    VERSION_MINOR = 1
+    VERSION = CONFIG_ENTRY_VERSION
+    VERSION_MINOR = CONFIG_ENTRY_VERSION_MINOR
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
@@ -646,6 +649,9 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_VOLUME_STEP_ONLY, default=defaults[PARAM_VOLUME_STEP_ONLY]
+                ): selector.BooleanSelector(),
+                vol.Optional(
+                    PARAM_ALWAYS_POLL, default=defaults[PARAM_ALWAYS_POLL]
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_MAX_VOLUME, default=defaults[PARAM_MAX_VOLUME]
