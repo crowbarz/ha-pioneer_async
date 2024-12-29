@@ -257,12 +257,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
     for zone in pioneer.properties.zones:
-        zone_name_suffix = Zone.full_name(zone)
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
-            name=(name + " " + zone_name_suffix),
-            model=zone_name_suffix,
+            name=(name + " " + zone.full_name),
+            model=zone.full_name,
             via_device=(DOMAIN, entry.entry_id),
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
