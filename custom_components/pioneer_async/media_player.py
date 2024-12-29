@@ -10,7 +10,7 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.params import PARAM_DISABLE_AUTO_QUERY, PARAM_VOLUME_STEP_ONLY
+from aiopioneer.params import PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -315,11 +315,12 @@ class PioneerZone(
         if pioneer.properties.source_id.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.SELECT_SOURCE
 
-        ## Sound mode is only available on main zone, also it does not return an
-        ## output if the AVR is off so add this manually until we figure out a better way
-        ## Disable sound mode also if autoquery is disabled
-        if self.zone == Zone.Z1 and not pioneer.params.get_param(
-            PARAM_DISABLE_AUTO_QUERY
+        ## Sound mode is only available on main zone when it is powered on
+        ## and listening modes are available
+        if (
+            self.zone == Zone.Z1
+            and pioneer.properties.power.get(self.zone)
+            and pioneer.get_listening_modes()
         ):
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
 
