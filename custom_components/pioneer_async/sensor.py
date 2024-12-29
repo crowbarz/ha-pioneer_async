@@ -84,6 +84,7 @@ async def async_setup_entry(
                 base_property="system",
                 promoted_property="speaker_system",
                 include_properties=["speaker_system_raw"],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -95,6 +96,7 @@ async def async_setup_entry(
                 base_property="amp",
                 promoted_property="speakers",
                 exclude_properties=["display", "dimmer"],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -106,6 +108,7 @@ async def async_setup_entry(
                 base_property="dsp",
                 promoted_property="signal_select",
                 exclude_properties=[],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -117,6 +120,7 @@ async def async_setup_entry(
                 base_property="video",
                 promoted_property="signal_output_resolution",
                 exclude_properties=[Zone.Z1, Zone.Z2, Zone.Z3, Zone.HDZ],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -134,6 +138,7 @@ async def async_setup_entry(
                     Zone.Z3,
                     Zone.HDZ,
                 ],
+                enabled_default=True,
             ),
             PioneerGenericSensor(
                 pioneer,
@@ -204,6 +209,7 @@ async def async_setup_entry(
                         base_property="channel_levels",
                         promoted_property="C",
                         exclude_properties=["!C"],
+                        enabled_default=True,
                     ),
                 ]
             )
