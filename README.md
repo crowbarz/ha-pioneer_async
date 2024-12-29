@@ -18,14 +18,13 @@ This integration supports the following features (not all features are supported
 
 This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
 
+Internally, the integration uses the [aiopioneer](https://github.com/crowbarz/aiopioneer) package to interface with Pioneer AVRs. This package is installed automatically by HA on integration startup.
+
 ## AVR configuration
 
 Some AVR models stop responding on the network when all zones are powered off to reduce the AVR's power consumption. On such models, Network Standby must be enabled in order for the integration to successfully power on any zone. Consult your AVR manual for the procedure to enable Network Standby.
 
 ## Adding an AVR instance to Home Assistant
-
-> [!WARNING]
-> As of 0.9.0, support for YAML configuration via `configuration.yaml` is no longer supported. The configuration is ignored and an error is logged if YAML configuration is detected.
 
 This integration is configured via the UI. Once installed, add an instance for the AVR in Home Assistant by navigating to **Settings > Devices & Services > Integrations > Add Integration** and searching for **Pioneer AVR**. (Note that the **Pioneer** integration is the original integration built into Home Assistant)
 
@@ -35,16 +34,23 @@ The following options that configure the connection to the AVR are available fro
 | --- | --- | ---
 | Device name | Pioneer AVR | Default base name for the AVR
 | Host | avr | DNS name/IP address for AVR to be added
-| Port | 8102 | Port to be used to communicate with the AVR API. Use port `23` if your AVR doesn't respond on the default port
+| Port | 8102 | Port to be used to communicate with the AVR API. Try port `23` if your AVR doesn't respond on the default port
 | Query sources from AVR | on | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
 | Maximum source ID | 60 | The highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
 | Don't check volume when querying AVR source | AVR default | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
 
 Once the integration is successfully added, devices representing the AVR and each supported zone are created, along with entities that are registered to the devices. The main entities are the `media_player` entities corresponding to each discovered zone that are used to control the basic functions for the zone: power, volume and mute.
 
-Some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. Each instance of this integration uses one connection to the AVR, and each instance of the Pioneer **iControlAV5** application will use another connection. For example, if **iControlAV5** is open on two phones, then two connections will be in use.
+> [!NOTE]
+> Some AVR device attributes (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is started.
 
-**NOTE:** Some AVR device attributes (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is added.
+### Troubleshooting
+
+Some steps to try if you are unable to add an instance of the integration for your AVR:
+
+- On many AVRs, the network API is not very robust and can occasionally enter an unresponsive state. This can be fixed by powering off the AVR at the outlet, powering it back on after some time, then waiting until it starts responding on the network again.
+- Some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. Each instance of this integration uses one connection to the AVR, and each instance of the Pioneer **iControlAV5** application will use another connection. For example, if **iControlAV5** is open on two phones, then two connections will be in use.
+- Pioneer AVRs released from 2016 onwards use the Onkyo API, and will not work with this integration. This integration will report `AVR not responding to Pioneer API commands` when used with such AVRs. Try the [Onkyo integration](https://www.home-assistant.io/integrations/onkyo/) instead with the AVR.
 
 ## AVR instance options
 
@@ -57,7 +63,7 @@ After an instance is added, options that modify how the integration operates can
 | Query sources from AVR | off | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
 | Maximum source ID | 60 | Highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
 | Manually configured sources | | List of all input sources available on the AVR. See [AVR sources](#avr-sources)
-| Scan interval | 60s | Idle period between full polls of the AVR. Any response from the AVR (eg. to signal a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, and these also reset the idle timer and prevent a full poll from being performed. Set this to `0` to disable polling
+| Scan interval | 60s | Idle period between full refreshes of the AVR. If the **Always poll the AVR every scan interval** option in [Advanced options](#advanced-options) is not enabled, then any response from the AVR (eg. indicating a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, and these also reset the idle timer and prevent a full refresh from being performed. Set this option to `0` to disable polling
 | Timeout | 5s | Number of seconds to wait for the initial connection and for responses to commands sent to the AVR. Also used to set the TCP connection idle timeout
 | Command delay | 0.1s | Delay between commands sent to the AVR. Increase the delay if you are experiencing errors with basic commands that are sent to the AVR
 
@@ -72,7 +78,8 @@ After an instance is added, options that modify how the integration operates can
 
 These options enable functionality and workarounds that are required for some AVR models. Some of these are enabled by default for specific AVR models when these are detected by the integration.
 
-The Advanced options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
+> [!IMPORTANT]
+> The Advanced options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
 
 | Option | Default | Function
 | --- | --- | ---
@@ -80,6 +87,7 @@ The Advanced options page is shown only if **Advanced Mode** is enabled in the u
 | Workaround for Zone 1 initial volume reporting | | Enable this workaround on AVRs that do not report the correct volume when the main zone is turned on and an initial volume is configured
 | Don't check volume when querying AVR source | | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
 | Step volume up/down to set volume level | | Emulate volume level set by stepping volume up/down on AVR models that cannot set the volume level to a specific level
+| Always poll the AVR every scan interval | | Enable for AVRs that do not reliably report state changes and needs a full refresh to be performed every scan interval. Otherwise, the integration will perform a full refresh only if the AVR does not send a response to the integration for the scan interval period
 | Maximum volume units for Zone 1 | 185 | The highest volume unit for Zone 1
 | Maximum volume units for other zones | 81 | The highest volume unit for other zones
 | Extra aiopioneer parameters | | Additional config parameters to pass to the aiopioneer package. See [Extra `aiopioneer` params](#extra-aiopioneer-parameters)
@@ -88,21 +96,25 @@ The Advanced options page is shown only if **Advanced Mode** is enabled in the u
 
 These options enable additional debugging to be output to the Home Assistant log. Debug level logging must also be enabled in Home Assistant for the integration to generate debug.
 
-The Debug options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
+> [!IMPORTANT]
+> The Debug options page is shown only if **Advanced Mode** is enabled in the user's Home Assistant profile.
 
 | Option | Function
 | --- |  ---
-| Enable listener task debug logging | (`debug_responder` parameter) Enables additional debug messages in the listener task
+| Enable listener task debug logging | (`debug_listener` parameter) Enables additional debug messages in the listener task
 | Enable responder task debug logging | (`debug_responder` parameter) Enables additional debug messages in the responder task
-| Enable updater task debug logging | (`debug_responder` parameter) Enables additional debug messages in the updater task
-| Enable command debug logging | (`debug_responder` parameter) Enables additional debug messages in the AVR command sending and command queue methods
-| Integration debug | Enables additional per-module debug messages in this integration
+| Enable updater task debug logging | (`debug_updater` parameter) Enables additional debug messages in the updater task
+| Enable command debug logging | (`debug_command` parameter) Enables additional debug messages in the AVR command sending and command queue methods
+| Enable command queue debug logging | (`debug_command_queue` parameter) Enables additional debug messages in the AVR command queue methods and task
+| Integration load/unload debug logging | Enables additional integration load/unload debug messages
+| Integration config flow debug logging | Enables additional integration config flow debug messages
+| Integration action debug logging | Enables additional integration debug messages on running integration specific actions
 
 ## Enabling debugging
 
 If the integration is not functioning as expected, then you will need to include the debug logging when logging an issue. See the [Debug logs and diagnostics section in the Home Assistant Troubleshooting page](https://www.home-assistant.io/docs/configuration/troubleshooting/#debug-logs-and-diagnostics) for instructions for enabling debug logging for the integration and downloading the log.
 
-Further module level debug logging for the integration can be enabled by adding entries in **Integration debug configuration** on the [Debug options](#debug-options) configuration page. The entries are in the format: `_module_:_debug_level_`. For example, `config_flow:9` will enable full debugging output for the `config_flow` module. To enable full debugging for all modules, use `*:9`.
+Additional debug logging for both the underlying aiopioneer package and the integration can be enabled from the [Debug options](#debug-options) page.
 
 ## AVR sources
 
@@ -118,16 +130,22 @@ On the **Zone options** page, the available sources for each zone can be selecte
 
 ### Extra `aiopioneer` parameters
 
-Additional parameters can be configured in the Home Assistant integration and are passed to the `aiopioneer` packaged used by this integration for communication with the Pioneer AVR via its API. The parameters modify the package functionality to account for the operational differences between the various Pioneer AVR models.
+Additional parameters can be configured in the Home Assistant integration and are passed to the `aiopioneer` package used by this integration for communication with the Pioneer AVR via its API. The parameters modify the package functionality to account for the operational differences between the various Pioneer AVR models.
 See [aiopioneer documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#params) for a list of parameters that can be set.
 
 Most configuration parameters are configurable via UI settings. Other parameters can be added through entries in the **Extra `aiopioneer` parameters**. Each entry is in the format `parameter_name: value` with _value_ expressed in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by adding the entry `am_frequency_step: 9`.
 
-### Tuner entities
+## Devices
+
+The integration creates a device representing the AVR, and a child device for each discovered zone on the AVR. Global AVR entities are registered to the AVR device, and zone entities are registered to the zone device.
+
+The devices created for each instance of the integration can be viewed via integration's **Hubs** page. The details page for each device shows all entities registered to the device, and provides options to enable entities that are disabled by default.
+
+## Tuner entities
 
 The entities below show the current tuner settings, and can also be used to change the tuner settings. These entities are available only when the tuner is selected as the input for a powered on zone.
 
-| Name | Type | Description
+| Name | Platform | Description
 | --- | --- | ---
 | Tuner Band | select | Current tuner band (`AM`, `FM`)
 | Tuner AM Frequency | number | Current AM frequency (in kHz)
@@ -155,9 +173,9 @@ The `tuner_am_frequency` number entity exposes the following additional attribut
 | --- | --- | ---
 | `am_frequency_step` | int | The kHz step between valid AM frequencies. This value differs across regions. If not specified as a parameter, then this is calculated by stepping up and down the frequency when the band is first changed to `AM`
 
-## AVR properties (>= 0.9)
+## AVR properties
 
-The following AVR properties are available as entities where supported and reported by your AVR model.
+The following AVR properties are available as entities where supported and reported by your AVR model. These property group entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
 
 > [!CAUTION]
 > Property group entities are **beta** and may change in future releases as additional entities are created for individual properties.
@@ -166,7 +184,7 @@ The following AVR properties are available as entities where supported and repor
 
 Sensor entities for global AVR properties and property groups are registered to the parent device created for the AVR.
 
-| Property | Type | Description
+| Property | Platform | Description
 | --- | --- | ---
 | Display | sensor | Current value shown on AVR front panel display
 | Speaker System | sensor | AVR speaker system currently in use
@@ -175,10 +193,12 @@ Sensor entities for global AVR properties and property groups are registered to 
 | Video Parameters | sensor | Video parameters property group, main sensor property: `signal_output_resolution`
 | Audio Parameters | sensor | Audio parameters property group, main sensor property: `input_signal`
 | Input Multichannel | binary_sensor | **on** if current input audio source is a multi-channel source
+| System | sensor | System property group
 
-**NOTE:** On supported AVRs, enabling the **Display** property may generate more recorder database update entries than expected. The sensor state changes every time the display changes. This includes every change when a long message is scrolled across the display, such as a long radio channel name.
-
-To prevent these state changes from being recorded by the [Recorder integration](https://www.home-assistant.io/integrations/recorder/), add the following filter to `configuration.yaml`:
+> [!CAUTION]
+> On supported AVRs, enabling the **Display** sensor may generate more recorder database update entries than expected. The sensor state changes every time the display changes. This includes every change when a long message is scrolled across the display, such as a long radio channel name.
+>
+> To prevent these state changes from being recorded by the [Recorder integration](https://www.home-assistant.io/integrations/recorder/), add the following filter to `configuration.yaml`:
 
 ```yaml
 # Example configuration.yaml entry
@@ -192,125 +212,126 @@ recorder:
 
 Zone entities are registered to the zone device.
 
-| Property | Type | Description
+| Property | Platform | Description
 | --- | --- | ---
 | channel_levels | sensor | Surround channel levels
 | tone | sensor | Tone setting, and bass and treble levels
 | Video | sensor | Zone video parameters property group
 | Audio | sensor |  Zone audio parameters property group
 
-## Services (>= 0.7.3)
+## Actions
 
-Service calls are used to invoke actions and change parameters on the AVR. They can be called from scripts, automations and UI elements, and can also be triggered via **Developer Tools > Services**.
+Actions are used to perform an activity or change parameters on the AVR. They can be called from scripts, automations and UI elements, and can also be triggered via **Developer Tools > Actions**. Standard `media_player` actions are supported where the AVR provides equivalent functionality. Integration specific actions are also available to expose additional activities available on Pioneer AVRs.
 
-### Service `set_tone_settings`
+All of the integration specific actions described below require a target to be specified. The zone device or the `media_player` entity for the zone can be used.
+
+> [!NOTE]
+> Prior to Home Assistant 2024.8, actions were referred to as service calls. See the [2024.8 release post](https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-) for more details on this change in terminology.
+
+### Action `set_tone_settings`
 
 Set AVR tone settings for zone.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | tone | string | | Tone mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 | treble | int | None | Tone treble value (-6dB -- 6dB)
 | bass | int | None | Tone bass value (-6dB -- 6dB)
 
-### Service `set_tuner_band`
+### Action `set_tuner_band`
 
 Set AVR tuner band.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | band | string | | Tuner band: `AM` or `FM` (required)
 
-### Service `set_fm_tuner_frequency`
+### Action `set_fm_tuner_frequency`
 
 Set AVR FM tuner frequency.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | frequency | float | | Tuner frequency (87.5 MHz -- 108.0 MHz) (required)
 
-### Service `set_am_tuner_frequency`
+### Action `set_am_tuner_frequency`
 
 Set AVR AM tuner frequency.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | frequency | float | | Tuner frequency (530 -- 1700KHz) (required)
 
-### Service `set_tuner_preset`
+### Action `set_tuner_preset`
 
 Set AVR tuner preset.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | class | str | | Tuner preset class (A -- G) (required)
 | preset | int | | Tuner preset ID (1 -- 9) (required)
 
-### Service `set_channel_levels`
+### Action `set_channel_levels`
 
 Set AVR level (gain) for an amplifier channel.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | channel | str | | Tuner amp channel to modify. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 
-### Service `set_panel_lock`
+### Action `set_panel_lock`
 
 Set AVR panel lock.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | panel_lock | bool | | Panel lock setting (required)
 
-### Service `set_remote_lock`
+### Action `set_remote_lock`
 
 Set AVR remote lock.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | remote_lock | bool | | Enable remote lock (required)
 
-### Service `set_dimmer`
+### Action `set_dimmer`
 
 Set AVR display dimmer.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone to modify (required)
 | dimmer | string | | Dimmer mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 
-### Service `set_video_settings`
+### Action `set_video_settings`
 
 To be implemented.
 
-### Service `set_dsp_settings`
+### Action `set_dsp_settings`
 
 To be implemented.
 
-### Service `media_control`
+### Action `media_control`
 
 To be implemented.
 
-### Service `send_command` (>= 0.9.1)
+### Action `send_command` (>= 0.9.1)
 
 Send a command to the AVR.
 
-| Service data attribute | Type | Default | Description
+| Action data | Type | Default | Description
 | --- | --- | --- | ---
-| entity_id | entity ID | | Entity for AVR zone for command (required)
 | command | string | | Name of command to send. See list of [available commands](https://github.com/crowbarz/aiopioneer/blob/dev/aiopioneer/commands.py) and the Pioneer documentation [linked from the aiopioneer references](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#references) for the arguments accepted by each command
 | prefix | string | | Prefix argument for command
 | suffix | string | | Suffix argument for command
 
 ## Breaking changes
+
+### 0.10
+
+- From 0.10.0 onwards, it will no longer be possible to downgrade the integration to a version that uses an older config entry major version (currently 4). If this is encountered, the integration will refuse to start with a config entry migration error. You will need to either restore your HA configuration from a backup, or remove and re-add all instances of the integration to create a new config entry.
+- The HA integration debug options have changed - the free-form `debug_config` has been deprecated and replaced with discrete debug options for integration load/unload, config flow and actions that are configurable from the UI. The deprecated debug config is not migrated.
+- The [recently introduced config_entry warning](https://developers.home-assistant.io/blog/2024/11/12/options-flow/) that appears when you reconfigure an integration instance has been fixed, but the fix may break reconfiguration on HA versions older than 2024.12.
 
 ### 0.9
 
@@ -344,7 +365,7 @@ Send a command to the AVR.
 
 ### 0.3
 
-- `command_delay`, `volume_workaround` and `volume_steps` have been moved into the [`params` object](#params-object). Additionally, `volume_steps` has been renamed `volume_step_only` and `volume_workaround` has been renamed to `power_on_volume_bounce`. You will need to update your `configuration.yaml` accordingly.
+- `command_delay`, `volume_workaround` and `volume_steps` have been moved into the `params` object. Additionally, `volume_steps` has been renamed `volume_step_only` and `volume_workaround` has been renamed to `power_on_volume_bounce`. You will need to update your `configuration.yaml` accordingly.
 
 ## Implementation details
 
