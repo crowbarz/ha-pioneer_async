@@ -163,7 +163,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         )
         await pioneer.connect()
         await pioneer.query_device_model()
+        if not pioneer.properties.model:
+            raise RuntimeError("cannot query AVR device model")
         await pioneer.query_zones()
+        if not Zone.Z1 in pioneer.properties.zones:
+            raise RuntimeError(f"{Zone.Z1.full_name} not discovered on AVR")
         if sources:
             pioneer.properties.set_source_dict(sources)
         else:
@@ -171,13 +175,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     except (
         OSError,
         TimeoutError,
-        ValueError,
-        AttributeError,
         RuntimeError,
     ) as exc:
         _LOGGER.error("exception initialising Pioneer AVR: %s", repr(exc))
         if pioneer:
             await pioneer.shutdown()
+            del pioneer
         raise ConfigEntryNotReady from exc
 
     pioneer_data[ATTR_PIONEER] = pioneer

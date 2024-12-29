@@ -185,6 +185,10 @@ class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
 
+class ProtocolFailure(HomeAssistantError):
+    """Error to indicate an AVR protocol failure."""
+
+
 class AlreadyConfigured(HomeAssistantError):
     """Error to indicate host:port is already configured."""
 
@@ -247,14 +251,18 @@ class PioneerAVRConfigFlow(
 
             pioneer = None
             try:
+                pioneer = PioneerAVR(self.host, self.port, params=self.options)
                 try:
-                    pioneer = PioneerAVR(self.host, self.port, params=self.options)
                     await pioneer.connect(reconnect=False)
-                except Exception as exc:  # pylint: disable=broad-except
+                except (OSError, TimeoutError) as exc:
                     raise CannotConnect(repr(exc)) from exc
 
                 await pioneer.query_device_model()
+                if not pioneer.properties.model:
+                    raise ProtocolFailure()
                 await pioneer.query_zones()
+                if not Zone.Z1 in pioneer.properties.zones:
+                    raise ProtocolFailure()
                 if self.query_sources:
                     await pioneer.build_source_dict()
                     self.sources = pioneer.properties.get_source_dict()
@@ -264,7 +272,9 @@ class PioneerAVRConfigFlow(
                 return self.async_abort(reason="already_configured")
             except CannotConnect as exc:
                 errors["base"] = "cannot_connect"
-                description_placeholders["exception"] = repr(exc)
+                description_placeholders["exception"] = str(exc)
+            except ProtocolFailure as exc:
+                return self.async_abort(reason="protocol_failure")
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("unexpected exception: %s", repr(exc))
                 return self.async_abort(

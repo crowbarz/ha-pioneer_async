@@ -45,6 +45,7 @@
         },
         "abort": {
             "already_configured": "Specified device is already configured",
+            "protocol_failure": "AVR not responding to Pioneer API commands",
             "exception": "Unexpected exception: {exception}"
         }
     },
