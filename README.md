@@ -39,10 +39,7 @@ The following options that configure the connection to the AVR are available fro
 | Maximum source ID | 60 | The highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
 | Don't check volume when querying AVR source | AVR default | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
 
-Once the integration is successfully added, devices representing the AVR and each supported zone are created, along with entities that are registered to the devices. The main entities are the `media_player` entities corresponding to each discovered zone that are used to control the basic functions for the zone: power, volume and mute.
-
-> [!NOTE]
-> Some AVR device attributes (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is started.
+Once the integration is successfully added, [devices](#devices) and [entities](#entities) representing the AVR are created as described in the respective sections below.
 
 ### Troubleshooting
 
@@ -137,24 +134,22 @@ Most configuration parameters are configurable via UI settings. Other parameters
 
 ## Devices
 
-The integration creates a device representing the AVR, and a child device for each discovered zone on the AVR. Global AVR entities are registered to the AVR device, and zone entities are registered to the zone device.
+The integration creates a device representing the AVR, and a child device for each discovered zone on the AVR.
 
 The devices created for each instance of the integration can be viewed via integration's **Hubs** page. The details page for each device shows all entities registered to the device, and provides options to enable entities that are disabled by default.
 
-## Tuner entities
+> [!NOTE]
+> Some AVR device information (such as firmware version) are only available after the AVR main zone is powered on for the first time after the integration is started.
 
-The entities below show the current tuner settings, and can also be used to change the tuner settings. These entities are available only when the tuner is selected as the input for a powered on zone.
+## Entities
 
-| Name | Platform | Description
-| --- | --- | ---
-| Tuner Band | select | Current tuner band (`AM`, `FM`)
-| Tuner AM Frequency | number | Current AM frequency (in kHz)
-| Tuner FM Frequency | number | Current FM frequency (in MHz)
-| Tuner Preset | select | Currently selected tuner preset, or `unknown` if no preset is. The preset is also reset to `unknown` when the frequency is changed
+Entities representing various features and properties of the AVR are created and registered with a device. Global AVR entities are registered to the AVR device, and zone entities are registered to the zone device.
 
-## Entity attributes
+### Media player entities
 
-### `media_player` entity attributes
+`media_player` entities are created for each discovered zone. These entities are used to control the basic functions for the zone: power, volume, mute, and sound mode (referred to as listening mode on the Pioneer AVRs). Other media player actions, such as play and pause, become available when specific sources are selected: tuner, MHL, iPod, Spotify, etc.
+
+#### `media_player` entity attributes
 
 In addition to the standard `media_player` entity attributes, this integration exposes additional attributes for the Pioneer AVR:
 
@@ -165,7 +160,18 @@ In addition to the standard `media_player` entity attributes, this integration e
 | `device_volume` | int | Current volume of zone (in device units)
 | `device_max_volume` | int | Maximum supported volume of zone (in device units)
 
-### `tuner_am_frequency` entity attributes
+### Tuner entities
+
+The entities below show the current tuner settings, and can also be used to change the tuner settings. These entities are available only when the tuner is selected as the input for a powered on zone.
+
+| Name | Platform | Description
+| --- | --- | ---
+| Tuner Band | select | Current tuner band (`AM`, `FM`)
+| Tuner AM Frequency | number | Current AM frequency (in kHz)
+| Tuner FM Frequency | number | Current FM frequency (in MHz)
+| Tuner Preset | select | Currently selected tuner preset, or `unknown` if no preset is. The preset is also reset to `unknown` when the frequency is changed
+
+#### `tuner_am_frequency` entity attributes
 
 The `tuner_am_frequency` number entity exposes the following additional attributes:
 
@@ -173,14 +179,14 @@ The `tuner_am_frequency` number entity exposes the following additional attribut
 | --- | --- | ---
 | `am_frequency_step` | int | The kHz step between valid AM frequencies. This value differs across regions. If not specified as a parameter, then this is calculated by stepping up and down the frequency when the band is first changed to `AM`
 
-## AVR properties
+### AVR property entities
 
-The following AVR properties are available as entities where supported and reported by your AVR model. These property group entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
+The following AVR properties and property groups are available as entities where supported and reported by your AVR model. These entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
 
 > [!CAUTION]
 > Property group entities are **beta** and may change in future releases as additional entities are created for individual properties.
 
-### Global AVR properties
+#### Global AVR properties
 
 Sensor entities for global AVR properties and property groups are registered to the parent device created for the AVR.
 
@@ -208,7 +214,7 @@ recorder:
       - sensor.pioneer_avr_display
 ```
 
-### Zone AVR properties
+#### Zone AVR properties
 
 Zone entities are registered to the zone device.
 
