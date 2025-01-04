@@ -162,8 +162,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             params=params,
         )
         await pioneer.connect()
-        await pioneer.query_device_model()
-        if not pioneer.properties.model:
+        if await pioneer.query_device_model() is None:
             raise RuntimeError("cannot query AVR device model")
         await pioneer.query_zones()
         if not Zone.Z1 in pioneer.properties.zones:

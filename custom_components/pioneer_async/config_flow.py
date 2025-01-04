@@ -257,8 +257,7 @@ class PioneerAVRConfigFlow(
                 except (OSError, TimeoutError) as exc:
                     raise CannotConnect(repr(exc)) from exc
 
-                await pioneer.query_device_model()
-                if not pioneer.properties.model:
+                if await pioneer.query_device_model() is None:
                     raise ProtocolFailure()
                 await pioneer.query_zones()
                 if not Zone.Z1 in pioneer.properties.zones:
