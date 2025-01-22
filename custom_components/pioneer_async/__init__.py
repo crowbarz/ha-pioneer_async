@@ -6,11 +6,13 @@ import asyncio
 from datetime import timedelta
 import json
 import logging
+import traceback
 from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 from aiopioneer.params import PARAMS_ALL, PARAM_ZONE_SOURCES
+from aiopioneer.exceptions import AVRConnectionError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -171,12 +173,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             pioneer.properties.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
-    except (
-        OSError,
-        TimeoutError,
-        RuntimeError,
-    ) as exc:
+    except AVRConnectionError as exc:
+        _LOGGER.error("unable to connect to AVR: %s", exc.kwargs.get("err"))
+        del pioneer
+        raise ConfigEntryNotReady from exc
+    except Exception as exc:  # pylint: disable=broad-except
         _LOGGER.error("exception initialising Pioneer AVR: %s", repr(exc))
+        _LOGGER.error(traceback.format_exc())
         if pioneer:
             await pioneer.shutdown()
             del pioneer
