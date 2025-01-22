@@ -398,7 +398,7 @@ class PioneerZone(
         """Refresh zone properties on demand."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
-        return await self.pioneer.update(zone=self.zone)
+        return await self.pioneer.update(zones=[self.zone])
 
     async def async_turn_on(self) -> None:
         """Turn the media player on."""
