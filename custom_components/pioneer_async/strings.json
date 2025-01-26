@@ -22,6 +22,7 @@
                 "title": "Basic options",
                 "description": "Configure Pioneer AVR basic options",
                 "data": {
+                    "model": "AVR model",
                     "sources": "Manually configured sources",
                     "scan_interval": "Scan interval",
                     "timeout": "Timeout",
@@ -44,8 +45,8 @@
             "sources_required": "Sources must be specified"
         },
         "abort": {
-            "already_configured": "Specified device is already configured",
-            "protocol_failure": "AVR not responding to Pioneer API commands",
+            "already_configured": "AVR is already configured",
+            "zone_1_not_discovered": "Main zone not discovered on AVR",
             "exception": "Unexpected exception: {exception}"
         }
     },
@@ -55,6 +56,7 @@
                 "title": "Basic options",
                 "description": "Configure Pioneer AVR basic options",
                 "data": {
+                    "model": "AVR model",
                     "query_sources": "Query sources from AVR",
                     "max_source_id": "Maximum source ID",
                     "sources": "Manually configured sources",
