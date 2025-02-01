@@ -7,7 +7,7 @@ import logging
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, SOURCE_TUNER
-from aiopioneer.exceptions import AVRCommandError
+from aiopioneer.exceptions import PioneerError
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -66,11 +66,13 @@ class PioneerEntityBase(Entity):
         repeat_count = options[CONF_REPEAT_COUNT] if repeat else 1
 
         count = 0
+        if command is None:
+            command = aw_f.__name__
         while count < repeat_count:
             try:
                 resp = await aw_f()
                 return resp
-            except AVRCommandError as exc:
+            except PioneerError as exc:
                 await asyncio.sleep(1)
                 count += 1
                 if count >= repeat_count:
@@ -78,13 +80,11 @@ class PioneerEntityBase(Entity):
                         translation_domain=DOMAIN,
                         translation_key="command_error",
                         translation_placeholders={
-                            "command": command or aw_f.__name__,
-                            "exc": repr(exc),
+                            "command": command,
+                            "exc": str(exc),
                         },
                     ) from exc
-                _LOGGER.warning(
-                    "repeating failed command (%d): %s", count, aw_f.__name__
-                )
+                _LOGGER.warning("repeating failed command (%d): %s", count, command)
             except Exception as exc:
                 raise ServiceValidationError(
                     translation_domain=DOMAIN,
@@ -92,7 +92,7 @@ class PioneerEntityBase(Entity):
                         exc, "translation_key", "unknown_exception"
                     ),
                     translation_placeholders={
-                        "command": command or aw_f.__name__,
+                        "command": command,
                         "zone": self.zone,
                         "exc": repr(exc),
                     },

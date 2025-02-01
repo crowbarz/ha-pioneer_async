@@ -125,7 +125,7 @@ select_tuner_band:
       selector:
         select:
           translation_key: "tuner_band"
-          options:
+          options:  # aiopioneer.const.TunerBand
             - "FM"
             - "AM"
 

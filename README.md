@@ -20,6 +20,9 @@ This integration can be installed via HACS by adding this repository as a custom
 
 Internally, the integration uses the [aiopioneer](https://github.com/crowbarz/aiopioneer) package to interface with Pioneer AVRs. This package is installed automatically by HA on integration startup.
 
+> [!NOTE]
+> To install pre-release versions of the integration, follow [these steps](https://www.hacs.xyz/docs/use/repositories/dashboard/#downloading-a-specific-version-of-a-repository).
+
 ## AVR configuration
 
 Some AVR models stop responding on the network when all zones are powered off to reduce the AVR's power consumption. On such models, Network Standby must be enabled in order for the integration to successfully power on any zone. Consult your AVR manual for the procedure to enable Network Standby.
@@ -99,7 +102,6 @@ These options enable additional debugging to be output to the Home Assistant log
 | Option | Function
 | --- |  ---
 | Enable listener task debug logging | (`debug_listener` parameter) Enables additional debug messages in the listener task
-| Enable responder task debug logging | (`debug_responder` parameter) Enables additional debug messages in the responder task
 | Enable updater task debug logging | (`debug_updater` parameter) Enables additional debug messages in the updater task
 | Enable command debug logging | (`debug_command` parameter) Enables additional debug messages in the AVR command sending and command queue methods
 | Enable command queue debug logging | (`debug_command_queue` parameter) Enables additional debug messages in the AVR command queue methods and task

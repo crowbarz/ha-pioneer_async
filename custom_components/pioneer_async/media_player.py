@@ -98,8 +98,8 @@ PIONEER_SERVICE_SET_DIMMER_SCHEMA = {
 
 PIONEER_SET_TONE_SETTINGS_SCHEMA = {
     vol.Required(ATTR_TONE): cv.string,
-    vol.Required(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
-    vol.Required(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+    vol.Optional(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+    vol.Optional(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
 }
 
 # PIONEER_SET_AMP_SETTINGS_SCHEMA = {
