@@ -26,15 +26,14 @@ set_tone_settings:
     tone:
       description: Tone mode
       required: true
-      example: "On"
-      default: "Bypass"
+      example: "on"
+      default: "bypass"
       selector:
         select:
           translation_key: "tone_mode"
           options:
-            - "Bypass"
-            - "On"
-            - "(cycle)"
+            - "bypass"
+            - "on"
     treble:
       description: Tone treble value
       example: 0
@@ -171,7 +170,7 @@ set_channel_levels:
             - "TRR"
             - "SW1"
             - "SW2"
-            - "ALL"
+            - "all"
     level:
       required: true
       example: 0.0
@@ -190,53 +189,53 @@ set_amp_settings:
       domain: media_player
   fields:
     speaker_mode:
-      example:
+      example: "off"
       selector:
         select:
           translation_key: amp_speaker_mode
           options:
-            - "OFF"
+            - "off"
             - "A"
             - "B"
             - "A+B"
     hdmi_out:
-      example:
+      example: "all"
       selector:
         select:
           translation_key: amp_hdmi_out
           options:
-            - "ALL"
+            - "all"
             - "HDMI 1"
             - "HDMI 2"
     hdmi3_out:
       selector:
         boolean:
     hdmi_audio:
-      example:
+      example: "amp"
       selector:
         select:
           translation_key: amp_hdmi_audio
           options:
-            - "AMP"
-            - "PASSTHROUGH"
+            - "amp"
+            - "passthrough"
     pqls:
-      example:
+      example: "off"
       selector:
         select:
           translation_key: amp_pqls
           options:
-            - "OFF"
-            - "AUTO"
+            - "off"
+            - "auto"
     dimmer:
-      example:
+      example: "brightest"
       selector:
         select:
           translation_key: amp_dimmer
           options:
-            - "Brightest"
-            - "Bright"
-            - "Dark"
-            - "Off"
+            - "brightest"
+            - "bright"
+            - "dark"
+            - "off"
     sleep_time:
       example: 0
       selector:
@@ -246,24 +245,24 @@ set_amp_settings:
           step: 30
           unit_of_measurement: min
     mode:
-      example:
+      example: "amp on"
       selector:
         select:
           translation_key: amp_mode
           options:
-            - "AMP ON"
-            - "AMP Front OFF"
-            - "AMP Front & Center OFF"
-            - "AMP OFF"
+            - "amp on"
+            - "amp front off"
+            - "amp front & center off"
+            - "amp off"
     panel_lock:
-      example:
+      example: "off"
       selector:
         select:
           translation_key: amp_panel_lock
           options:
-            - "OFF"
-            - "PANEL ONLY"
-            - "PANEL + VOLUME"
+            - "off"
+            - "panel only"
+            - "panel + volume"
     remote_lock:
       selector:
         boolean:
@@ -275,13 +274,13 @@ set_video_settings:
       domain: media_player
   fields:
     resolution:
-      example: "AUTO"
+      example: "auto"
       selector:
         select:
           translation_key: video_resolution
           options:
-            - "AUTO"
-            - "PURE"
+            - "auto"
+            - "pure"
             - "480/576p"
             - "720p"
             - "1080i"
@@ -293,14 +292,14 @@ set_video_settings:
       selector:
         boolean:
     pure_cinema:
-      example: "AUTO"
+      example: "auto"
       selector:
         select:
           translation_key: video_pure_cinema
           options:
-            - "AUTO"
-            - "ON"
-            - "OFF"
+            - "auto"
+            - "on"
+            - "off"
     prog_motion:
       example: 0
       selector:
@@ -309,14 +308,14 @@ set_video_settings:
           max: 4
           step: 1
     stream_smoother:
-      example: "OFF"
+      example: "off"
       selector:
         select:
           translation_key: video_stream_smoother
           options:
-            - "OFF"
-            - "ON"
-            - "AUTO"
+            - "off"
+            - "on"
+            - "auto"
     advanced_video_adjust:
       example: "PDP"
       selector:
@@ -326,8 +325,8 @@ set_video_settings:
             - "PDP"
             - "LCD"
             - "FPJ"
-            - "Professional"
-            - "Memory"
+            - "professional"
+            - "memory"
     ynr:
       example: 0
       selector:
@@ -402,13 +401,13 @@ set_video_settings:
       selector:
         boolean:
     aspect:
-      example: "PASSTHROUGH"
+      example: "passthrough"
       selector:
         select:
           translation_key: video_aspect
           options:
-            - "PASSTHROUGH"
-            - "NORMAL"
+            - "passthrough"
+            - "normal"
     super_resolution:
       example: 0
       selector:
@@ -431,7 +430,7 @@ set_dsp_settings:
           max: 6
           step: 1
     phase_control:
-      example:
+      example: "off"
       selector:
         select:
           translation_key: dsp_phase_control
@@ -464,13 +463,13 @@ set_dsp_settings:
             - "15"
             - "16"
     virtual_speakers:
-      example: "AUTO"
+      example: "auto"
       selector:
         select:
           translation_key: dsp_virtual_speakers
           options:
-            - "AUTO"
-            - "MANUAL"
+            - "auto"
+            - "manual"
     virtual_sb:
       selector:
         boolean:
@@ -495,14 +494,14 @@ set_dsp_settings:
       selector:
         boolean:
     signal_select:
-      example:
+      example: "auto"
       selector:
         select:
           translation_key: dsp_signal_select
           options:
-            - "AUTO"
-            - "ANALOG"
-            - "DIGITAL"
+            - "auto"
+            - "analog"
+            - "digital"
             - "HDMI"
     input_attenuator:
       selector:

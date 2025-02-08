@@ -148,9 +148,8 @@
     "selector": {
         "tone_mode": {
             "options": {
-                "Bypass": "Bypass",
-                "On": "On",
-                "(cycle)": "(cycle)"
+                "bypass": "bypass",
+                "on": "on"
             }
         },
         "tuner_band": {
@@ -161,32 +160,32 @@
         },
         "channel": {
             "options": {
-                "L": "Front Left",
-                "R": "Front Right",
-                "C": "Center",
-                "SL": "Surround Left",
-                "SR": "Surround Right",
-                "SBL": "Surround Back Left",
-                "SBR": "Surround Back Right",
-                "SW": "Subwoofer",
-                "LH": "Front Height Left",
-                "RH": "Front Height Right",
-                "LW": "Front Wide Left",
-                "RW": "Front Wide Right",
-                "TML": "Top Middle Left",
-                "TMR": "Top Middle Right",
-                "TFL": "Top Forward Left",
-                "TFR": "Top Forward Right",
-                "TRL": "Top Backward Left",
-                "TRR": "Top Backward Right",
-                "SW1": "SubWoofer 1",
-                "SW2": "SubWoofer 2",
-                "ALL": "INPUT LEVEL ADJUST(ALL ch Level)"
+                "L": "front left",
+                "R": "front right",
+                "C": "center",
+                "SL": "surround left",
+                "SR": "surround right",
+                "SBL": "surround back left",
+                "SBR": "surround back right",
+                "SW": "subwoofer",
+                "LH": "front height left",
+                "RH": "front height right",
+                "LW": "front wide left",
+                "RW": "front wide right",
+                "TML": "top middle left",
+                "TMR": "top middle right",
+                "TFL": "top forward left",
+                "TFR": "top forward right",
+                "TRL": "top backward left",
+                "TRR": "top backward right",
+                "SW1": "subwoofer 1",
+                "SW2": "subwoofer 2",
+                "all": "all channels"
             }
         },
         "amp_speaker_mode": {
             "options": {
-                "OFF": "OFF",
+                "off": "off",
                 "A": "A",
                 "B": "B",
                 "A+B": "A+B"
@@ -194,51 +193,50 @@
         },
         "amp_hdmi_out": {
             "options": {
-                "ALL": "ALL",
+                "all": "all",
                 "HDMI 1": "HDMI 1",
                 "HDMI 2": "HDMI 2"
             }
         },
         "amp_hdmi_audio": {
             "options": {
-                "AMP": "AMP",
-                "PASSTHROUGH": "PASSTHROUGH"
+                "amp": "amp",
+                "passthrough": "passthrough"
             }
         },
         "amp_pqls": {
             "options": {
-                "OFF": "OFF",
-                "AUTO": "AUTO"
+                "off": "off",
+                "auto": "auto"
             }
         },
         "amp_dimmer": {
             "options": {
-                "Brightest": "Brightest",
-                "Bright": "Bright",
-                "Dark": "Dark",
-                "Off": "Off",
-                "(cycle)": "(cycle)"
+                "brightest": "brightest",
+                "bright": "bright",
+                "dark": "dark",
+                "off": "off"
             }
         },
         "amp_mode": {
             "options": {
-                "AMP ON": "AMP ON",
-                "AMP Front OFF": "AMP Front OFF",
-                "AMP Front & Center OFF": "AMP Front & Center OFF",
-                "AMP OFF": "AMP OFF"
+                "amp on": "amp on",
+                "amp front off": "amp front off",
+                "amp front & center off": "amp front & center off",
+                "amp off": "amp off"
             }
         },
         "amp_panel_lock": {
             "options": {
-                "OFF": "OFF",
-                "PANEL ONLY": "PANEL ONLY",
-                "PANEL + VOLUME": "PANEL + VOLUME"
+                "off": "off",
+                "panel only": "panel only",
+                "panel + volume": "panel + volume"
             }
         },
         "video_resolution": {
             "options": {
                 "AUTO": "auto",
-                "PURE": "Pure",
+                "pure": "pure",
                 "480/576p": "480/576p",
                 "720p": "720p",
                 "1080i": "1080i",
@@ -250,16 +248,16 @@
         },
         "video_pure_cinema": {
             "options": {
-                "AUTO": "auto",
-                "ON": "on",
-                "OFF": "off"
+                "auto": "auto",
+                "on": "on",
+                "off": "off"
             }
         },
         "video_stream_smoother": {
             "options": {
-                "OFF": "off",
-                "ON": "on",
-                "AUTO": "auto"
+                "off": "off",
+                "on": "on",
+                "auto": "auto"
             }
         },
         "video_advanced_video_adjust": {
@@ -267,14 +265,14 @@
                 "PDP": "PDP",
                 "LCD": "LCD",
                 "FPJ": "FPJ",
-                "Professional": "Professional",
-                "Memory": "Memory"
+                "professional": "professional",
+                "memory": "memory"
             }
         },
         "video_aspect": {
             "options": {
-                "PASSTHROUGH": "Passthrough",
-                "NORMAL": "Normal"
+                "passthrough": "passthrough",
+                "normal": "normal"
             }
         },
         "dsp_phase_control": {
@@ -308,8 +306,8 @@
         },
         "dsp_virtual_speakers": {
             "options": {
-                "AUTO": "AUTO",
-                "MANUAL": "MANUAL"
+                "auto": "auto",
+                "manual": "manual"
             }
         },
         "dsp_virtual_depth": {
@@ -322,9 +320,9 @@
         },
         "dsp_signal_select": {
             "options": {
-                "AUTO": "AUTO",
-                "ANALOG": "ANALOG",
-                "DIGITAL": "DIGITAL",
+                "auto": "auto",
+                "analog": "analog",
+                "digital": "digital",
                 "HDMI": "HDMI"
             }
         },
@@ -340,8 +338,8 @@
         },
         "dsp_audio_scaler": {
             "options": {
-                "AUTO": "AUTO",
-                "MANUAL": "MANUAL"
+                "auto": "auto",
+                "manual": "manual"
             }
         },
         "dsp_up_sampling": {
