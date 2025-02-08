@@ -16,56 +16,6 @@ send_command:
       selector:
         text:
 
-set_panel_lock:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    panel_lock:
-      required: true
-      example: "0"
-      default: "0"
-      selector:
-        select:
-          translation_key: "panel_lock"
-          options:  # aiopioneer.const.PANEL_LOCK
-            - "0"
-            - "1"
-            - "2"
-
-set_remote_lock:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    remote_lock:
-      required: true
-      example: false
-      selector:
-        boolean:
-
-set_dimmer:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    dimmer:
-      required: true
-      example: "Bright"
-      default: "Brightest"
-      selector:
-        select:
-          translation_key: "dimmer_mode"
-          options:  # aiopioneer.const.DIMMER_MODES
-            - "Brightest"
-            - "Bright"
-            - "Dark"
-            - "Off"
-            - "(cycle)"
-
 set_tone_settings:
   description: Set AVR tone settings for zone
   target:
@@ -81,7 +31,7 @@ set_tone_settings:
       selector:
         select:
           translation_key: "tone_mode"
-          options:  # aiopioneer.const.TONE_MODES
+          options:
             - "Bypass"
             - "On"
             - "(cycle)"
@@ -106,13 +56,6 @@ set_tone_settings:
           step: 1
           unit_of_measurement: dB
 
-# set_amp_settings:
-#   description: Set AVR amplifier function settings for zone
-#   target:
-#     entity:
-#       integration: pioneer_async
-#       domain: media_player
-
 select_tuner_band:
   target:
     entity:
@@ -125,7 +68,7 @@ select_tuner_band:
       selector:
         select:
           translation_key: "tuner_band"
-          options:  # aiopioneer.const.TunerBand
+          options:
             - "FM"
             - "AM"
 
@@ -240,19 +183,503 @@ set_channel_levels:
           step: 0.5
           unit_of_measurement: dB
 
-# set_video_settings:
-#   description: Set video settings for zone
-#   target:
-#     entity:
-#       integration: pioneer_async
-#       domain: media_player
+set_amp_settings:
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
+  fields:
+    speaker_mode:
+      example:
+      selector:
+        select:
+          translation_key: amp_speaker_mode
+          options:
+            - "OFF"
+            - "A"
+            - "B"
+            - "A+B"
+    hdmi_out:
+      example:
+      selector:
+        select:
+          translation_key: amp_hdmi_out
+          options:
+            - "ALL"
+            - "HDMI 1"
+            - "HDMI 2"
+    hdmi3_out:
+      selector:
+        boolean:
+    hdmi_audio:
+      example:
+      selector:
+        select:
+          translation_key: amp_hdmi_audio
+          options:
+            - "AMP"
+            - "PASSTHROUGH"
+    pqls:
+      example:
+      selector:
+        select:
+          translation_key: amp_pqls
+          options:
+            - "OFF"
+            - "AUTO"
+    dimmer:
+      example:
+      selector:
+        select:
+          translation_key: amp_dimmer
+          options:
+            - "Brightest"
+            - "Bright"
+            - "Dark"
+            - "Off"
+    sleep_time:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 90
+          step: 30
+          unit_of_measurement: min
+    mode:
+      example:
+      selector:
+        select:
+          translation_key: amp_mode
+          options:
+            - "AMP ON"
+            - "AMP Front OFF"
+            - "AMP Front & Center OFF"
+            - "AMP OFF"
+    panel_lock:
+      example:
+      selector:
+        select:
+          translation_key: amp_panel_lock
+          options:
+            - "OFF"
+            - "PANEL ONLY"
+            - "PANEL + VOLUME"
+    remote_lock:
+      selector:
+        boolean:
 
-# set_dsp_settings:
-#   description: Set AVR DSP settings for the amplifier
-#   target:
-#     entity:
-#       integration: pioneer_async
-#       domain: media_player
+set_video_settings:
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
+  fields:
+    resolution:
+      example: "AUTO"
+      selector:
+        select:
+          translation_key: video_resolution
+          options:
+            - "AUTO"
+            - "PURE"
+            - "480/576p"
+            - "720p"
+            - "1080i"
+            - "1080p"
+            - "1080/24p"
+            - "4K"
+            - "4K/24p"
+    converter:
+      selector:
+        boolean:
+    pure_cinema:
+      example: "AUTO"
+      selector:
+        select:
+          translation_key: video_pure_cinema
+          options:
+            - "AUTO"
+            - "ON"
+            - "OFF"
+    prog_motion:
+      example: 0
+      selector:
+        number:
+          min: -4
+          max: 4
+          step: 1
+    stream_smoother:
+      example: "OFF"
+      selector:
+        select:
+          translation_key: video_stream_smoother
+          options:
+            - "OFF"
+            - "ON"
+            - "AUTO"
+    advanced_video_adjust:
+      example: "PDP"
+      selector:
+        select:
+          translation_key: video_advanced_video_adjust
+          options:
+            - "PDP"
+            - "LCD"
+            - "FPJ"
+            - "Professional"
+            - "Memory"
+    ynr:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    cnr:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    bnr:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    mnr:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    detail:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    sharpness:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 8
+          step: 1
+    brightness:
+      example: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+    contrast:
+      example: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+    hue:
+      example: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+    chroma:
+      example: 0
+      selector:
+        number:
+          min: -6
+          max: 6
+          step: 1
+    black_setup:
+      selector:
+        boolean:
+    aspect:
+      example: "PASSTHROUGH"
+      selector:
+        select:
+          translation_key: video_aspect
+          options:
+            - "PASSTHROUGH"
+            - "NORMAL"
+    super_resolution:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 3
+          step: 1
+
+set_dsp_settings:
+  target:
+    entity:
+      integration: pioneer_async
+      domain: media_player
+  fields:
+    mcacc_memory_set:
+      example:
+      selector:
+        number:
+          min: 1
+          max: 6
+          step: 1
+    phase_control:
+      example:
+      selector:
+        select:
+          translation_key: dsp_phase_control
+          options:
+            - "off"
+            - "on"
+            - "full band on"
+    phase_control_plus:
+      example: "auto"
+      selector:
+        select:
+          translation_key: dsp_phase_control_plus
+          options:
+            - "auto"
+            - "0"
+            - "1"
+            - "2"
+            - "3"
+            - "4"
+            - "5"
+            - "6"
+            - "7"
+            - "8"
+            - "9"
+            - "10"
+            - "11"
+            - "12"
+            - "13"
+            - "14"
+            - "15"
+            - "16"
+    virtual_speakers:
+      example: "AUTO"
+      selector:
+        select:
+          translation_key: dsp_virtual_speakers
+          options:
+            - "AUTO"
+            - "MANUAL"
+    virtual_sb:
+      selector:
+        boolean:
+    virtual_height:
+      selector:
+        boolean:
+    virtual_wide:
+      selector:
+        boolean:
+    virtual_depth:
+      example: "off"
+      selector:
+        select:
+          translation_key: dsp_virtual_depth
+          options:
+            - "off"
+            - "min"
+            - "mid"
+            - "max"
+    sound_retriever:
+      example:
+      selector:
+        boolean:
+    signal_select:
+      example:
+      selector:
+        select:
+          translation_key: dsp_signal_select
+          options:
+            - "AUTO"
+            - "ANALOG"
+            - "DIGITAL"
+            - "HDMI"
+    input_attenuator:
+      selector:
+        boolean:
+    eq:
+      selector:
+        boolean:
+    standing_wave:
+      selector:
+        boolean:
+    sound_delay:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 800
+          step: 5
+          unit_of_measurement: ms
+    digital_noise_reduction:
+      selector:
+        boolean:
+    dialog_enhancement:
+      example: "off"
+      selector:
+        select:
+          translation_key: dsp_dialog_enhancement
+          options:
+            - "off"
+            - "flat"
+            - "+1"
+            - "+2"
+            - "+3"
+            - "+4"
+    audio_scaler:
+      example: "AUTO"
+      selector:
+        select:
+          translation_key: dsp_audio_scaler
+          options:
+            - "AUTO"
+            - "MANUAL"
+    hi_bit:
+      selector:
+        boolean:
+    up_sampling:
+      example: "off"
+      selector:
+        select:
+          translation_key: dsp_up_sampling
+          options:
+            - "off"
+            - "2 times"
+            - "4 times"
+    digital_filter:
+      example: "slow"
+      selector:
+        select:
+          translation_key: dsp_digital_filter
+          options:
+            - "slow"
+            - "sharp"
+            - "short"
+    dual_mono:
+      example: "CH1+CH2"
+      selector:
+        select:
+          translation_key: dsp_dual_mono
+          options:
+            - "CH1+CH2"
+            - "CH1"
+            - "CH2"
+    fixed_pcm:
+      selector:
+        boolean:
+    dynamic_range:
+      example: "off"
+      selector:
+        select:
+          translation_key: dsp_dynamic_range
+          options:
+            - "off"
+            - "auto"
+            - "mid"
+            - "max"
+    lfe_attenuator:
+      example: "0"
+      selector:
+        select:
+          translation_key: dsp_lfe_attenuator
+          options:
+            - "off"
+            - "-20"
+            - "-19"
+            - "-18"
+            - "-17"
+            - "-16"
+            - "-15"
+            - "-14"
+            - "-13"
+            - "-12"
+            - "-11"
+            - "-10"
+            - "-9"
+            - "-8"
+            - "-7"
+            - "-6"
+            - "-5"
+            - "-4"
+            - "-3"
+            - "-2"
+            - "-1"
+            - "0"
+    sacd_gain:
+      example: "0"
+      selector:
+        select:
+          translation_key: dsp_sacd_gain
+          options:
+            - "0"
+            - "6"
+    auto_delay:
+      selector:
+        boolean:
+    center_width:
+      example: 1
+      selector:
+        number:
+          min: 1
+          max: 7
+          step: 1
+    panorama:
+      selector:
+        boolean:
+    dimension:
+      example: 0
+      selector:
+        number:
+          min: -3
+          max: 3
+          step: 1
+    center_image:
+      example: 0
+      selector:
+        number:
+          min: 0
+          max: 1
+          step: 0.1
+    effect:
+      example: 10
+      selector:
+        number:
+          min: 10
+          max: 90
+          step: 10
+    height_gain:
+      example: "low"
+      selector:
+        select:
+          translation_key: dsp_height_gain
+          options:
+            - "low"
+            - "mid"
+            - "high"
+    loudness_management:
+      selector:
+        boolean:
+    center_spread:
+      selector:
+        boolean:
+    rendering_mode:
+      example: "object base"
+      selector:
+        select:
+          translation_key: dsp_rendering_mode
+          options:
+            - "object base"
+            - "channel base"
 
 # media_control:
 #   description: TODO: implement using standard media functions

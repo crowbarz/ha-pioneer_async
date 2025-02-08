@@ -36,18 +36,15 @@ from .const import (
     DOMAIN,
     CLASS_PIONEER,
     SERVICE_SEND_COMMAND,
-    SERVICE_SET_PANEL_LOCK,
-    SERVICE_SET_REMOTE_LOCK,
-    SERVICE_SET_DIMMER,
     SERVICE_SET_TONE_SETTINGS,
-    # SERVICE_SET_AMP_SETTINGS,
     SERVICE_SELECT_TUNER_BAND,
     SERVICE_SET_FM_TUNER_FREQUENCY,
     SERVICE_SET_AM_TUNER_FREQUENCY,
     SERVICE_SELECT_TUNER_PRESET,
     SERVICE_SET_CHANNEL_LEVELS,
-    # SERVICE_SET_VIDEO_SETTINGS,
-    # SERVICE_SET_DSP_SETTINGS,
+    SERVICE_SET_AMP_SETTINGS,
+    SERVICE_SET_VIDEO_SETTINGS,
+    SERVICE_SET_DSP_SETTINGS,
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
@@ -55,9 +52,6 @@ from .const import (
     ATTR_COMMAND,
     ATTR_PREFIX,
     ATTR_SUFFIX,
-    ATTR_PANEL_LOCK,
-    ATTR_REMOTE_LOCK,
-    ATTR_DIMMER,
     ATTR_TONE,
     ATTR_TREBLE,
     ATTR_BASS,
@@ -67,6 +61,70 @@ from .const import (
     ATTR_PRESET,
     ATTR_CHANNEL,
     ATTR_LEVEL,
+    ATTR_AMP_SPEAKER_MODE,
+    ATTR_AMP_HDMI_OUT,
+    ATTR_AMP_HDMI3_OUT,
+    ATTR_AMP_HDMI_AUDIO,
+    ATTR_AMP_PQLS,
+    ATTR_AMP_DIMMER,
+    ATTR_AMP_SLEEP_TIME,
+    ATTR_AMP_MODE,
+    ATTR_AMP_PANEL_LOCK,
+    ATTR_AMP_REMOTE_LOCK,
+    ATTR_VIDEO_RESOLUTION,
+    ATTR_VIDEO_CONVERTER,
+    ATTR_VIDEO_PURE_CINEMA,
+    ATTR_VIDEO_PROG_MOTION,
+    ATTR_VIDEO_STREAM_SMOOTHER,
+    ATTR_VIDEO_ADVANCED_VIDEO_ADJUST,
+    ATTR_VIDEO_YNR,
+    ATTR_VIDEO_CNR,
+    ATTR_VIDEO_BNR,
+    ATTR_VIDEO_MNR,
+    ATTR_VIDEO_DETAIL,
+    ATTR_VIDEO_SHARPNESS,
+    ATTR_VIDEO_BRIGHTNESS,
+    ATTR_VIDEO_CONTRAST,
+    ATTR_VIDEO_HUE,
+    ATTR_VIDEO_CHROMA,
+    ATTR_VIDEO_BLACK_SETUP,
+    ATTR_VIDEO_ASPECT,
+    ATTR_VIDEO_SUPER_RESOLUTION,
+    ATTR_DSP_MCACC_MEMORY_SET,
+    ATTR_DSP_PHASE_CONTROL,
+    ATTR_DSP_PHASE_CONTROL_PLUS,
+    ATTR_DSP_VIRTUAL_SPEAKERS,
+    ATTR_DSP_VIRTUAL_SB,
+    ATTR_DSP_VIRTUAL_HEIGHT,
+    ATTR_DSP_VIRTUAL_WIDE,
+    ATTR_DSP_VIRTUAL_DEPTH,
+    ATTR_DSP_SOUND_RETRIEVER,
+    ATTR_DSP_SIGNAL_SELECT,
+    ATTR_DSP_INPUT_ATTENUATOR,
+    ATTR_DSP_EQ,
+    ATTR_DSP_STANDING_WAVE,
+    ATTR_DSP_SOUND_DELAY,
+    ATTR_DSP_DIGITAL_NOISE_REDUCTION,
+    ATTR_DSP_DIALOG_ENHANCEMENT,
+    ATTR_DSP_AUDIO_SCALER,
+    ATTR_DSP_HI_BIT,
+    ATTR_DSP_UP_SAMPLING,
+    ATTR_DSP_DIGITAL_FILTER,
+    ATTR_DSP_DUAL_MONO,
+    ATTR_DSP_FIXED_PCM,
+    ATTR_DSP_DYNAMIC_RANGE,
+    ATTR_DSP_LFE_ATTENUATOR,
+    ATTR_DSP_SACD_GAIN,
+    ATTR_DSP_AUTO_DELAY,
+    ATTR_DSP_CENTER_WIDTH,
+    ATTR_DSP_PANORAMA,
+    ATTR_DSP_DIMENSION,
+    ATTR_DSP_CENTER_IMAGE,
+    ATTR_DSP_EFFECT,
+    ATTR_DSP_HEIGHT_GAIN,
+    ATTR_DSP_LOUDNESS_MANAGEMENT,
+    ATTR_DSP_CENTER_SPREAD,
+    ATTR_DSP_RENDERING_MODE,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -84,26 +142,11 @@ PIONEER_SEND_COMMAND_SCHEMA = {
     vol.Optional(ATTR_SUFFIX): cv.string,
 }
 
-PIONEER_SET_PANEL_LOCK_SCHEMA = {
-    vol.Required(ATTR_PANEL_LOCK): cv.string,
-}
-
-PIONEER_SET_REMOTE_LOCK_SCHEMA = {
-    vol.Required(ATTR_REMOTE_LOCK): cv.boolean,
-}
-
-PIONEER_SERVICE_SET_DIMMER_SCHEMA = {
-    vol.Required(ATTR_DIMMER): cv.string,
-}
-
 PIONEER_SET_TONE_SETTINGS_SCHEMA = {
     vol.Required(ATTR_TONE): cv.string,
     vol.Optional(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
     vol.Optional(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
 }
-
-# PIONEER_SET_AMP_SETTINGS_SCHEMA = {
-# }
 
 PIONEER_SELECT_TUNER_BAND_SCHEMA = {
     vol.Required(ATTR_BAND): str,
@@ -132,11 +175,104 @@ PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
     vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(float), vol.Range(min=-12, max=12)),
 }
 
-# PIONEER_SET_VIDEO_SETTINGS_SCHEMA = {
-# }
+PIONEER_SET_AMP_SETTINGS_SCHEMA = {
+    vol.Optional(ATTR_AMP_SPEAKER_MODE): cv.string,
+    vol.Optional(ATTR_AMP_HDMI_OUT): cv.string,
+    vol.Optional(ATTR_AMP_HDMI3_OUT): cv.boolean,
+    vol.Optional(ATTR_AMP_HDMI_AUDIO): cv.string,
+    vol.Optional(ATTR_AMP_PQLS): cv.string,
+    vol.Optional(ATTR_AMP_DIMMER): cv.string,
+    vol.Optional(ATTR_AMP_SLEEP_TIME): vol.All(
+        vol.Coerce(int), vol.Range(min=0, max=90)
+    ),
+    vol.Optional(ATTR_AMP_MODE): cv.string,
+    vol.Optional(ATTR_AMP_PANEL_LOCK): cv.string,
+    vol.Optional(ATTR_AMP_REMOTE_LOCK): cv.boolean,
+}
 
-# PIONEER_SET_DSP_SETTINGS_SCHEMA = {
-# }
+PIONEER_SET_VIDEO_SETTINGS_SCHEMA = {
+    vol.Optional(ATTR_VIDEO_RESOLUTION): cv.string,
+    vol.Optional(ATTR_VIDEO_CONVERTER): cv.boolean,
+    vol.Optional(ATTR_VIDEO_PURE_CINEMA): cv.string,
+    vol.Optional(ATTR_VIDEO_PROG_MOTION): vol.All(
+        vol.Coerce(int), vol.Range(min=-4, max=4)
+    ),
+    vol.Optional(ATTR_VIDEO_STREAM_SMOOTHER): cv.string,
+    vol.Optional(ATTR_VIDEO_ADVANCED_VIDEO_ADJUST): cv.string,
+    vol.Optional(ATTR_VIDEO_YNR): vol.All(vol.Coerce(int), vol.Range(min=0, max=8)),
+    vol.Optional(ATTR_VIDEO_CNR): vol.All(vol.Coerce(int), vol.Range(min=0, max=8)),
+    vol.Optional(ATTR_VIDEO_BNR): vol.All(vol.Coerce(int), vol.Range(min=0, max=8)),
+    vol.Optional(ATTR_VIDEO_MNR): vol.All(vol.Coerce(int), vol.Range(min=0, max=8)),
+    vol.Optional(ATTR_VIDEO_DETAIL): vol.All(vol.Coerce(int), vol.Range(min=0, max=8)),
+    vol.Optional(ATTR_VIDEO_SHARPNESS): vol.All(
+        vol.Coerce(int), vol.Range(min=0, max=8)
+    ),
+    vol.Optional(ATTR_VIDEO_BRIGHTNESS): vol.All(
+        vol.Coerce(int), vol.Range(min=-6, max=6)
+    ),
+    vol.Optional(ATTR_VIDEO_CONTRAST): vol.All(
+        vol.Coerce(int), vol.Range(min=-6, max=6)
+    ),
+    vol.Optional(ATTR_VIDEO_HUE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+    vol.Optional(ATTR_VIDEO_CHROMA): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
+    vol.Optional(ATTR_VIDEO_BLACK_SETUP): cv.boolean,
+    vol.Optional(ATTR_VIDEO_ASPECT): cv.string,
+    vol.Optional(ATTR_VIDEO_SUPER_RESOLUTION): vol.All(
+        vol.Coerce(int), vol.Range(min=0, max=3)
+    ),
+}
+
+PIONEER_SET_DSP_SETTINGS_SCHEMA = {
+    vol.Optional(ATTR_DSP_MCACC_MEMORY_SET): vol.All(
+        vol.Coerce(int), vol.Range(min=1, max=6)
+    ),
+    vol.Optional(ATTR_DSP_PHASE_CONTROL): cv.string,
+    vol.Optional(ATTR_DSP_PHASE_CONTROL_PLUS): vol.Or(
+        "auto", vol.All(vol.Coerce(int), vol.Range(min=0, max=16))
+    ),
+    vol.Optional(ATTR_DSP_VIRTUAL_SPEAKERS): cv.string,
+    vol.Optional(ATTR_DSP_VIRTUAL_SB): cv.boolean,
+    vol.Optional(ATTR_DSP_VIRTUAL_HEIGHT): cv.boolean,
+    vol.Optional(ATTR_DSP_VIRTUAL_WIDE): cv.boolean,
+    vol.Optional(ATTR_DSP_VIRTUAL_DEPTH): cv.string,
+    vol.Optional(ATTR_DSP_SOUND_RETRIEVER): cv.boolean,
+    vol.Optional(ATTR_DSP_SIGNAL_SELECT): cv.string,
+    vol.Optional(ATTR_DSP_INPUT_ATTENUATOR): cv.boolean,
+    vol.Optional(ATTR_DSP_EQ): cv.boolean,
+    vol.Optional(ATTR_DSP_STANDING_WAVE): cv.boolean,
+    vol.Optional(ATTR_DSP_SOUND_DELAY): vol.All(
+        vol.Coerce(int), vol.Range(min=0, max=800)
+    ),
+    vol.Optional(ATTR_DSP_DIGITAL_NOISE_REDUCTION): cv.boolean,
+    vol.Optional(ATTR_DSP_DIALOG_ENHANCEMENT): cv.string,
+    vol.Optional(ATTR_DSP_AUDIO_SCALER): cv.string,
+    vol.Optional(ATTR_DSP_HI_BIT): cv.boolean,
+    vol.Optional(ATTR_DSP_UP_SAMPLING): cv.string,
+    vol.Optional(ATTR_DSP_DIGITAL_FILTER): cv.string,
+    vol.Optional(ATTR_DSP_DUAL_MONO): cv.string,
+    vol.Optional(ATTR_DSP_FIXED_PCM): cv.boolean,
+    vol.Optional(ATTR_DSP_DYNAMIC_RANGE): cv.string,
+    vol.Optional(ATTR_DSP_LFE_ATTENUATOR): vol.Or(
+        "off", vol.All(vol.Coerce(int), vol.Range(min=-20, max=0))
+    ),
+    vol.Optional(ATTR_DSP_SACD_GAIN): vol.All(vol.Coerce(int), vol.Or(0, 6)),
+    vol.Optional(ATTR_DSP_AUTO_DELAY): cv.boolean,
+    vol.Optional(ATTR_DSP_CENTER_WIDTH): vol.All(
+        vol.Coerce(int), vol.Range(min=0, max=7)
+    ),
+    vol.Optional(ATTR_DSP_PANORAMA): cv.boolean,
+    vol.Optional(ATTR_DSP_DIMENSION): vol.All(
+        vol.Coerce(int), vol.Range(min=-3, max=3)
+    ),
+    vol.Optional(ATTR_DSP_CENTER_IMAGE): vol.All(
+        vol.Coerce(float), vol.Range(min=0, max=1)
+    ),
+    vol.Optional(ATTR_DSP_EFFECT): vol.All(vol.Coerce(int), vol.Range(min=10, max=90)),
+    vol.Optional(ATTR_DSP_HEIGHT_GAIN): cv.string,
+    vol.Optional(ATTR_DSP_LOUDNESS_MANAGEMENT): cv.boolean,
+    vol.Optional(ATTR_DSP_CENTER_SPREAD): cv.boolean,
+    vol.Optional(ATTR_DSP_RENDERING_MODE): cv.string,
+}
 
 
 async def async_setup_entry(
@@ -195,23 +331,10 @@ async def async_setup_entry(
         supports_response=SupportsResponse.OPTIONAL,
     )
     platform.async_register_entity_service(
-        SERVICE_SET_PANEL_LOCK, PIONEER_SET_PANEL_LOCK_SCHEMA, "async_set_panel_lock"
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_REMOTE_LOCK, PIONEER_SET_REMOTE_LOCK_SCHEMA, "async_set_remote_lock"
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_DIMMER, PIONEER_SERVICE_SET_DIMMER_SCHEMA, "async_set_dimmer"
-    )
-    platform.async_register_entity_service(
         SERVICE_SET_TONE_SETTINGS,
         PIONEER_SET_TONE_SETTINGS_SCHEMA,
         "async_set_tone_settings",
     )
-    # platform.async_register_entity_service(
-    #     SERVICE_SET_AMP_SETTINGS, PIONEER_SET_AMP_SETTINGS_SCHEMA, "async_set_amp_settings"
-    # )
-
     platform.async_register_entity_service(
         SERVICE_SELECT_TUNER_BAND,
         PIONEER_SELECT_TUNER_BAND_SCHEMA,
@@ -237,12 +360,21 @@ async def async_setup_entry(
         PIONEER_SET_CHANNEL_LEVELS_SCHEMA,
         "async_set_channel_levels",
     )
-    # platform.async_register_entity_service(
-    #     SERVICE_SET_VIDEO_SETTINGS, PIONEER_SET_VIDEO_SETTINGS_SCHEMA, "async_set_video_settings"
-    # )
-    # platform.async_register_entity_service(
-    #     SERVICE_SET_DSP_SETTINGS, PIONEER_SET_DSP_SETTINGS_SCHEMA, "async_set_dsp_settings"
-    # )
+    platform.async_register_entity_service(
+        SERVICE_SET_AMP_SETTINGS,
+        PIONEER_SET_AMP_SETTINGS_SCHEMA,
+        "async_set_amp_settings",
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_VIDEO_SETTINGS,
+        PIONEER_SET_VIDEO_SETTINGS_SCHEMA,
+        "async_set_video_settings",
+    )
+    platform.async_register_entity_service(
+        SERVICE_SET_DSP_SETTINGS,
+        PIONEER_SET_DSP_SETTINGS_SCHEMA,
+        "async_set_dsp_settings",
+    )
 
 
 class PioneerZone(
@@ -536,36 +668,6 @@ class PioneerZone(
         if service_call.return_response:
             return resp
 
-    async def async_set_panel_lock(self, panel_lock: str) -> None:
-        """Set AVR panel lock."""
-        if Debug.action:
-            _LOGGER.debug(">> PioneerZone.set_panel_lock(panel_lock=%s)", panel_lock)
-
-        async def set_panel_lock() -> None:
-            await self.pioneer.set_panel_lock(panel_lock)
-
-        await self.pioneer_command(set_panel_lock)
-
-    async def async_set_remote_lock(self, remote_lock: bool) -> None:
-        """Set AVR remote lock."""
-        if Debug.action:
-            _LOGGER.debug(">> PioneerZone.set_remote_lock(remote_lock=%s)", remote_lock)
-
-        async def set_remote_lock() -> None:
-            await self.pioneer.set_remote_lock(remote_lock)
-
-        await self.pioneer_command(set_remote_lock)
-
-    async def async_set_dimmer(self, dimmer: str) -> None:
-        """Set AVR display dimmer."""
-        if Debug.action:
-            _LOGGER.debug(">> PioneerZone.set_dimmer(dimmer=%s)", dimmer)
-
-        async def set_dimmer() -> None:
-            await self.pioneer.set_dimmer(dimmer)
-
-        await self.pioneer_command(set_dimmer)
-
     async def async_set_tone_settings(self, tone: str, treble: int, bass: int) -> None:
         """Set AVR tone settings for zone."""
         if Debug.action:
@@ -651,3 +753,37 @@ class PioneerZone(
             await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
 
         await self.pioneer_command(set_channel_levels, repeat=True)
+
+    async def async_set_amp_settings(self, **kwargs) -> None:
+        """Set AVR amp settings."""
+        # if Debug.action:
+        _LOGGER.debug(">> PioneerZone.async_set_amp_settings(kwargs=%s)", kwargs)
+
+        async def set_amp_settings() -> None:
+            await self.pioneer.set_amp_settings(**kwargs)
+
+        await self.pioneer_command(set_amp_settings, repeat=True)
+
+    async def async_set_video_settings(self, **kwargs) -> None:
+        """Set AVR video settings."""
+        # if Debug.action:
+        _LOGGER.debug(
+            ">> PioneerZone.set_video_settings(%s, kwargs=%s)", self.zone, kwargs
+        )
+
+        async def set_video_settings() -> None:
+            await self.pioneer.set_video_settings(zone=self.zone, **kwargs)
+
+        await self.pioneer_command(set_video_settings, repeat=True)
+
+    async def async_set_dsp_settings(self, **kwargs) -> None:
+        """Set AVR DSP settings."""
+        # if Debug.action:
+        _LOGGER.debug(
+            ">> PioneerZone.set_dsp_settings(%s, kwargs=%s)", self.zone, kwargs
+        )
+
+        async def set_dsp_settings() -> None:
+            await self.pioneer.set_dsp_settings(zone=self.zone, **kwargs)
+
+        await self.pioneer_command(set_dsp_settings, repeat=True)
