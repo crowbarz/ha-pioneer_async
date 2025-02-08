@@ -12,7 +12,7 @@ from typing import Any
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 from aiopioneer.params import PARAMS_ALL, PARAM_ZONE_SOURCES
-from aiopioneer.exceptions import AVRConnectionError
+from aiopioneer.exceptions import AVRConnectError
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
@@ -164,8 +164,6 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             params=params,
         )
         await pioneer.connect()
-        if await pioneer.query_device_model() is None:
-            raise RuntimeError("cannot query AVR device model")
         await pioneer.query_zones()
         if not Zone.Z1 in pioneer.properties.zones:
             raise RuntimeError(f"{Zone.Z1.full_name} not discovered on AVR")
@@ -173,8 +171,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             pioneer.properties.set_source_dict(sources)
         else:
             await pioneer.build_source_dict()
-    except AVRConnectionError as exc:
-        _LOGGER.error("unable to connect to AVR: %s", exc.kwargs.get("err"))
+    except AVRConnectError as exc:
+        _LOGGER.error("unable to connect to AVR: %s", exc.err)
         del pioneer
         raise ConfigEntryNotReady from exc
     except Exception as exc:  # pylint: disable=broad-except

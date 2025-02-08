@@ -10,7 +10,9 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
+from aiopioneer.exceptions import AVRConnectError
 from aiopioneer.params import (
+    PARAM_MODEL,
     PARAM_IGNORED_ZONES,
     PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,
@@ -74,9 +76,10 @@ from .debug import Debug
 _LOGGER = logging.getLogger(__name__)
 
 
-def _get_schema_basic_options(defaults: list) -> dict:
+def _get_schema_basic_options(defaults: dict) -> dict:
     """Return basic options schema."""
     return {
+        vol.Optional(PARAM_MODEL): selector.TextSelector(selector.TextSelectorConfig()),
         vol.Required(CONF_SOURCES, default=[]): selector.SelectSelector(
             selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
         ),
@@ -180,11 +183,7 @@ def _filter_params(options: dict[str, Any], defaults: dict[str, Any]) -> dict[st
     }
 
 
-class CannotConnect(HomeAssistantError):
-    """Error to indicate we cannot connect."""
-
-
-class ProtocolFailure(HomeAssistantError):
+class Zone1NotDiscovered(HomeAssistantError):
     """Error to indicate an AVR protocol failure."""
 
 
@@ -212,6 +211,7 @@ class PioneerAVRConfigFlow(
         self.name = None
         self.host = None
         self.port = None
+        self.model = None
         self.defaults = {}
         self.query_sources = False
         self.sources = {}
@@ -251,28 +251,23 @@ class PioneerAVRConfigFlow(
             pioneer = None
             try:
                 pioneer = PioneerAVR(self.host, self.port, params=self.options)
-                try:
-                    await pioneer.connect(reconnect=False)
-                except (OSError, TimeoutError) as exc:
-                    raise CannotConnect(repr(exc)) from exc
-
-                if await pioneer.query_device_model() is None:
-                    raise ProtocolFailure()
+                await pioneer.connect(reconnect=False)
                 await pioneer.query_zones()
                 if not Zone.Z1 in pioneer.properties.zones:
-                    raise ProtocolFailure()
+                    raise Zone1NotDiscovered()
                 if self.query_sources:
                     await pioneer.build_source_dict()
                     self.sources = pioneer.properties.get_source_dict()
                 self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
+                self.model = pioneer.properties.model
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")
-            except CannotConnect as exc:
+            except AVRConnectError as exc:
                 errors["base"] = "cannot_connect"
-                description_placeholders["exception"] = str(exc)
-            except ProtocolFailure as exc:
-                return self.async_abort(reason="protocol_failure")
+                description_placeholders["exception"] = exc.err
+            except Zone1NotDiscovered:
+                return self.async_abort(reason="zone_1_not_discovered")
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGER.error("unexpected exception: %s", repr(exc))
                 return self.async_abort(
@@ -358,7 +353,10 @@ class PioneerAVRConfigFlow(
             if not errors:
                 return await self._create_config_entry()
         else:
-            user_input = {CONF_SOURCES: _convert_sources(self.sources)}
+            user_input = {
+                PARAM_MODEL: self.model,
+                CONF_SOURCES: _convert_sources(self.sources),
+            }
 
         data_schema = vol.Schema(_get_schema_basic_options(self.defaults))
 
@@ -786,6 +784,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         ## Validate CONF_SOURCES is a dict of names to numeric IDs
         if step_id == "basic_options":
+            if not user_input.get(PARAM_MODEL):
+                del self.options[PARAM_MODEL]
             if not user_input[CONF_QUERY_SOURCES]:
                 sources_new, sources_invalid = _validate_sources(
                     user_input[CONF_SOURCES]
