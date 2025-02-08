@@ -7,7 +7,7 @@ import logging
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, SOURCE_TUNER
-from aiopioneer.exceptions import PioneerError
+from aiopioneer.exceptions import AVRCommandResponseError
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -72,7 +72,7 @@ class PioneerEntityBase(Entity):
             try:
                 resp = await aw_f()
                 return resp
-            except PioneerError as exc:
+            except AVRCommandResponseError as exc:
                 await asyncio.sleep(1)
                 count += 1
                 if count >= repeat_count:
