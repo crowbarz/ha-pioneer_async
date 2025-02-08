@@ -287,41 +287,21 @@ Set AVR level (gain) for an amplifier channel.
 | --- | --- | --- | ---
 | channel | str | | Tuner amp channel to modify. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
 
-### Action `set_panel_lock`
+### Action `set_amp_settings`
 
-Set AVR panel lock.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| panel_lock | bool | | Panel lock setting (required)
-
-### Action `set_remote_lock`
-
-Set AVR remote lock.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| remote_lock | bool | | Enable remote lock (required)
-
-### Action `set_dimmer`
-
-Set AVR display dimmer.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| dimmer | string | | Dimmer mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
+To be documented.
 
 ### Action `set_video_settings`
 
-To be implemented.
+To be documented.
 
 ### Action `set_dsp_settings`
 
-To be implemented.
+To be documented.
 
 ### Action `media_control`
 
-To be implemented.
+To be documented.
 
 ### Action `send_command` (>= 0.9.1)
 

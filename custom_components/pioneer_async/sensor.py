@@ -94,7 +94,7 @@ async def async_setup_entry(
                 name="Amp",
                 icon="mdi:amplifier",
                 base_property="amp",
-                promoted_property="speakers",
+                promoted_property="speaker_mode",
                 exclude_properties=["display", "dimmer"],
                 enabled_default=True,
             ),

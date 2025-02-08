@@ -199,6 +199,40 @@
                 "SW2": "SubWoofer 2",
                 "ALL": "INPUT LEVEL ADJUST(ALL ch Level)"
             }
+        },
+        "resolution": {
+            "options": {
+                "AUTO": "auto",
+                "PURE": "Pure",
+                "480/576p": "480/576p",
+                "720p": "720p",
+                "1080i": "1080i",
+                "1080p": "1080p",
+                "1080/24p": "1080/24p",
+                "4K": "4K",
+                "4K/24p": "4K/24p"
+            }
+        },
+        "pure_cinema": {
+            "AUTO": "auto",
+            "ON": "on",
+            "OFF": "off"
+        },
+        "stream_smoother": {
+            "OFF": "off",
+            "ON": "on",
+            "AUTO": "auto"
+        },
+        "advanced_video_adjust": {
+            "PDP": "PDP",
+            "LCD": "LCD",
+            "FPJ": "FPJ",
+            "Professional": "Professional",
+            "Memory": "Memory"
+        },
+        "aspect": {
+            "PASSTHROUGH": "Passthrough",
+            "NORMAL": "Normal"
         }
     },
     "services": {
@@ -220,36 +254,6 @@
                 }
             }
         },
-        "set_panel_lock": {
-            "name": "Set Panel Lock",
-            "description": "Set AVR panel lock.",
-            "fields": {
-                "panel_lock": {
-                    "name": "Panel Lock",
-                    "description": "Panel lock setting."
-                }
-            }
-        },
-        "set_remote_lock": {
-            "name": "Set Remote Lock",
-            "description": "Set AVR remote lock.",
-            "fields": {
-                "remote_lock": {
-                    "name": "Remote Lock",
-                    "description": "Enable remote lock."
-                }
-            }
-        },
-        "set_dimmer": {
-            "name": "Set Dimmer",
-            "description": "Set AVR display dimmer.",
-            "fields": {
-                "dimmer": {
-                    "name": "Dimmer",
-                    "description": "Dimmer mode."
-                }
-            }
-        },
         "set_tone_settings": {
             "name": "Set Tone Settings",
             "description": "Set AVR tone settings for zone.",
@@ -266,6 +270,48 @@
                     "name": "Bass",
                     "description": "Tone bass value."
                 }
+            }
+        },
+        "set_amp_settings": {
+            "speaker_mode": {
+                "name": "Set Speaker Mode",
+                "description": "Speaker mode setting."
+            },
+            "hdmi_out": {
+                "name": "Set HDMI Out",
+                "description": "HDMI out setting."
+            },
+            "hdmi3_out": {
+                "name": "Set HDMI3 Out",
+                "description": "HDMI3 out setting."
+            },
+            "hdmi_audio": {
+                "name": "Set HDMI Audio",
+                "description": "HDMI audio setting."
+            },
+            "pqls": {
+                "name": "Set PQLS",
+                "description": "PQLS setting."
+            },
+            "dimmer": {
+                "name": "Set Dimmer",
+                "description": "Dimmer setting."
+            },
+            "sleep_time": {
+                "name": "Set Sleep Time",
+                "description": "Sleep time setting."
+            },
+            "mode": {
+                "name": "Set Amp Mode",
+                "description": "Amp mode setting."
+            },
+            "panel_lock": {
+                "name": "Set Panel Lock",
+                "description": "Panel lock setting."
+            },
+            "remote_lock": {
+                "name": "Set Remote Lock",
+                "description": "Remote lock setting."
             }
         },
         "select_tuner_band": {
@@ -323,6 +369,234 @@
                 "level": {
                     "name": "Level",
                     "description": "Tuner amp channel level."
+                }
+            }
+        },
+        "set_video_settings": {
+            "name": "Set Video Settings",
+            "desciption": "Set AVR video settings.",
+            "fields": {
+                "resolution": {
+                    "name": "Resolution",
+                    "description": "Video resolution setting."
+                },
+                "converter": {
+                    "name": "Converter",
+                    "description": "Video converter setting."
+                },
+                "pure_cinema": {
+                    "name": "Pure Cinema",
+                    "description": "Video pure cinema setting."
+                },
+                "prog_motion": {
+                    "name": "Prog Motion",
+                    "description": "Video prog motion setting."
+                },
+                "stream_smoother": {
+                    "name": "Stream Smoother",
+                    "description": "Video stream smoother setting."
+                },
+                "advanced_video_adjust": {
+                    "name": "Advanced Video Adjust",
+                    "description": "Video advanced video adjust setting."
+                },
+                "ynr": {
+                    "name": "YNR",
+                    "description": "Video YNR setting."
+                },
+                "cnr": {
+                    "name": "CNR",
+                    "description": "Video CNR setting."
+                },
+                "bnr": {
+                    "name": "BNR",
+                    "description": "Video BNR setting."
+                },
+                "mnr": {
+                    "name": "MNR",
+                    "description": "Video MNR setting."
+                },
+                "detail": {
+                    "name": "Detail",
+                    "description": "Video detail setting."
+                },
+                "sharpness": {
+                    "name": "Sharpness",
+                    "description": "Video sharpness setting."
+                },
+                "brightness": {
+                    "name": "Brightness",
+                    "description": "Video brightness setting."
+                },
+                "contrast": {
+                    "name": "Contrast",
+                    "description": "Video contrast setting."
+                },
+                "hue": {
+                    "name": "Hue",
+                    "description": "Video hue setting."
+                },
+                "chroma": {
+                    "name": "Chroma",
+                    "description": "Video chroma setting."
+                },
+                "black_setup": {
+                    "name": "Black Setup",
+                    "description": "Video black setup setting."
+                },
+                "aspect": {
+                    "name": "Aspect",
+                    "description": "Video aspect setting."
+                },
+                "super_resolution": {
+                    "name": "Super Resolution",
+                    "description": "Video super resolution setting."
+                }
+            }
+        },
+        "set_dsp_settings": {
+            "name": "Set DSP Settings",
+            "desciption": "Set AVR DSP settings.",
+            "fields": {
+                "mcacc_memory_set": {
+                    "name": "MCACC Memory Set",
+                    "description": "DSP MCACC memory set setting."
+                },
+                "phase_control": {
+                    "name": "Phase Control",
+                    "description": "DSP phase control setting."
+                },
+                "phase_control_plus": {
+                    "name": "Phase Control Plus",
+                    "description": "DSP phase control plus setting."
+                },
+                "virtual_speakers": {
+                    "name": "Virtual Speakers",
+                    "description": "DSP virtual speakers setting."
+                },
+                "virtual_sb": {
+                    "name": "Virtual SB",
+                    "description": "DSP virtual sb setting."
+                },
+                "virtual_height": {
+                    "name": "Virtual Height",
+                    "description": "DSP virtual height setting."
+                },
+                "virtual_wide": {
+                    "name": "Virtual Wide",
+                    "description": "DSP virtual wide setting."
+                },
+                "virtual_depth": {
+                    "name": "Virtual Depth",
+                    "description": "DSP virtual depth setting."
+                },
+                "sound_retriever": {
+                    "name": "Sound Retriever",
+                    "description": "DSP sound retriever setting."
+                },
+                "signal_select": {
+                    "name": "Signal Select",
+                    "description": "DSP signal select setting."
+                },
+                "input_attenuator": {
+                    "name": "Input Attenuator",
+                    "description": "DSP input attenuator setting."
+                },
+                "eq": {
+                    "name": "EQ",
+                    "description": "DSP equalizer setting."
+                },
+                "standing_wave": {
+                    "name": "Standing Wave",
+                    "description": "DSP standing wave setting."
+                },
+                "sound_delay": {
+                    "name": "Sound Delay",
+                    "description": "DSP sound delay setting."
+                },
+                "digital_noise_reduction": {
+                    "name": "Digital Noise Reduction",
+                    "description": "DSP digital noise reduction setting."
+                },
+                "dialog_enhancement": {
+                    "name": "Dialog Enhancement",
+                    "description": "DSP dialog enhancement setting."
+                },
+                "audio_scaler": {
+                    "name": "Audio Scaler",
+                    "description": "DSP audio scaler setting."
+                },
+                "hi_bit": {
+                    "name": "Hi-BIT",
+                    "description": "DSP Hi-BIT setting."
+                },
+                "up_sampling": {
+                    "name": "Up Sampling",
+                    "description": "DSP up sampling setting."
+                },
+                "digital_filter": {
+                    "name": "Digital Filter",
+                    "description": "DSP digital filter setting."
+                },
+                "dual_mono": {
+                    "name": "Dual Mono",
+                    "description": "DSP dual mono setting."
+                },
+                "fixed_pcm": {
+                    "name": "Fixed PCM",
+                    "description": "DSP fixed pcm setting."
+                },
+                "dynamic_range": {
+                    "name": "Dynamic Range Control",
+                    "description": "DSP dynamic range control setting."
+                },
+                "lfe_attenuator": {
+                    "name": "LFE Attenuator",
+                    "description": "DSP LFE attenuator setting."
+                },
+                "sacd_gain": {
+                    "name": "SACD Gain",
+                    "description": "DSP SACD gain setting."
+                },
+                "auto_delay": {
+                    "name": "Auto Delay",
+                    "description": "DSP auto delay setting."
+                },
+                "center_width": {
+                    "name": "Center Width",
+                    "description": "DSP center width setting."
+                },
+                "panorama": {
+                    "name": "Panorama",
+                    "description": "DSP panorama setting."
+                },
+                "dimension": {
+                    "name": "Dimension",
+                    "description": "DSP dimension setting."
+                },
+                "center_image": {
+                    "name": "Center Image",
+                    "description": "DSP center image setting."
+                },
+                "effect": {
+                    "name": "Effect",
+                    "description": "DSP effect setting."
+                },
+                "height_gain": {
+                    "name": "Height Gain",
+                    "description": "DSP height gain setting."
+                },
+                "loudness_management": {
+                    "name": "Loudness Management",
+                    "description": "DSP loudness management setting."
+                },
+                "center_spread": {
+                    "name": "Center Spread",
+                    "description": "DSP center spread setting."
+                },
+                "rendering_mode": {
+                    "name": "Rendering Mode",
+                    "description": "DSP rendering mode setting. (Dolby Atmos only)"
                 }
             }
         }
