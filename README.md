@@ -246,39 +246,6 @@ Set AVR tone settings for zone.
 | treble | int | None | Tone treble value (-6dB -- 6dB)
 | bass | int | None | Tone bass value (-6dB -- 6dB)
 
-### Action `set_tuner_band`
-
-Set AVR tuner band.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| band | string | | Tuner band: `AM` or `FM` (required)
-
-### Action `set_fm_tuner_frequency`
-
-Set AVR FM tuner frequency.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| frequency | float | | Tuner frequency (87.5 MHz -- 108.0 MHz) (required)
-
-### Action `set_am_tuner_frequency`
-
-Set AVR AM tuner frequency.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| frequency | float | | Tuner frequency (530 -- 1700KHz) (required)
-
-### Action `set_tuner_preset`
-
-Set AVR tuner preset.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| class | str | | Tuner preset class (A -- G) (required)
-| preset | int | | Tuner preset ID (1 -- 9) (required)
-
 ### Action `set_channel_levels`
 
 Set AVR level (gain) for an amplifier channel.

@@ -9,7 +9,7 @@ from typing import Any
 import voluptuous as vol
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zone, TunerBand
+from aiopioneer.const import Zone
 from aiopioneer.params import PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
@@ -37,10 +37,6 @@ from .const import (
     CLASS_PIONEER,
     SERVICE_SEND_COMMAND,
     SERVICE_SET_TONE_SETTINGS,
-    SERVICE_SELECT_TUNER_BAND,
-    SERVICE_SET_FM_TUNER_FREQUENCY,
-    SERVICE_SET_AM_TUNER_FREQUENCY,
-    SERVICE_SELECT_TUNER_PRESET,
     SERVICE_SET_CHANNEL_LEVELS,
     SERVICE_SET_AMP_SETTINGS,
     SERVICE_SET_VIDEO_SETTINGS,
@@ -55,10 +51,6 @@ from .const import (
     ATTR_TONE,
     ATTR_TREBLE,
     ATTR_BASS,
-    ATTR_BAND,
-    ATTR_FREQUENCY,
-    ATTR_CLASS,
-    ATTR_PRESET,
     ATTR_CHANNEL,
     ATTR_LEVEL,
     ATTR_AMP_SPEAKER_MODE,
@@ -146,28 +138,6 @@ PIONEER_SET_TONE_SETTINGS_SCHEMA = {
     vol.Required(ATTR_TONE): cv.string,
     vol.Optional(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
     vol.Optional(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
-}
-
-PIONEER_SELECT_TUNER_BAND_SCHEMA = {
-    vol.Required(ATTR_BAND): str,
-}
-
-
-PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA = {
-    vol.Required(ATTR_FREQUENCY): vol.All(
-        vol.Coerce(float), vol.Range(min=87.5, max=108)
-    ),
-}
-
-PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA = {
-    vol.Required(ATTR_FREQUENCY): vol.All(
-        vol.Coerce(int), vol.Range(min=530, max=1700)
-    ),
-}
-
-PIONEER_SELECT_TUNER_PRESET_SCHEMA = {
-    vol.Required(ATTR_CLASS): cv.string,
-    vol.Required(ATTR_PRESET): vol.All(vol.Coerce(int), vol.Range(min=1, max=9)),
 }
 
 PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
@@ -334,26 +304,6 @@ async def async_setup_entry(
         SERVICE_SET_TONE_SETTINGS,
         PIONEER_SET_TONE_SETTINGS_SCHEMA,
         "async_set_tone_settings",
-    )
-    platform.async_register_entity_service(
-        SERVICE_SELECT_TUNER_BAND,
-        PIONEER_SELECT_TUNER_BAND_SCHEMA,
-        "async_select_tuner_band",
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_FM_TUNER_FREQUENCY,
-        PIONEER_SET_FM_TUNER_FREQUENCY_SCHEMA,
-        "async_set_fm_tuner_frequency",
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_AM_TUNER_FREQUENCY,
-        PIONEER_SET_AM_TUNER_FREQUENCY_SCHEMA,
-        "async_set_am_tuner_frequency",
-    )
-    platform.async_register_entity_service(
-        SERVICE_SELECT_TUNER_PRESET,
-        PIONEER_SELECT_TUNER_PRESET_SCHEMA,
-        "async_select_tuner_preset",
     )
     platform.async_register_entity_service(
         SERVICE_SET_CHANNEL_LEVELS,
@@ -683,61 +633,6 @@ class PioneerZone(
             await self.pioneer.set_tone_settings(tone, treble, bass, zone=self.zone)
 
         await self.pioneer_command(set_tone_settings, repeat=True)
-
-    async def async_select_tuner_band(self, band: str) -> None:
-        """Set AVR tuner band."""
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.select_tuner_band(band=%s)",
-                band,
-            )
-
-        async def select_tuner_band() -> None:
-            await self.pioneer.select_tuner_band(TunerBand(band))
-
-        await self.pioneer_command(select_tuner_band, repeat=True)
-
-    async def async_set_fm_tuner_frequency(self, frequency: float) -> None:
-        """Set AVR AM tuner frequency."""
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.set_fm_tuner_frequency(frequency=%f)",
-                frequency,
-            )
-
-        async def set_fm_tuner_frequency() -> None:
-            await self.pioneer.set_tuner_frequency(TunerBand.FM, frequency)
-
-        await self.pioneer_command(set_fm_tuner_frequency, repeat=True)
-
-    async def async_set_am_tuner_frequency(self, frequency: int) -> None:
-        """Set AVR AM tuner frequency."""
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.set_am_tuner_frequency(frequency=%d)",
-                frequency,
-            )
-
-        async def set_am_tuner_frequency() -> None:
-            await self.pioneer.set_tuner_frequency(TunerBand.AM, float(frequency))
-
-        await self.pioneer_command(set_am_tuner_frequency, repeat=True)
-
-    async def async_select_tuner_preset(self, **kwargs) -> None:
-        """Set AVR tuner preset."""
-        tuner_class = kwargs[ATTR_CLASS]  ## workaround for "class" as argument
-        preset = kwargs[ATTR_PRESET]
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.select_tuner_preset(class=%s, preset=%d)",
-                tuner_class,
-                preset,
-            )
-
-        async def select_tuner_preset() -> None:
-            await self.pioneer.select_tuner_preset(tuner_class, preset)
-
-        await self.pioneer_command(select_tuner_preset, repeat=True)
 
     async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
