@@ -146,27 +146,10 @@
         }
     },
     "selector": {
-        "panel_lock": {
-            "options": {
-                "0": "OFF",
-                "1": "PANEL ONLY",
-                "2": "PANEL + VOLUME"
-            }
-        },
-        "dimmer_mode": {
-            "options": {
-                "Brightest": "Brightest",
-                "Bright": "Bright",
-                "Dark": "Dark",
-                "Off": "Off",
-                "(cycle)": "(cycle)"
-            }
-        },
         "tone_mode": {
             "options": {
-                "Bypass": "Bypass",
-                "On": "On",
-                "(cycle)": "(cycle)"
+                "bypass": "bypass",
+                "on": "on"
             }
         },
         "tuner_band": {
@@ -177,33 +160,83 @@
         },
         "channel": {
             "options": {
-                "L": "Front Left",
-                "R": "Front Right",
-                "C": "Center",
-                "SL": "Surround Left",
-                "SR": "Surround Right",
-                "SBL": "Surround Back Left",
-                "SBR": "Surround Back Right",
-                "SW": "Subwoofer",
-                "LH": "Front Height Left",
-                "RH": "Front Height Right",
-                "LW": "Front Wide Left",
-                "RW": "Front Wide Right",
-                "TML": "Top Middle Left",
-                "TMR": "Top Middle Right",
-                "TFL": "Top Forward Left",
-                "TFR": "Top Forward Right",
-                "TRL": "Top Backward Left",
-                "TRR": "Top Backward Right",
-                "SW1": "SubWoofer 1",
-                "SW2": "SubWoofer 2",
-                "ALL": "INPUT LEVEL ADJUST(ALL ch Level)"
+                "L": "front left",
+                "R": "front right",
+                "C": "center",
+                "SL": "surround left",
+                "SR": "surround right",
+                "SBL": "surround back left",
+                "SBR": "surround back right",
+                "SW": "subwoofer",
+                "LH": "front height left",
+                "RH": "front height right",
+                "LW": "front wide left",
+                "RW": "front wide right",
+                "TML": "top middle left",
+                "TMR": "top middle right",
+                "TFL": "top forward left",
+                "TFR": "top forward right",
+                "TRL": "top backward left",
+                "TRR": "top backward right",
+                "SW1": "subwoofer 1",
+                "SW2": "subwoofer 2",
+                "all": "all channels"
             }
         },
-        "resolution": {
+        "amp_speaker_mode": {
+            "options": {
+                "off": "off",
+                "A": "A",
+                "B": "B",
+                "A+B": "A+B"
+            }
+        },
+        "amp_hdmi_out": {
+            "options": {
+                "all": "all",
+                "HDMI 1": "HDMI 1",
+                "HDMI 2": "HDMI 2"
+            }
+        },
+        "amp_hdmi_audio": {
+            "options": {
+                "amp": "amp",
+                "passthrough": "passthrough"
+            }
+        },
+        "amp_pqls": {
+            "options": {
+                "off": "off",
+                "auto": "auto"
+            }
+        },
+        "amp_dimmer": {
+            "options": {
+                "brightest": "brightest",
+                "bright": "bright",
+                "dark": "dark",
+                "off": "off"
+            }
+        },
+        "amp_mode": {
+            "options": {
+                "amp on": "amp on",
+                "amp front off": "amp front off",
+                "amp front & center off": "amp front & center off",
+                "amp off": "amp off"
+            }
+        },
+        "amp_panel_lock": {
+            "options": {
+                "off": "off",
+                "panel only": "panel only",
+                "panel + volume": "panel + volume"
+            }
+        },
+        "video_resolution": {
             "options": {
                 "AUTO": "auto",
-                "PURE": "Pure",
+                "pure": "pure",
                 "480/576p": "480/576p",
                 "720p": "720p",
                 "1080i": "1080i",
@@ -213,26 +246,175 @@
                 "4K/24p": "4K/24p"
             }
         },
-        "pure_cinema": {
-            "AUTO": "auto",
-            "ON": "on",
-            "OFF": "off"
+        "video_pure_cinema": {
+            "options": {
+                "auto": "auto",
+                "on": "on",
+                "off": "off"
+            }
         },
-        "stream_smoother": {
-            "OFF": "off",
-            "ON": "on",
-            "AUTO": "auto"
+        "video_stream_smoother": {
+            "options": {
+                "off": "off",
+                "on": "on",
+                "auto": "auto"
+            }
         },
-        "advanced_video_adjust": {
-            "PDP": "PDP",
-            "LCD": "LCD",
-            "FPJ": "FPJ",
-            "Professional": "Professional",
-            "Memory": "Memory"
+        "video_advanced_video_adjust": {
+            "options": {
+                "PDP": "PDP",
+                "LCD": "LCD",
+                "FPJ": "FPJ",
+                "professional": "professional",
+                "memory": "memory"
+            }
         },
-        "aspect": {
-            "PASSTHROUGH": "Passthrough",
-            "NORMAL": "Normal"
+        "video_aspect": {
+            "options": {
+                "passthrough": "passthrough",
+                "normal": "normal"
+            }
+        },
+        "dsp_phase_control": {
+            "options": {
+                "off": "off",
+                "on": "on",
+                "full band on": "full band on"
+            }
+        },
+        "dsp_phase_control_plus": {
+            "options": {
+                "auto": "auto",
+                "0": "0",
+                "1": "1",
+                "2": "2",
+                "3": "3",
+                "4": "4",
+                "5": "5",
+                "6": "6",
+                "7": "7",
+                "8": "8",
+                "9": "9",
+                "10": "10",
+                "11": "11",
+                "12": "12",
+                "13": "13",
+                "14": "14",
+                "15": "15",
+                "16": "16"
+            }
+        },
+        "dsp_virtual_speakers": {
+            "options": {
+                "auto": "auto",
+                "manual": "manual"
+            }
+        },
+        "dsp_virtual_depth": {
+            "options": {
+                "off": "off",
+                "min": "min",
+                "mid": "mid",
+                "max": "max"
+            }
+        },
+        "dsp_signal_select": {
+            "options": {
+                "auto": "auto",
+                "analog": "analog",
+                "digital": "digital",
+                "HDMI": "HDMI"
+            }
+        },
+        "dsp_dialog_enhancement": {
+            "options": {
+                "off": "off",
+                "flat": "flat",
+                "+1": "+1",
+                "+2": "+2",
+                "+3": "+3",
+                "+4": "+4"
+            }
+        },
+        "dsp_audio_scaler": {
+            "options": {
+                "auto": "auto",
+                "manual": "manual"
+            }
+        },
+        "dsp_up_sampling": {
+            "options": {
+                "off": "off",
+                "2 times": "2 times",
+                "4 times": "4 times"
+            }
+        },
+        "dsp_digital_filter": {
+            "options": {
+                "slow": "slow",
+                "sharp": "sharp",
+                "short": "short"
+            }
+        },
+        "dsp_dual_mono": {
+            "options": {
+                "CH1+CH2": "CH1+CH2",
+                "CH1": "CH1",
+                "CH2": "CH2"
+            }
+        },
+        "dsp_dynamic_range": {
+            "options": {
+                "off": "off",
+                "auto": "auto",
+                "mid": "mid",
+                "max": "max"
+            }
+        },
+        "dsp_lfe_attenuator": {
+            "options": {
+                "off": "off",
+                "-20": "-20",
+                "-19": "-19",
+                "-18": "-18",
+                "-17": "-17",
+                "-16": "-16",
+                "-15": "-15",
+                "-14": "-14",
+                "-13": "-13",
+                "-12": "-12",
+                "-11": "-11",
+                "-10": "-10",
+                "-9": "-9",
+                "-8": "-8",
+                "-7": "-7",
+                "-6": "-6",
+                "-5": "-5",
+                "-4": "-4",
+                "-3": "-3",
+                "-2": "-2",
+                "-1": "-1",
+                "0": "0"
+            }
+        },
+        "dsp_sacd_gain": {
+            "options": {
+                "0": "0",
+                "6": "6"
+            }
+        },
+        "dsp_height_gain": {
+            "options": {
+                "low": "low",
+                "mid": "mid",
+                "high": "high"
+            }
+        },
+        "dsp_rendering_mode": {
+            "options": {
+                "object base": "object base",
+                "channel base": "channel base"
+            }
         }
     },
     "services": {
@@ -272,92 +454,6 @@
                 }
             }
         },
-        "set_amp_settings": {
-            "speaker_mode": {
-                "name": "Set Speaker Mode",
-                "description": "Speaker mode setting."
-            },
-            "hdmi_out": {
-                "name": "Set HDMI Out",
-                "description": "HDMI out setting."
-            },
-            "hdmi3_out": {
-                "name": "Set HDMI3 Out",
-                "description": "HDMI3 out setting."
-            },
-            "hdmi_audio": {
-                "name": "Set HDMI Audio",
-                "description": "HDMI audio setting."
-            },
-            "pqls": {
-                "name": "Set PQLS",
-                "description": "PQLS setting."
-            },
-            "dimmer": {
-                "name": "Set Dimmer",
-                "description": "Dimmer setting."
-            },
-            "sleep_time": {
-                "name": "Set Sleep Time",
-                "description": "Sleep time setting."
-            },
-            "mode": {
-                "name": "Set Amp Mode",
-                "description": "Amp mode setting."
-            },
-            "panel_lock": {
-                "name": "Set Panel Lock",
-                "description": "Panel lock setting."
-            },
-            "remote_lock": {
-                "name": "Set Remote Lock",
-                "description": "Remote lock setting."
-            }
-        },
-        "select_tuner_band": {
-            "name": "Select Tuner Band",
-            "description": "Select AVR active tuner band.",
-            "fields": {
-                "band": {
-                    "name": "Band",
-                    "description": "Frequency band."
-                }
-            }
-        },
-        "set_fm_tuner_frequency": {
-            "name": "Set FM Tuner Frequency",
-            "description": "Set AVR FM tuner frequency.",
-            "fields": {
-                "frequency": {
-                    "name": "Frequency",
-                    "description": "Tuner frequency (87.5 MHz -- 108.0 MHz)."
-                }
-            }
-        },
-        "set_am_tuner_frequency": {
-            "name": "Set AM Tuner Frequency",
-            "description": "Set AVR AM tuner frequency.",
-            "fields": {
-                "frequency": {
-                    "name": "Frequency",
-                    "description": "Tuner frequency (530 -- 1700KHz)."
-                }
-            }
-        },
-        "select_tuner_preset": {
-            "name": "Set Tuner Preset",
-            "description": "Select pre-defined AVR tuner preset.",
-            "fields": {
-                "class": {
-                    "name": "Class",
-                    "description": "Tuner preset class."
-                },
-                "preset": {
-                    "name": "Preset",
-                    "description": "Tuner preset ID."
-                }
-            }
-        },
         "set_channel_levels": {
             "name": "Set Channel Levels",
             "description": "Set AVR level (gain) for an amplifier channel.",
@@ -369,6 +465,50 @@
                 "level": {
                     "name": "Level",
                     "description": "Tuner amp channel level."
+                }
+            }
+        },
+        "set_amp_settings": {
+            "options": {
+                "speaker_mode": {
+                    "name": "Set Speaker Mode",
+                    "description": "Speaker mode setting."
+                },
+                "hdmi_out": {
+                    "name": "Set HDMI Out",
+                    "description": "HDMI out setting."
+                },
+                "hdmi3_out": {
+                    "name": "Set HDMI3 Out",
+                    "description": "HDMI3 out setting."
+                },
+                "hdmi_audio": {
+                    "name": "Set HDMI Audio",
+                    "description": "HDMI audio setting."
+                },
+                "pqls": {
+                    "name": "Set PQLS",
+                    "description": "PQLS setting."
+                },
+                "dimmer": {
+                    "name": "Set Dimmer",
+                    "description": "Dimmer setting."
+                },
+                "sleep_time": {
+                    "name": "Set Sleep Time",
+                    "description": "Sleep time setting."
+                },
+                "mode": {
+                    "name": "Set Amp Mode",
+                    "description": "Amp mode setting."
+                },
+                "panel_lock": {
+                    "name": "Set Panel Lock",
+                    "description": "Panel lock setting."
+                },
+                "remote_lock": {
+                    "name": "Set Remote Lock",
+                    "description": "Remote lock setting."
                 }
             }
         },

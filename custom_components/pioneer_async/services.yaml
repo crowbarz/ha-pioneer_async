@@ -17,14 +17,12 @@ send_command:
         text:
 
 set_tone_settings:
-  description: Set AVR tone settings for zone
   target:
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     tone:
-      description: Tone mode
       required: true
       example: "on"
       default: "bypass"
@@ -35,7 +33,6 @@ set_tone_settings:
             - "bypass"
             - "on"
     treble:
-      description: Tone treble value
       example: 0
       default: 0
       selector:
@@ -45,7 +42,6 @@ set_tone_settings:
           step: 1
           unit_of_measurement: dB
     bass:
-      description: Tone bass value
       example: 0
       default: 0
       selector:
@@ -54,89 +50,6 @@ set_tone_settings:
           max: 6
           step: 1
           unit_of_measurement: dB
-
-select_tuner_band:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    band:
-      required: true
-      example: "FM"
-      selector:
-        select:
-          translation_key: "tuner_band"
-          options:
-            - "FM"
-            - "AM"
-
-
-set_fm_tuner_frequency:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    frequency:
-      required: true
-      example: 106.1
-      selector:
-        number:
-          min: 87.5
-          max: 108.0
-          step: 0.1
-          default: 87.5
-          unit_of_measurement: MHz
-          mode: box
-
-set_am_tuner_frequency:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    frequency:
-      required: true
-      example: 988
-      selector:
-        number:
-          min: 530
-          max: 1700
-          default: 530
-          step: 1  # 10KHz in the Americas, 9KHz ROW
-          unit_of_measurement: kHz
-          mode: box
-
-select_tuner_preset:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    class:
-      required: true
-      example: "C"
-      default: "A"
-      selector:
-        select:
-          options:
-            - "A"
-            - "B"
-            - "C"
-            - "D"
-            - "E"
-            - "F"
-            - "G"
-    preset:
-      required: true
-      example: 5
-      default: 1
-      selector:
-        number:
-          min: 1
-          max: 9
-          step: 1
 
 set_channel_levels:
   target:

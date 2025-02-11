@@ -454,6 +454,20 @@
                 }
             }
         },
+        "set_channel_levels": {
+            "name": "Set Channel Levels",
+            "description": "Set AVR level (gain) for an amplifier channel.",
+            "fields": {
+                "channel": {
+                    "name": "Channel",
+                    "description": "Tuner amp channel to modify."
+                },
+                "level": {
+                    "name": "Level",
+                    "description": "Tuner amp channel level."
+                }
+            }
+        },
         "set_amp_settings": {
             "options": {
                 "speaker_mode": {
@@ -495,64 +509,6 @@
                 "remote_lock": {
                     "name": "Set Remote Lock",
                     "description": "Remote lock setting."
-                }
-            }
-        },
-        "select_tuner_band": {
-            "name": "Select Tuner Band",
-            "description": "Select AVR active tuner band.",
-            "fields": {
-                "band": {
-                    "name": "Band",
-                    "description": "Frequency band."
-                }
-            }
-        },
-        "set_fm_tuner_frequency": {
-            "name": "Set FM Tuner Frequency",
-            "description": "Set AVR FM tuner frequency.",
-            "fields": {
-                "frequency": {
-                    "name": "Frequency",
-                    "description": "Tuner frequency (87.5 MHz -- 108.0 MHz)."
-                }
-            }
-        },
-        "set_am_tuner_frequency": {
-            "name": "Set AM Tuner Frequency",
-            "description": "Set AVR AM tuner frequency.",
-            "fields": {
-                "frequency": {
-                    "name": "Frequency",
-                    "description": "Tuner frequency (530 -- 1700KHz)."
-                }
-            }
-        },
-        "select_tuner_preset": {
-            "name": "Set Tuner Preset",
-            "description": "Select pre-defined AVR tuner preset.",
-            "fields": {
-                "class": {
-                    "name": "Class",
-                    "description": "Tuner preset class."
-                },
-                "preset": {
-                    "name": "Preset",
-                    "description": "Tuner preset ID."
-                }
-            }
-        },
-        "set_channel_levels": {
-            "name": "Set Channel Levels",
-            "description": "Set AVR level (gain) for an amplifier channel.",
-            "fields": {
-                "channel": {
-                    "name": "Channel",
-                    "description": "Tuner amp channel to modify."
-                },
-                "level": {
-                    "name": "Level",
-                    "description": "Tuner amp channel level."
                 }
             }
         },
