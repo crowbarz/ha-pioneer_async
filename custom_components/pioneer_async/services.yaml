@@ -449,13 +449,13 @@ set_dsp_settings:
             - "+3"
             - "+4"
     audio_scaler:
-      example: "AUTO"
+      example: "auto"
       selector:
         select:
           translation_key: dsp_audio_scaler
           options:
-            - "AUTO"
-            - "MANUAL"
+            - "auto"
+            - "manual"
     hi_bit:
       selector:
         boolean:
