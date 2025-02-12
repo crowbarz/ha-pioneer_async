@@ -235,7 +235,7 @@
         },
         "video_resolution": {
             "options": {
-                "AUTO": "auto",
+                "auto": "auto",
                 "pure": "pure",
                 "480/576p": "480/576p",
                 "720p": "720p",
@@ -469,7 +469,9 @@
             }
         },
         "set_amp_settings": {
-            "options": {
+            "name": "Set Amp Settings",
+            "description": "Set AVR settings.",
+            "fields": {
                 "speaker_mode": {
                     "name": "Set Speaker Mode",
                     "description": "Speaker mode setting."
