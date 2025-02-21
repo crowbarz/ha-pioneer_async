@@ -191,3 +191,6 @@ ATTR_DSP_HEIGHT_GAIN = "height_gain"
 ATTR_DSP_LOUDNESS_MANAGEMENT = "loudness_management"
 ATTR_DSP_CENTER_SPREAD = "center_spread"
 ATTR_DSP_RENDERING_MODE = "rendering_mode"
+
+## Tuner attributes
+ATTR_TUNER_AM_FREQUENCY_STEP = "am_frequency_step"

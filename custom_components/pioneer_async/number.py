@@ -7,9 +7,8 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.params import PARAM_TUNER_AM_FREQ_STEP
 
-from homeassistant.components.number import NumberEntity, NumberDeviceClass
+from homeassistant.components.number import NumberEntity, NumberMode, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
@@ -23,6 +22,7 @@ from .const import (
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
     ATTR_OPTIONS,
+    ATTR_TUNER_AM_FREQUENCY_STEP,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
@@ -34,8 +34,8 @@ _LOGGER = logging.getLogger(__name__)
 TUNER_FREQ_ATTRS = {
     TunerBand.AM: {
         "unit_of_measurement": "kHz",
-        "min_value": 530,
-        "max_value": 1700,
+        "min_value": 530,  #  updated from aiopioneer
+        "max_value": 1701,
         "step": 1,
     },
     TunerBand.FM: {
@@ -45,6 +45,8 @@ TUNER_FREQ_ATTRS = {
         "step": 0.05,
     },
 }
+TUNER_AM_FREQ_MIN = {9: 531, 10: 530}
+TUNER_AM_FREQ_MAX = {9: 1701, 10: 1700}
 
 
 async def async_setup_entry(
@@ -101,7 +103,7 @@ class TunerFrequencyNumber(
     _attr_entity_category = EntityCategory.CONFIG
     _attr_device_class = NumberDeviceClass.FREQUENCY
     _attr_icon = "mdi:radio-tower"
-    _unrecorded_attributes = frozenset({PARAM_TUNER_AM_FREQ_STEP})
+    _unrecorded_attributes = frozenset({ATTR_TUNER_AM_FREQUENCY_STEP})
 
     def __init__(
         self,
@@ -122,6 +124,7 @@ class TunerFrequencyNumber(
         self._attr_native_min_value = tuner_freq_attrs["min_value"]
         self._attr_native_max_value = tuner_freq_attrs["max_value"]
         self._attr_native_step = tuner_freq_attrs["step"]
+        self._attr_mode = NumberMode.BOX
 
     @property
     def available(self) -> bool:
@@ -142,11 +145,12 @@ class TunerFrequencyNumber(
             return None
 
         attrs = super().extra_state_attributes or {}
-        attrs |= {
-            PARAM_TUNER_AM_FREQ_STEP: self.pioneer.params.get_param(
-                PARAM_TUNER_AM_FREQ_STEP
-            ),
-        }
+        am_frequency_step = self.pioneer.properties.tuner.get("am_frequency_step")
+        if self.band is TunerBand.AM and am_frequency_step:
+            attrs |= {ATTR_TUNER_AM_FREQUENCY_STEP: am_frequency_step}
+            self._attr_native_step = am_frequency_step
+            self._attr_native_min_value = TUNER_AM_FREQ_MIN[am_frequency_step]
+            self._attr_native_max_value = TUNER_AM_FREQ_MAX[am_frequency_step]
         return attrs
 
     async def async_set_native_value(self, value: float) -> None:
