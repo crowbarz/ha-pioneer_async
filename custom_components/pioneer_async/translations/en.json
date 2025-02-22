@@ -436,24 +436,6 @@
                 }
             }
         },
-        "set_tone_settings": {
-            "name": "Set Tone Settings",
-            "description": "Set AVR tone settings for zone.",
-            "fields": {
-                "tone": {
-                    "name": "Tone",
-                    "description": "Tone mode."
-                },
-                "treble": {
-                    "name": "Treble",
-                    "description": "Tone treble value."
-                },
-                "bass": {
-                    "name": "Bass",
-                    "description": "Tone bass value."
-                }
-            }
-        },
         "set_channel_levels": {
             "name": "Set Channel Levels",
             "description": "Set AVR level (gain) for an amplifier channel.",

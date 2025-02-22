@@ -7,6 +7,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
+from aiopioneer.parsers.audio import ToneMode
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
@@ -25,7 +26,7 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-from .entity_base import PioneerTunerEntity
+from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -71,6 +72,18 @@ async def async_setup_entry(
             ),
         ]
     )
+
+    ## Add zone specific selects
+    for zone in pioneer.properties.zones & {Zone.Z1, Zone.Z2}:
+        entities.append(
+            ToneModeSelect(
+                pioneer,
+                options,
+                coordinator=coordinators[zone],
+                device_info=zone_device_info[zone],
+                zone=zone,
+            )
+        )
 
     async_add_entities(entities)
 
@@ -159,3 +172,40 @@ class TunerBandSelect(
             return await self.pioneer.select_tuner_band(TunerBand(option))
 
         await self.pioneer_command(select_tuner_band, repeat=True)
+
+
+class ToneModeSelect(
+    PioneerEntityBase, SelectEntity, CoordinatorEntity
+):  # pylint: disable=abstract-method
+    """Pioneer tone mode select entity."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_name = "Tone Mode"
+    _attr_icon = "mdi:music-box-outline"
+    _attr_options = list(ToneMode.code_map.values())
+    _attr_translation_key = "tone_mode"
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer tuner frequency band select entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+
+    @property
+    def current_option(self) -> str | None:
+        """Return the current tuner band."""
+        return self.pioneer.properties.tone.get(self.zone, {}).get("status")
+
+    async def async_select_option(self, option: str) -> None:
+        """Change the selected option."""
+
+        async def select_tone_mode() -> bool:
+            return await self.pioneer.set_tone_settings(zone=self.zone, tone=option)
+
+        await self.pioneer_command(select_tone_mode, repeat=True)
