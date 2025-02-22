@@ -95,10 +95,6 @@ DEFAULTS_EXCLUDE = [
 CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
 
 SERVICE_SEND_COMMAND = "send_command"
-SERVICE_SET_PANEL_LOCK = "set_panel_lock"
-SERVICE_SET_REMOTE_LOCK = "set_remote_lock"
-SERVICE_SET_DIMMER = "set_dimmer"
-SERVICE_SET_TONE_SETTINGS = "set_tone_settings"
 SERVICE_SET_AMP_SETTINGS = "set_amp_settings"
 SERVICE_SET_CHANNEL_LEVELS = "set_channel_levels"
 SERVICE_SET_VIDEO_SETTINGS = "set_video_settings"
@@ -116,9 +112,6 @@ ATTR_COMMAND = "command"
 ATTR_PREFIX = "prefix"
 ATTR_SUFFIX = "suffix"
 ATTR_ENTITY_ID = "entity_id"
-ATTR_TONE = "tone"
-ATTR_TREBLE = "treble"
-ATTR_BASS = "bass"
 ATTR_CHANNEL = "channel"
 ATTR_LEVEL = "level"
 

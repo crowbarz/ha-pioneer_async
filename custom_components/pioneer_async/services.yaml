@@ -16,41 +16,6 @@ send_command:
       selector:
         text:
 
-set_tone_settings:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    tone:
-      required: true
-      example: "on"
-      default: "bypass"
-      selector:
-        select:
-          translation_key: "tone_mode"
-          options:
-            - "bypass"
-            - "on"
-    treble:
-      example: 0
-      default: 0
-      selector:
-        number:
-          min: -6
-          max: 6
-          step: 1
-          unit_of_measurement: dB
-    bass:
-      example: 0
-      default: 0
-      selector:
-        number:
-          min: -6
-          max: 6
-          step: 1
-          unit_of_measurement: dB
-
 set_channel_levels:
   target:
     entity:

@@ -36,7 +36,6 @@ from .const import (
     DOMAIN,
     CLASS_PIONEER,
     SERVICE_SEND_COMMAND,
-    SERVICE_SET_TONE_SETTINGS,
     SERVICE_SET_CHANNEL_LEVELS,
     SERVICE_SET_AMP_SETTINGS,
     SERVICE_SET_VIDEO_SETTINGS,
@@ -48,9 +47,6 @@ from .const import (
     ATTR_COMMAND,
     ATTR_PREFIX,
     ATTR_SUFFIX,
-    ATTR_TONE,
-    ATTR_TREBLE,
-    ATTR_BASS,
     ATTR_CHANNEL,
     ATTR_LEVEL,
     ATTR_AMP_SPEAKER_MODE,
@@ -132,12 +128,6 @@ PIONEER_SEND_COMMAND_SCHEMA = {
     vol.Required(ATTR_COMMAND): cv.string,
     vol.Optional(ATTR_PREFIX): cv.string,
     vol.Optional(ATTR_SUFFIX): cv.string,
-}
-
-PIONEER_SET_TONE_SETTINGS_SCHEMA = {
-    vol.Required(ATTR_TONE): cv.string,
-    vol.Optional(ATTR_TREBLE): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
-    vol.Optional(ATTR_BASS): vol.All(vol.Coerce(int), vol.Range(min=-6, max=6)),
 }
 
 PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
@@ -299,11 +289,6 @@ async def async_setup_entry(
         PIONEER_SEND_COMMAND_SCHEMA,
         PioneerZone.async_send_command,
         supports_response=SupportsResponse.OPTIONAL,
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_TONE_SETTINGS,
-        PIONEER_SET_TONE_SETTINGS_SCHEMA,
-        "async_set_tone_settings",
     )
     platform.async_register_entity_service(
         SERVICE_SET_CHANNEL_LEVELS,
@@ -613,22 +598,6 @@ class PioneerZone(
         resp = await self.pioneer_command(send_command, command=command)
         if service_call.return_response:
             return resp
-
-    async def async_set_tone_settings(self, tone: str, treble: int, bass: int) -> None:
-        """Set AVR tone settings for zone."""
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.set_tone_settings(%s, tone=%s, treble=%d, bass=%d)",
-                self.zone,
-                tone,
-                treble,
-                bass,
-            )
-
-        async def set_tone_settings() -> None:
-            await self.pioneer.set_tone_settings(tone, treble, bass, zone=self.zone)
-
-        await self.pioneer_command(set_tone_settings, repeat=True)
 
     async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
