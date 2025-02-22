@@ -186,9 +186,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer_data[ATTR_PIONEER] = pioneer
 
     ## Set up parent device for Pioneer AVR
-    model = pioneer.properties.model
-    software_version = pioneer.properties.software_version
-    mac_addr = pioneer.properties.mac_addr
+    model = pioneer.properties.amp.get("model")
+    software_version = pioneer.properties.amp.get("software_version")
+    mac_addr = pioneer.properties.amp.get("mac_addr")
     connections = set()
     top_identifiers = {(DOMAIN, entry.entry_id)}
     if mac_addr:
@@ -248,8 +248,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         """Update top level device attributes."""
         device_registry.async_get(hass).async_update_device(
             device_entry.id,
-            model=pioneer.properties.model,
-            sw_version=pioneer.properties.software_version or UNDEFINED,
+            model=pioneer.properties.amp.get("model"),
+            sw_version=pioneer.properties.amp.get("software_version") or UNDEFINED,
         )
 
     coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zone.ALL)

@@ -259,7 +259,7 @@ class PioneerAVRConfigFlow(
                     await pioneer.build_source_dict()
                     self.sources = pioneer.properties.get_source_dict()
                 self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
-                self.model = pioneer.properties.model
+                self.model = pioneer.properties.amp.get("model")
 
             except AlreadyConfigured:
                 return self.async_abort(reason="already_configured")

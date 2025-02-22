@@ -51,7 +51,7 @@ class PioneerAVRZoneCoordinator(DataUpdateCoordinator):
             if (
                 self._initial_refresh_callback is not None
                 and not self._initial_refresh
-                and self.zone in self.pioneer.params.zones_initial_refresh
+                and self.zone in self.pioneer.properties.zones_initial_refresh
             ):
                 self._initial_refresh = True
                 self._initial_refresh_callback()
