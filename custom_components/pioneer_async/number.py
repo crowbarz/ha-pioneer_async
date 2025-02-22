@@ -26,7 +26,7 @@ from .const import (
 )
 from .coordinator import PioneerAVRZoneCoordinator
 from .debug import Debug
-from .entity_base import PioneerTunerEntity
+from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
 _LOGGER = logging.getLogger(__name__)
@@ -91,6 +91,29 @@ async def async_setup_entry(
             ),
         ]
     )
+
+    ## Add zone specific selects
+    for zone in pioneer.properties.zones & {Zone.Z1, Zone.Z2}:
+        device_info = zone_device_info[zone]
+        coordinator = coordinators[zone]
+        entities.extend(
+            [
+                ToneTrebleNumber(
+                    pioneer,
+                    options,
+                    coordinator=coordinator,
+                    device_info=device_info,
+                    zone=zone,
+                ),
+                ToneBassNumber(
+                    pioneer,
+                    options,
+                    coordinator=coordinator,
+                    device_info=device_info,
+                    zone=zone,
+                ),
+            ]
+        )
 
     async_add_entities(entities)
 
@@ -160,3 +183,97 @@ class TunerFrequencyNumber(
             return await self.pioneer.set_tuner_frequency(self.band, value)
 
         await self.pioneer_command(set_tuner_frequency, repeat=True)
+
+
+class ToneNumber(PioneerEntityBase, NumberEntity):  # pylint: disable=abstract-method
+    """Pioneer tone number entity."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+    _attr_device_class = NumberDeviceClass.SIGNAL_STRENGTH
+    _attr_native_min_value = -6
+    _attr_native_max_value = 6
+    _attr_native_step = 1
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer tone number entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        self._attr_native_unit_of_measurement = "dB"
+        self._attr_mode = NumberMode.SLIDER
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the tone number is available."""
+        tone_status = self.pioneer.properties.tone.get(self.zone, {}).get("status")
+        return super().available and tone_status == "on"
+
+
+class ToneTrebleNumber(
+    ToneNumber, CoordinatorEntity
+):  # pylint: disable=abstract-method
+    """Pioneer tone treble number entity."""
+
+    _attr_icon = "mdi:music-clef-treble"
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer tone treble number entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+        self._attr_name = "Tone treble"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the tone treble value."""
+        return self.pioneer.properties.tone.get(self.zone, {}).get("treble")
+
+    async def async_set_native_value(self, value: int) -> None:
+        """Set the tone treble value."""
+
+        async def set_tone_treble() -> bool:
+            return await self.pioneer.set_tone_settings(zone=self.zone, treble=value)
+
+        await self.pioneer_command(set_tone_treble, repeat=True)
+
+
+class ToneBassNumber(ToneNumber, CoordinatorEntity):  # pylint: disable=abstract-method
+    """Pioneer tone bass number entity."""
+
+    _attr_icon = "mdi:music-clef-bass"
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer tone bass number entity."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+        self._attr_name = "Tone bass"
+
+    @property
+    def native_value(self) -> int | None:
+        """Return the tone bass value."""
+        return self.pioneer.properties.tone.get(self.zone, {}).get("bass")
+
+    async def async_set_native_value(self, value: int) -> None:
+        """Set the tone bass value."""
+
+        async def set_tone_treble() -> bool:
+            return await self.pioneer.set_tone_settings(zone=self.zone, bass=value)
+
+        await self.pioneer_command(set_tone_treble, repeat=True)
