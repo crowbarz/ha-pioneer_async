@@ -7,6 +7,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
+from aiopioneer.decoders.tuner import FrequencyAM
 
 from homeassistant.components.number import NumberEntity, NumberMode, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -31,12 +32,16 @@ from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 _LOGGER = logging.getLogger(__name__)
 
+DEFAULT_TUNER_AM_FREQ_STEP = 9
+DEFAULT_TUNER_AM_FREQ_MIN, DEFAULT_TUNER_AM_FREQ_MAX = FrequencyAM.get_frequency_bounds(
+    DEFAULT_TUNER_AM_FREQ_STEP
+)
 TUNER_FREQ_ATTRS = {
     TunerBand.AM: {
         "unit_of_measurement": "kHz",
-        "min_value": 530,  #  updated from aiopioneer
-        "max_value": 1701,
-        "step": 1,
+        "min_value": DEFAULT_TUNER_AM_FREQ_MIN,
+        "max_value": DEFAULT_TUNER_AM_FREQ_MAX,
+        "step": 1,  # set once updated from AVR
     },
     TunerBand.FM: {
         "unit_of_measurement": "MHz",
@@ -45,8 +50,6 @@ TUNER_FREQ_ATTRS = {
         "step": 0.05,
     },
 }
-TUNER_AM_FREQ_MIN = {9: 531, 10: 530}
-TUNER_AM_FREQ_MAX = {9: 1701, 10: 1700}
 
 
 async def async_setup_entry(
@@ -172,8 +175,9 @@ class TunerFrequencyNumber(
         if self.band is TunerBand.AM and am_frequency_step:
             attrs |= {ATTR_TUNER_AM_FREQUENCY_STEP: am_frequency_step}
             self._attr_native_step = am_frequency_step
-            self._attr_native_min_value = TUNER_AM_FREQ_MIN[am_frequency_step]
-            self._attr_native_max_value = TUNER_AM_FREQ_MAX[am_frequency_step]
+            value_min, value_max = FrequencyAM.get_frequency_bounds(am_frequency_step)
+            self._attr_native_min_value = value_min
+            self._attr_native_max_value = value_max
         return attrs
 
     async def async_set_native_value(self, value: float) -> None:

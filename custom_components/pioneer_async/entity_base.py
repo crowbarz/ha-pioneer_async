@@ -6,8 +6,8 @@ import asyncio
 import logging
 
 from aiopioneer import PioneerAVR
-from aiopioneer.const import Zone, SOURCE_TUNER
-from aiopioneer.exceptions import PioneerError, AVRCommandResponseError
+from aiopioneer.const import Zone
+from aiopioneer.exceptions import AVRError, AVRCommandResponseError
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
@@ -78,7 +78,7 @@ class PioneerEntityBase(Entity):
                         raise
                     _LOGGER.warning("repeating failed command (%d): %s", count, command)
                     await asyncio.sleep(1)
-        except PioneerError as exc:
+        except AVRError as exc:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="command_error",
@@ -107,10 +107,4 @@ class PioneerTunerEntity(PioneerEntityBase):
         """Returns whether the AVR is available and source is set to tuner."""
         if not super().available:
             return False
-        return bool(
-            [
-                z
-                for z, s in self.pioneer.properties.source_id.items()
-                if s == SOURCE_TUNER and self.pioneer.properties.power.get(Zone(z))
-            ]
-        )
+        return self.pioneer.properties.is_source_tuner()

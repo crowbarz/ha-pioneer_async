@@ -7,7 +7,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.parsers.audio import ToneMode
+from aiopioneer.decoders.audio import ToneMode
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
