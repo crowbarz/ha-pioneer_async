@@ -71,7 +71,6 @@ async def async_setup_entry(
                 icon="mdi:fullscreen",
                 base_property="amp",
                 promoted_property="display",
-                value_func=lambda x: x.strip(),
                 include_properties=["dimmer"],
             ),
             PioneerGenericSensor(
@@ -94,7 +93,7 @@ async def async_setup_entry(
                 name="Amp",
                 icon="mdi:amplifier",
                 base_property="amp",
-                promoted_property="speaker_mode",
+                promoted_property="model",
                 exclude_properties=["display", "dimmer"],
                 enabled_default=True,
             ),
@@ -148,7 +147,7 @@ async def async_setup_entry(
                 name="System",
                 icon="mdi:cog",
                 base_property="system",
-                promoted_property="status",  # TODO: to identify
+                promoted_property="osd_language",
                 exclude_properties=["speaker_system", "speaker_system_raw"],
             ),
         ]
