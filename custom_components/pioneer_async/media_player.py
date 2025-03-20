@@ -379,7 +379,7 @@ class PioneerZone(
             features |= MediaPlayerEntityFeature.VOLUME_STEP
         if pioneer.properties.mute.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.VOLUME_MUTE
-        if pioneer.properties.source_id.get(self.zone) is not None:
+        if pioneer.properties.source_name.get(self.zone) is not None:
             features |= MediaPlayerEntityFeature.SELECT_SOURCE
 
         ## Sound mode is only available on main zone when it is powered on
@@ -483,7 +483,7 @@ class PioneerZone(
         """Select input source."""
 
         async def select_source() -> None:
-            await self.pioneer.select_source(source, zone=self.zone)
+            await self.pioneer.select_source(source=source, zone=self.zone)
 
         await self.pioneer_command(select_source, repeat=True)
 
