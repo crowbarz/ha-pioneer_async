@@ -94,21 +94,24 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         options_new[CONF_SOURCES] = sources
 
     ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
-    for zone, param_sources in PARAM_ZONE_SOURCES.items():
-        sources_zone = options_current.get(param_sources, [])
+    for zone, param_zone_sources in PARAM_ZONE_SOURCES.items():
+        zone_sources = options_current.get(param_zone_sources, [])
         try:
-            if isinstance(sources_zone, str):
-                sources_zone = json.loads(sources_zone)
-            if not isinstance(sources_zone, list):
+            if isinstance(zone_sources, str):
+                zone_sources = json.loads(zone_sources)
+            if not isinstance(zone_sources, list):
                 raise ValueError
+            if zone_sources and config_entry.version < 5:
+                ## Convert zone sources to number
+                zone_sources = list(map(int, zone_sources))
         except (json.JSONDecodeError, ValueError):
             _LOGGER.warning(
                 'invalid config for zone %s: "%s", resetting to default',
                 zone,
-                sources_zone,
+                zone_sources,
             )
-            sources_zone = []
-        options_new[param_sources] = sources_zone
+            zone_sources = []
+        options_new[param_zone_sources] = zone_sources
 
     ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
     scan_interval = options_current.get(CONF_SCAN_INTERVAL)
