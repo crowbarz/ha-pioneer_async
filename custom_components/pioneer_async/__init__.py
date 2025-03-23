@@ -29,7 +29,7 @@ from homeassistant.helpers import device_registry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
-from .config_flow import PioneerAVRConfigFlow
+from .config_flow import PioneerAVRConfigFlow, process_entry_options
 from .const import (
     DOMAIN,
     PLATFORMS_CONFIG_FLOW,
@@ -52,71 +52,76 @@ _LOGGER = logging.getLogger(__name__)
 async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     """Migrate Pioneer AVR config entry."""
     _LOGGER.debug(
-        "migrating config from version %d.%d",
+        "migrating config from version %d.%d to current version %d.%d",
         config_entry.version,
         config_entry.minor_version,
+        PioneerAVRConfigFlow.VERSION,
+        PioneerAVRConfigFlow.MINOR_VERSION,
     )
 
     if config_entry.version > PioneerAVRConfigFlow.VERSION:
+        _LOGGER.error("migration to config entry version unsupported")
         return False
 
-    if config_entry.version <= PioneerAVRConfigFlow.VERSION:
-        data_current = config_entry.data
-        data_new = {**data_current}
-        options_current = config_entry.options
-        options_new = {**options_current}
+    data_current = config_entry.data
+    data_new = {**data_current}
+    options_current = config_entry.options
+    options_new = {**options_current}
 
-        ## Migrate options that have been renamed
-        for option_current, option_new in MIGRATE_OPTIONS.items():
-            if option_current in options_current:
-                options_new[option_new] = options_current[option_current]
-                del options_new[option_current]
+    ## Migrate options that have been renamed
+    for option_current, option_new in MIGRATE_OPTIONS.items():
+        if option_current in options_current:
+            options_new[option_new] = options_current[option_current]
+            del options_new[option_current]
 
-        ## Ensure CONF_SOURCES is a dict and convert if string
-        sources = options_current.get(CONF_SOURCES, {})
+    ## Ensure CONF_SOURCES is a dict and convert if string
+    sources = options_current.get(CONF_SOURCES, {})
+    try:
+        if isinstance(sources, str):
+            sources = json.loads(sources)
+        if not isinstance(sources, dict):
+            raise ValueError
+        if sources and config_entry.version < 5:
+            ## Convert sources dict index to number and swap order
+            sources = {
+                int(source_id): source_name
+                for source_name, source_id in sources.items()
+            }
+    except (json.JSONDecodeError, ValueError):
+        _LOGGER.warning('invalid source config "%s", resetting to default', sources)
+        del options_new[CONF_SOURCES]
+    else:
+        options_new[CONF_SOURCES] = sources
+
+    ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
+    for zone, param_sources in PARAM_ZONE_SOURCES.items():
+        sources_zone = options_current.get(param_sources, [])
         try:
-            if isinstance(sources, str):
-                sources = json.loads(sources)
-            if not isinstance(sources, dict):
+            if isinstance(sources_zone, str):
+                sources_zone = json.loads(sources_zone)
+            if not isinstance(sources_zone, list):
                 raise ValueError
         except (json.JSONDecodeError, ValueError):
             _LOGGER.warning(
-                '%s: invalid config "%s", resetting to default', CONF_SOURCES, sources
+                'invalid config for zone %s: "%s", resetting to default',
+                zone,
+                sources_zone,
             )
-        if sources:
-            options_new[CONF_SOURCES] = sources
-        elif CONF_SOURCES in options_new:
-            del options_new[CONF_SOURCES]
+            sources_zone = []
+        options_new[param_sources] = sources_zone
 
-        ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
-        for zone, param_sources in PARAM_ZONE_SOURCES.items():
-            sources_zone = options_current.get(param_sources, [])
-            try:
-                if isinstance(sources_zone, str):
-                    sources_zone = json.loads(sources_zone)
-                if not isinstance(sources_zone, list):
-                    raise ValueError
-            except (json.JSONDecodeError, ValueError):
-                _LOGGER.warning(
-                    'invalid config for zone %s: "%s", resetting to default',
-                    zone,
-                    sources_zone,
-                )
-                sources_zone = []
-            options_new[param_sources] = sources_zone
+    ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
+    scan_interval = options_current.get(CONF_SCAN_INTERVAL)
+    if isinstance(scan_interval, timedelta):
+        options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
-        ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
-        scan_interval = options_current.get(CONF_SCAN_INTERVAL)
-        if isinstance(scan_interval, timedelta):
-            options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
-
-        hass.config_entries.async_update_entry(
-            config_entry,
-            data=data_new,
-            options=options_new,
-            version=PioneerAVRConfigFlow.VERSION,
-            minor_version=PioneerAVRConfigFlow.VERSION_MINOR,
-        )
+    hass.config_entries.async_update_entry(
+        config_entry,
+        data=data_new,
+        options=options_new,
+        version=PioneerAVRConfigFlow.VERSION,
+        minor_version=PioneerAVRConfigFlow.MINOR_VERSION,
+    )
 
     _LOGGER.info(
         "config migration to version %d.%d successful",
@@ -139,6 +144,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ## Compile options and params
     entry_options = entry.options if entry.options else {}
     pioneer_data[ATTR_OPTIONS] = (options := OPTIONS_DEFAULTS | entry_options)
+    process_entry_options(options)
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
     sources = options[CONF_SOURCES]

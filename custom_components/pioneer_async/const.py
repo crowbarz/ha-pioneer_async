@@ -3,11 +3,13 @@
 from datetime import timedelta
 
 from aiopioneer.params import (
-    PARAM_HDZONE_SOURCES,
     PARAM_ZONE_1_SOURCES,
     PARAM_ZONE_2_SOURCES,
     PARAM_ZONE_3_SOURCES,
+    PARAM_HDZONE_SOURCES,
     PARAM_DISABLE_AUTO_QUERY,
+    PARAM_EXTRA_LISTENING_MODES,
+    PARAM_SPEAKER_SYSTEM_MODES,
 )
 
 from homeassistant.components.media_player import (
@@ -29,8 +31,8 @@ PLATFORMS_CONFIG_FLOW = [
     Platform.NUMBER,
 ]
 VERSION = "0.10.0"
-CONFIG_ENTRY_VERSION = 4
-CONFIG_ENTRY_VERSION_MINOR = 2
+CONFIG_ENTRY_VERSION = 5
+CONFIG_ENTRY_VERSION_MINOR = 1
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
@@ -83,6 +85,12 @@ OPTIONS_DEFAULTS = {
     CONF_DEBUG_ACTION: False,
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
+
+OPTIONS_DICT_INT_KEY = [
+    CONF_SOURCES,
+    PARAM_EXTRA_LISTENING_MODES,
+    PARAM_SPEAKER_SYSTEM_MODES,
+]
 
 ## Don't inherit defaults for these options/parameters
 DEFAULTS_EXCLUDE = [

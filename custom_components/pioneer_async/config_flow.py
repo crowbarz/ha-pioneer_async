@@ -70,6 +70,7 @@ from .const import (
     OPTIONS_ALL,
     DEFAULTS_EXCLUDE,
     ATTR_PIONEER,
+    OPTIONS_DICT_INT_KEY,
 )
 from .debug import Debug
 
@@ -133,32 +134,33 @@ def _get_schema_basic_options(defaults: dict) -> dict:
 
 def _convert_sources(sources: dict[str, Any]) -> list[str]:
     """Convert sources dict to format for data entry flow."""
-    return list([f"{v}:{k}" for k, v in sources.items()])
+    return list(f"{k}:{v}" for k, v in sources.items())
+
+
+def process_entry_options(options: dict[str, Any]) -> None:
+    """Process config entry options."""
+    for option in OPTIONS_DICT_INT_KEY:
+        ## Restore dicts with int keys converted to str on JSON serialisation
+        if option in options and isinstance(options[option], dict):
+            options[option] = {int(k): v for k, v in options[option].items()}
 
 
 def _validate_sources(sources_list: list[str]) -> Tuple[dict[str, Any] | None, list]:
     """Validate sources are in correct format and convert to dict."""
     sources_invalid = []
-    sources_tuple = list(
-        map(
-            lambda x: (v[1], v[0]) if len(v := x.split(":", 1)) == 2 else x,
-            sources_list,
-        )
-    )
-    for source_tuple in sources_tuple:
-        if not isinstance(source_tuple, tuple):
-            sources_invalid.append(source_tuple)
+    sources = {}
+    for source_entry in sources_list:
+        try:
+            if len(source_items := source_entry.split(":", 1)) != 2:
+                raise ValueError
+            if (source_id := int(source_items[0])) < 0 or source_id > 99:
+                raise ValueError
+        except ValueError:
+            sources_invalid.append(source_entry)
         else:
-            (_, source_id) = source_tuple
-            if not (
-                len(source_id) == 2
-                and source_id[0].isdigit()
-                and source_id[1].isdigit()
-            ):
-                sources_invalid.append(source_tuple)
-    if sources_invalid:
-        return None, sources_invalid
-    return dict(sources_tuple), []
+            sources[source_id] = source_items[1]
+
+    return sources, sources_invalid
 
 
 def _filter_options(
@@ -201,21 +203,21 @@ class PioneerAVRConfigFlow(
     """Handle Pioneer AVR config flow."""
 
     VERSION = CONFIG_ENTRY_VERSION
-    VERSION_MINOR = CONFIG_ENTRY_VERSION_MINOR
+    MINOR_VERSION = CONFIG_ENTRY_VERSION_MINOR
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self) -> None:
         """Initialise Pioneer AVR config flow."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerAVRConfigFlow.__init__()")
-        self.name = None
-        self.host = None
-        self.port = None
-        self.model = None
-        self.defaults = {}
+        self.name: str = None
+        self.host: str = None
+        self.port: int = None
+        self.model: str = None
+        self.defaults: dict[str, Any] = {}
         self.query_sources = False
-        self.sources = {}
-        self.options = {}
+        self.sources: dict[int, str] = {}
+        self.options: dict[str, Any] = {}
 
     @staticmethod
     @callback
@@ -345,7 +347,7 @@ class PioneerAVRConfigFlow(
         if user_input is not None:
             self.options |= user_input
             self.sources, sources_invalid = _validate_sources(user_input[CONF_SOURCES])
-            if self.sources is None:
+            if sources_invalid:
                 errors[CONF_SOURCES] = "invalid_sources"
                 description_placeholders["sources"] = json.dumps(sources_invalid)
             elif not self.sources:
@@ -370,6 +372,7 @@ class PioneerAVRConfigFlow(
 
     async def _create_config_entry(self) -> FlowResult:
         """Create config entry using submitted options."""
+        _LOGGER.warning("sources=%s", self.sources)
         return self.async_create_entry(
             title=self.name,
             data={
@@ -396,32 +399,38 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         self.defaults = {}
         self.options = {}
         self.options_parsed = {}
-        self.default_source_ids = {}
+        self.sources: dict[int, str] = {}
+        self.default_source_ids: list[int] = {}
 
     def update_zone_source_subsets(self) -> None:
         """Update zone source IDs to be a valid subset of configured/available sources."""
         ## NOTE: param defaults may include sources excluded from main zone
-        config_entry = self.config_entry
-        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id][
-            ATTR_PIONEER
-        ]
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerOptionsFlow.update_zone_source_subsets()")
-        defaults = self.defaults
-        sources = self.options_parsed.get(
-            CONF_SOURCES, pioneer.properties.get_source_dict() or {}
-        )
-        source_ids = sources.values()
-        for zone, param_sources in PARAM_ZONE_SOURCES.items():
-            zone_valid_ids = [
-                zone_id for zone_id in defaults[param_sources] if zone_id in source_ids
-            ] or source_ids
-            self.default_source_ids[zone] = zone_valid_ids
-            self.options[param_sources] = [
-                zone_id
-                for zone_id in self.options.get(param_sources, [])
-                if zone_id in zone_valid_ids
+        sources = self.options_parsed[CONF_SOURCES]
+        source_ids = list(sources.keys())
+        for zone, param_zone_sources in PARAM_ZONE_SOURCES.items():
+            self.default_source_ids[zone] = default_source_ids = (
+                list([s for s in self.defaults[param_zone_sources] if s in source_ids])
+                or source_ids
+            )
+
+            ## Filter zone sources with valid sources for zone
+            zone_sources = [
+                source_id
+                for source_id_str in self.options.get(param_zone_sources, [])
+                if (source_id := int(source_id_str)) in self.default_source_ids[zone]
             ]
+
+            ## Set parsed zone sources and update options with str zone sources
+            if zone_sources and (sorted(zone_sources) != sorted(default_source_ids)):
+                self.options_parsed[param_zone_sources] = list(zone_sources)
+                self.options[param_zone_sources] = list([str(s) for s in zone_sources])
+            else:
+                if param_zone_sources in self.options_parsed:
+                    del self.options_parsed[param_zone_sources]
+                if param_zone_sources in self.options:
+                    del self.options[param_zone_sources]
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -448,24 +457,27 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             k: v for k, v in defaults.items() if k not in DEFAULTS_EXCLUDE
         }
         options = {**defaults_inherit, **entry_options}
+        options_parsed = {}
+        process_entry_options(options)
 
         ## Convert CONF_SOURCES for options flow
         sources = options[CONF_SOURCES]
         options[CONF_QUERY_SOURCES] = False
         if not sources:
-            sources = pioneer.properties.get_source_dict() or {}
+            sources = pioneer.properties.get_source_dict()
             options[CONF_QUERY_SOURCES] = True
         options[CONF_SOURCES] = _convert_sources(sources)
-        self.options_parsed[CONF_SOURCES] = sources
+        options_parsed[CONF_SOURCES] = sources
 
         ## Convert CONF_PARAMS for options flow
-        params_config = options[CONF_PARAMS]
-        self.options_parsed[CONF_PARAMS] = params_config
+        params_config: dict[str, Any] = options[CONF_PARAMS]
+        options_parsed[CONF_PARAMS] = params_config
         options[CONF_PARAMS] = list(
             [f"{k}: {json.dumps(v)}" for k, v in params_config.items()]
         )
 
         self.options = options
+        self.options_parsed = options_parsed
         self.defaults = defaults
         self.update_zone_source_subsets()
 
@@ -547,6 +559,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         errors = {}
         description_placeholders = {}
         if user_input is not None:
+            _LOGGER.warning("zone_options user_input=%s", user_input)
             result = await self._update_options(step_id, user_input)
             if result is True:
                 if self.show_advanced_options:
@@ -556,18 +569,17 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         options = self.options
         defaults = self.defaults
-        zone_labels = dict(
-            [(v, k) for k, v in (self.options_parsed[CONF_SOURCES]).items()]
-        )
 
         def zone_options(zone: Zone):
-            return sorted(
-                (
-                    dict([("label", zone_labels.get(v, f"Source {v}")), ("value", v)])
-                    for v in self.default_source_ids[zone]
-                ),
-                key=lambda i: i["label"],
-            )
+            return [
+                {
+                    "label": self.options_parsed[CONF_SOURCES].get(
+                        source_id, f"Source {source_id}"
+                    ),
+                    "value": str(source_id),
+                }
+                for source_id in self.default_source_ids[zone]
+            ]
 
         data_schema = vol.Schema(
             {
@@ -798,6 +810,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 else:
                     self.options_parsed[CONF_SOURCES] = sources_new
 
+        if step_id == "zone_options":
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
 
         ## Parse and validate CONF_PARAMS
@@ -829,20 +842,11 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         options_conf = _filter_options(options, defaults)  ## non-default options only
         params = _filter_params(options, defaults)  ## non-default params only
 
-        ## Save zone sources that differ from default
-        zone_sources = {
-            param_sources: sources_zone
-            for zone, param_sources in PARAM_ZONE_SOURCES.items()
-            if param_sources in options
-            and (sources_zone := options[param_sources]) != []
-            and sorted(sources_zone) != sorted(self.default_source_ids[zone])
-        }
-
         ## Include CONF_SOURCES only if not querying sources
         if options[CONF_QUERY_SOURCES] and CONF_SOURCES in self.options_parsed:
             del self.options_parsed[CONF_SOURCES]
 
-        data = {**options_conf, **self.options_parsed, **params, **zone_sources}
+        data = {**options_conf, **self.options_parsed, **params}
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerOptionsFlow._create_entry(data=%s)", data)
 
