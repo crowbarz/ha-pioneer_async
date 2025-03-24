@@ -121,11 +121,11 @@ The integration saves a master list of available sources on the AVR, and a subse
 
 The master list of sources can be queried from the AVR when adding an integration instance by enabling **Query sources from AVR**. They can also be re-queried when reconfiguring the integration instance from the **Basic options** page. To do this, enable the **Query sources from AVR** option then click **Next**. Note that the current list of sources will be replaced by the list returned by the AVR.
 
-Source mappings in the master source list can be edited in the **Basic options** screen by removing unwanted mappings and adding extra mappings via the **Manually configured sources** option. Additional mappings can be added if your AVR does not automatically detect them. Each source mapping is in the form `id:name`, where `id` is a 2 digit identifier for the source (including a leading zero for single digit source IDs), and `name` is the friendly name for the source. You can rename a source mapping by removing the mapping and adding a new mapping with the same `id`.
+Source mappings in the master source list can be edited in the **Basic options** screen by removing unwanted mappings and adding extra mappings via the **Manually configured sources** option. Additional mappings can be added if your AVR does not automatically detect them. Each source mapping is in the form `id:name`, where `id` is the source ID (0-99), and `name` is the friendly name for the source. You can rename a source mapping by removing the mapping and adding a new mapping with the same `id`.
 
 Source IDs can be found in the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#source-list)
 
-On the **Zone options** page, the available sources for each zone can be selected. If no sources are selected for a zone, then all sources are made available for selection.
+On the **Zone options** page, the available sources for each zone can be selected. If no sources are selected for a zone, then all valid sources for the zone are made available for selection.
 
 ### Extra `aiopioneer` parameters
 
@@ -133,6 +133,9 @@ Additional parameters can be configured in the Home Assistant integration and ar
 See [aiopioneer documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#params) for a list of parameters that can be set.
 
 Most configuration parameters are configurable via UI settings. Other parameters can be added through entries in the **Extra `aiopioneer` parameters**. Each entry is in the format `parameter_name: value` with _value_ expressed in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by adding the entry `am_frequency_step: 9`.
+
+> [!NOTE]
+> As at 0.10.0, parameters that accept a dict with an int key cannot currently be represented in JSON.
 
 ## Devices
 
@@ -173,13 +176,33 @@ The entities below show the current tuner settings, and can also be used to chan
 | Tuner FM Frequency | number | Current FM frequency (in MHz)
 | Tuner Preset | select | Currently selected tuner preset, or `unknown` if no preset is. The preset is also reset to `unknown` when the frequency is changed
 
-#### `tuner_am_frequency` entity attributes
+#### Tuner AM Frequency entity attributes
 
-The `tuner_am_frequency` number entity exposes the following additional attributes:
+The Tuner AM Frequency number entity exposes the following additional attributes:
 
 | Entity attribute | Type | Description
 | --- | --- | ---
 | `am_frequency_step` | int | The kHz step between valid AM frequencies. This value differs across regions. If not specified as a parameter, then this is calculated by stepping up and down the frequency when the band is first changed to `AM`
+
+### Tone entities
+
+The Tone entities show the tone mode and treble and bass levels for a supported zone, and can also be modified. The tone treble and bass entities are only available when the mode is set to `on`.
+
+| Name | Platform | Description
+| --- | --- | ---
+| Tone Mode | select | Current tone mode (`bypass` or `on`)
+| Tone Treble | number | Current tone treble (in dB)
+| Tone Bass | number | Current tone bass (in dB)
+
+### Speaker system entity
+
+The Speaker System select entity shows the currently configured speaker system on the AVR. This can also be changed by selecting another option.
+
+Not all speaker system modes are available on all AVR models. The AVR will respond with an error if an unavailable mode is selected.
+
+| Name | Platform | Description
+| --- | --- | ---
+| Speaker System | select | Currently configured speaker system
 
 ### AVR property entities
 
@@ -195,18 +218,17 @@ Sensor entities for global AVR properties and property groups are registered to 
 | Property | Platform | Description
 | --- | --- | ---
 | Display | sensor | Current value shown on AVR front panel display
-| Speaker System | sensor | AVR speaker system currently in use
-| Amp | sensor | Amp property group, main sensor property: `speakers`
+| Amp | sensor | Amp property group, main sensor property: `model`
 | DSP | sensor | DSP property group, main sensor property: `signal_select`
+| System | sensor | System property group, main sensor property: `osd_language`
 | Video Parameters | sensor | Video parameters property group, main sensor property: `signal_output_resolution`
 | Audio Parameters | sensor | Audio parameters property group, main sensor property: `input_signal`
 | Input Multichannel | binary_sensor | **on** if current input audio source is a multi-channel source
-| System | sensor | System property group
 
 > [!CAUTION]
-> On supported AVRs, enabling the **Display** sensor may generate more recorder database update entries than expected. The sensor state changes every time the display changes. This includes every change when a long message is scrolled across the display, such as a long radio channel name.
+> On supported AVRs, enabling the Display sensor may generate more recorder database update entries than expected. The sensor state changes every time the display changes. This includes every change when a long message is scrolled across the display, such as a long radio channel name. Thus, this sensor is disabled by default.
 >
-> To prevent these state changes from being recorded by the [Recorder integration](https://www.home-assistant.io/integrations/recorder/), add the following filter to `configuration.yaml`:
+> To prevent these state changes from being recorded by the [Recorder integration](https://www.home-assistant.io/integrations/recorder/), add the following filter to `configuration.yaml`, substituting the display sensor name used in your installation, and restart HA before enabling the entity:
 
 ```yaml
 # Example configuration.yaml entry
@@ -223,9 +245,8 @@ Zone entities are registered to the zone device.
 | Property | Platform | Description
 | --- | --- | ---
 | channel_levels | sensor | Surround channel levels
-| tone | sensor | Tone setting, and bass and treble levels
 | Video | sensor | Zone video parameters property group
-| Audio | sensor |  Zone audio parameters property group
+| Audio | sensor | Zone audio parameters property group
 
 ## Actions
 
@@ -235,16 +256,6 @@ All of the integration specific actions described below require a target to be s
 
 > [!NOTE]
 > Prior to Home Assistant 2024.8, actions were referred to as service calls. See the [2024.8 release post](https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-) for more details on this change in terminology.
-
-### Action `set_tone_settings`
-
-Set AVR tone settings for zone.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| tone | string | | Tone mode. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
-| treble | int | None | Tone treble value (-6dB -- 6dB)
-| bass | int | None | Tone bass value (-6dB -- 6dB)
 
 ### Action `set_channel_levels`
 
