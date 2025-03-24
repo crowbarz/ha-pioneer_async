@@ -129,6 +129,7 @@ class TunerFrequencyNumber(
     _attr_entity_category = EntityCategory.CONFIG
     _attr_device_class = NumberDeviceClass.FREQUENCY
     _attr_icon = "mdi:radio-tower"
+    _attr_mode = NumberMode.BOX
     _unrecorded_attributes = frozenset({ATTR_TUNER_AM_FREQUENCY_STEP})
 
     def __init__(
@@ -150,7 +151,6 @@ class TunerFrequencyNumber(
         self._attr_native_min_value = tuner_freq_attrs["min_value"]
         self._attr_native_max_value = tuner_freq_attrs["max_value"]
         self._attr_native_step = tuner_freq_attrs["step"]
-        self._attr_mode = NumberMode.BOX
 
     @property
     def available(self) -> bool:
@@ -197,18 +197,8 @@ class ToneNumber(PioneerEntityBase, NumberEntity):  # pylint: disable=abstract-m
     _attr_native_min_value = -6
     _attr_native_max_value = 6
     _attr_native_step = 1
-
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
-        """Initialize the Pioneer tone number entity."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        self._attr_native_unit_of_measurement = "dB"
-        self._attr_mode = NumberMode.SLIDER
+    _attr_native_unit_of_measurement = "dB"
+    _attr_mode = NumberMode.SLIDER
 
     @property
     def available(self) -> bool:
@@ -223,6 +213,7 @@ class ToneTrebleNumber(
     """Pioneer tone treble number entity."""
 
     _attr_icon = "mdi:music-clef-treble"
+    _attr_name = "Tone Treble"
 
     def __init__(
         self,
@@ -235,7 +226,6 @@ class ToneTrebleNumber(
         """Initialize the Pioneer tone treble number entity."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
-        self._attr_name = "Tone treble"
 
     @property
     def native_value(self) -> int | None:
@@ -255,6 +245,7 @@ class ToneBassNumber(ToneNumber, CoordinatorEntity):  # pylint: disable=abstract
     """Pioneer tone bass number entity."""
 
     _attr_icon = "mdi:music-clef-bass"
+    _attr_name = "Tone Bass"
 
     def __init__(
         self,
@@ -267,7 +258,6 @@ class ToneBassNumber(ToneNumber, CoordinatorEntity):  # pylint: disable=abstract
         """Initialize the Pioneer tone bass number entity."""
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
-        self._attr_name = "Tone bass"
 
     @property
     def native_value(self) -> int | None:
