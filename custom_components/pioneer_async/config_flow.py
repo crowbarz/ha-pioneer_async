@@ -569,15 +569,18 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         defaults = self.defaults
 
         def zone_options(zone: Zone):
-            return [
-                {
-                    "label": self.options_parsed[CONF_SOURCES].get(
-                        source_id, f"Source {source_id}"
-                    ),
-                    "value": str(source_id),
-                }
-                for source_id in self.default_source_ids[zone]
-            ]
+            return sorted(
+                [
+                    {
+                        "label": self.options_parsed[CONF_SOURCES].get(
+                            source_id, f"Source {source_id}"
+                        ),
+                        "value": str(source_id),
+                    }
+                    for source_id in self.default_source_ids[zone]
+                ],
+                key=lambda i: i["label"],
+            )
 
         data_schema = vol.Schema(
             {
