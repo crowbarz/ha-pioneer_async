@@ -372,7 +372,6 @@ class PioneerAVRConfigFlow(
 
     async def _create_config_entry(self) -> FlowResult:
         """Create config entry using submitted options."""
-        _LOGGER.warning("sources=%s", self.sources)
         return self.async_create_entry(
             title=self.name,
             data={
@@ -559,7 +558,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         errors = {}
         description_placeholders = {}
         if user_input is not None:
-            _LOGGER.warning("zone_options user_input=%s", user_input)
             result = await self._update_options(step_id, user_input)
             if result is True:
                 if self.show_advanced_options:
