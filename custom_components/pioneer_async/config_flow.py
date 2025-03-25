@@ -71,6 +71,7 @@ from .const import (
     DEFAULTS_EXCLUDE,
     ATTR_PIONEER,
     OPTIONS_DICT_INT_KEY,
+    PARAMS_DICT_INT_KEY,
 )
 from .debug import Debug
 
@@ -137,12 +138,34 @@ def _convert_sources(sources: dict[str, Any]) -> list[str]:
     return list(f"{k}:{v}" for k, v in sources.items())
 
 
-def process_entry_options(options: dict[str, Any]) -> None:
+def process_entry_options(
+    options: dict[str, Any], process_options: list[str] = None, remove_invalid=False
+) -> list[str]:
     """Process config entry options."""
-    for option in OPTIONS_DICT_INT_KEY:
-        ## Restore dicts with int keys converted to str on JSON serialisation
-        if option in options and isinstance(options[option], dict):
-            options[option] = {int(k): v for k, v in options[option].items()}
+    if process_options is None:
+        process_options = OPTIONS_DICT_INT_KEY
+    options_invalid = []
+    for option in process_options:
+        try:
+            ## Restore dicts with int keys converted to str on JSON serialisation
+            if option in options:
+                if option == CONF_PARAMS:
+                    options_invalid.extend(
+                        process_entry_options(
+                            options[CONF_PARAMS], process_options=PARAMS_DICT_INT_KEY
+                        )
+                    )
+                elif isinstance(options[option], dict):
+                    options[option] = {int(k): v for k, v in options[option].items()}
+        except ValueError:
+            options_invalid.append(option)
+
+    if options_invalid and remove_invalid:
+        _LOGGER.warning("removing invalid options %s", options_invalid)
+        for option in options_invalid:
+            del options[option]
+
+    return options_invalid
 
 
 def _validate_sources(sources_list: list[str]) -> Tuple[dict[str, Any] | None, list]:
@@ -457,7 +480,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         }
         options = {**defaults_inherit, **entry_options}
         options_parsed = {}
-        process_entry_options(options)
+        process_entry_options(options, remove_invalid=True)
 
         ## Convert CONF_SOURCES for options flow
         sources = options[CONF_SOURCES]
@@ -467,13 +490,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             options[CONF_QUERY_SOURCES] = True
         options[CONF_SOURCES] = _convert_sources(sources)
         options_parsed[CONF_SOURCES] = sources
-
-        ## Convert CONF_PARAMS for options flow
-        params_config: dict[str, Any] = options[CONF_PARAMS]
-        options_parsed[CONF_PARAMS] = params_config
-        options[CONF_PARAMS] = list(
-            [f"{k}: {json.dumps(v)}" for k, v in params_config.items()]
-        )
 
         self.options = options
         self.options_parsed = options_parsed
@@ -696,11 +712,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                         )
                     ),
                 ),
-                vol.Optional(CONF_PARAMS, default=[]): selector.SelectSelector(
-                    selector.SelectSelectorConfig(
-                        options=[], custom_value=True, multiple=True
-                    ),
-                ),
+                vol.Optional(CONF_PARAMS, default={}): selector.ObjectSelector(),
             }
         )
 
@@ -814,23 +826,12 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if step_id == "zone_options":
             self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
 
-        ## Parse and validate CONF_PARAMS
-        if CONF_PARAMS in user_input:
-            params_config = {}
-            params_invalid = []
-            for param_item in user_input[CONF_PARAMS]:
-                try:
-                    (param_name, _, param_value_str) = param_item.partition(":")
-                    param_value = json.loads(param_value_str)
-                    params_config.update({param_name: param_value})
-                except (json.JSONDecodeError, ValueError):
-                    params_invalid.append(param_item)
-
-            if params_invalid:
-                errors[CONF_PARAMS] = "invalid_params"
-                description_placeholders["params"] = json.dumps(params_invalid)
-            else:
-                self.options_parsed[CONF_PARAMS] = params_config
+        ## Convert params dict options with int keys back to int
+        if options_invalid := process_entry_options(
+            self.options[CONF_PARAMS], process_options=PARAMS_DICT_INT_KEY
+        ):
+            errors[CONF_PARAMS] = "invalid_params"
+            description_placeholders["params"] = json.dumps(options_invalid)
 
         return (errors, description_placeholders) if errors else True
 

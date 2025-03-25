@@ -90,7 +90,7 @@ These options enable functionality and workarounds that are required for some AV
 | Always poll the AVR every scan interval | | Enable for AVRs that do not reliably report state changes and needs a full refresh to be performed every scan interval. Otherwise, the integration will perform a full refresh only if the AVR does not send a response to the integration for the scan interval period
 | Maximum volume units for Zone 1 | 185 | The highest volume unit for Zone 1
 | Maximum volume units for other zones | 81 | The highest volume unit for other zones
-| Extra aiopioneer parameters | | Additional config parameters to pass to the aiopioneer package. See [Extra `aiopioneer` params](#extra-aiopioneer-parameters)
+| Extra aiopioneer parameters | | Additional config parameters to pass to the aiopioneer package, in YAML format. See [`aiopioneer` params](#aiopioneer-parameters) for more details
 
 ### Debug options
 
@@ -127,15 +127,18 @@ Source IDs can be found in the [`aiopioneer` documentation](https://github.com/c
 
 On the **Zone options** page, the available sources for each zone can be selected. If no sources are selected for a zone, then all valid sources for the zone are made available for selection.
 
-### Extra `aiopioneer` parameters
+### `aiopioneer` parameters
 
-Additional parameters can be configured in the Home Assistant integration and are passed to the `aiopioneer` package used by this integration for communication with the Pioneer AVR via its API. The parameters modify the package functionality to account for the operational differences between the various Pioneer AVR models.
-See [aiopioneer documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#params) for a list of parameters that can be set.
+The `aiopioneer` package used by this integration to communicate with the Pioneer AVR via its API is customised through parameters that modify the package's functionality, to account for the operational differences between the various Pioneer AVR models.
+See the [aiopioneer documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#params) for a list of available parameters and their usage.
 
-Most configuration parameters are configurable via UI settings. Other parameters can be added through entries in the **Extra `aiopioneer` parameters**. Each entry is in the format `parameter_name: value` with _value_ expressed in JSON format. For example, the `am_frequency_step` parameter can be set to 9 kHz by adding the entry `am_frequency_step: 9`.
+Most configuration parameters are configurable via UI settings. Other parameters can be set by entering them as YAML in the **Extra `aiopioneer` parameters** object selector on the **Advanced options** page.
 
 > [!NOTE]
-> As at 0.10.0, parameters that accept a dict with an int key cannot currently be represented in JSON.
+> Extra parameters are not validated by the integration. Check for parameter errors in the Home Assistant log.
+
+> [!NOTE]
+> Parameters that accept a dict with an integer key will be converted to a string by Home Assistant. These are converted back to integer keys by the integration before passing them to `aiopioneer`.
 
 ## Devices
 

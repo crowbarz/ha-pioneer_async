@@ -145,9 +145,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.data[CONF_NAME]
 
     ## Compile options and params
-    entry_options = entry.options if entry.options else {}
+    entry_options = entry.options.copy() if entry.options else {}
+    process_entry_options(entry_options, remove_invalid=True)
     pioneer_data[ATTR_OPTIONS] = (options := OPTIONS_DEFAULTS | entry_options)
-    process_entry_options(options)
     scan_interval = options[CONF_SCAN_INTERVAL]
     timeout = options[CONF_TIMEOUT]
     sources = options[CONF_SOURCES]
