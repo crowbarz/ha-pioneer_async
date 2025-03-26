@@ -39,6 +39,9 @@
                 }
             }
         },
+        "progress": {
+            "interview": "Interviewing AVR to determine characteristics"
+        },
         "error": {
             "cannot_connect": "Cannot connect to AVR: {exception}",
             "invalid_sources": "Invalid source name mapping: {sources}",

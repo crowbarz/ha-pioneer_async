@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Any, Tuple
@@ -229,7 +230,7 @@ class PioneerAVRConfigFlow(
     MINOR_VERSION = CONFIG_ENTRY_VERSION_MINOR
     CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Initialise Pioneer AVR config flow."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerAVRConfigFlow.__init__()")
@@ -241,14 +242,10 @@ class PioneerAVRConfigFlow(
         self.query_sources = False
         self.sources: dict[int, str] = {}
         self.options: dict[str, Any] = {}
-
-    @staticmethod
-    @callback
-    def async_get_options_flow(
-        config_entry: config_entries.ConfigEntry,
-    ) -> PioneerOptionsFlow:
-        """Get the options flow for this handler."""
-        return PioneerOptionsFlow()
+        self.interview_task: asyncio.Task = None
+        self.interview_user_input: dict[str, Any] = None
+        self.interview_errors: dict[str, str] = {}
+        self.interview_description_placeholders: dict[str, str] = {}
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -256,11 +253,18 @@ class PioneerAVRConfigFlow(
         """Handle a flow initiated by the user."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerAVRConfigFlow.async_step_user(%s)", user_input)
-        errors = {}
-        description_placeholders = {}
+        errors = self.interview_errors
+        description_placeholders = self.interview_description_placeholders
+        self.interview_errors = {}
+        self.interview_description_placeholders = {}
+        if user_input is None and self.interview_user_input is not None:
+            ## Returned to user step due to error
+            user_input = self.interview_user_input
+            self.interview_user_input = None
+        step_id = "user"
 
-        if user_input is not None:
-            self.options = {}
+        if user_input is not None and not errors:
+            self.options = {}  ## TODO: don't clear for reconfigure
             self.name = user_input[CONF_NAME]
             self.host = user_input[CONF_HOST]
             self.port = int(user_input[CONF_PORT])
@@ -273,39 +277,8 @@ class PioneerAVRConfigFlow(
                     PARAM_IGNORE_VOLUME_CHECK: opts_all[ignore_volume_check]
                 }
 
-            pioneer = None
-            try:
-                pioneer = PioneerAVR(self.host, self.port, params=self.options)
-                await pioneer.connect(reconnect=False)
-                await pioneer.query_zones()
-                if not Zone.Z1 in pioneer.properties.zones:
-                    raise Zone1NotDiscovered()
-                if self.query_sources:
-                    await pioneer.build_source_dict()
-                    self.sources = pioneer.properties.get_source_dict()
-                self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
-                self.model = pioneer.properties.amp.get("model")
-
-            except AlreadyConfigured:
-                return self.async_abort(reason="already_configured")
-            except AVRConnectError as exc:
-                errors["base"] = "cannot_connect"
-                description_placeholders["exception"] = exc.err
-            except Zone1NotDiscovered:
-                return self.async_abort(reason="zone_1_not_discovered")
-            except Exception as exc:  # pylint: disable=broad-except
-                _LOGGER.error("unexpected exception: %s", repr(exc))
-                return self.async_abort(
-                    reason="exception",
-                    description_placeholders={"exception": repr(exc)},
-                )
-            finally:
-                if pioneer:
-                    await pioneer.shutdown()
-                    del pioneer
-
-            if not errors:
-                return await self.async_step_basic_options()
+            self.interview_user_input = user_input
+            return await self.async_step_interview_avr()
 
         data_schema = vol.Schema(
             {
@@ -348,10 +321,74 @@ class PioneerAVRConfigFlow(
         )
 
         return self.async_show_form(
-            step_id="user",
+            step_id=step_id,
             data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
+        )
+
+    async def async_step_interview_avr(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Interview Pioneer AVR to determine capabilities."""
+
+        step_id = "interview_avr"
+        self.interview_user_input = user_input
+
+        async def interview_avr():
+            """Perform AVR interview."""
+            pioneer = PioneerAVR(self.host, self.port, params=self.options)
+            try:
+                await pioneer.connect(reconnect=False)
+                await pioneer.query_zones()
+                if not Zone.Z1 in pioneer.properties.zones:
+                    raise Zone1NotDiscovered()
+                if self.query_sources:
+                    await pioneer.build_source_dict()
+                    self.sources = pioneer.properties.get_source_dict()
+                self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
+                self.model = pioneer.properties.amp.get("model")
+            finally:
+                await pioneer.shutdown()
+
+        if not self.interview_task:
+            self.interview_task = self.hass.async_create_task(interview_avr())
+        if not self.interview_task.done():
+            return self.async_show_progress(
+                step_id=step_id,
+                progress_action="interview",
+                progress_task=self.interview_task,
+            )
+        try:
+            await self.interview_task
+        except AlreadyConfigured:
+            self.interview_errors["abort"] = "already_configured"
+            return self.async_show_progress_done(next_step_id="interview_exception")
+        except Zone1NotDiscovered:
+            self.interview_errors["abort"] = "zone_1_not_discovered"
+            return self.async_show_progress_done(next_step_id="interview_exception")
+        except AVRConnectError as exc:
+            self.interview_errors["base"] = "cannot_connect"
+            self.interview_description_placeholders["exception"] = exc.err
+            return self.async_show_progress_done(next_step_id="user")
+        except Exception as exc:  # pylint: disable=broad-except
+            _LOGGER.error("unexpected exception: %s", repr(exc))
+            self.interview_errors["abort"] = "exception"
+            self.interview_description_placeholders = {"exception": repr(exc)}
+            return self.async_show_progress_done(next_step_id="interview_exception")
+
+        self.interview_task = None
+        self.interview_user_input = None
+        return self.async_show_progress_done(next_step_id="basic_options")
+
+    async def async_step_interview_exception(
+        self,
+        user_input: dict[str, Any] | None = None,  # pylint: disable=unused-argument
+    ) -> FlowResult:
+        """Handle issues that need transition await from progress step."""
+        return self.async_abort(
+            reason=self.interview_errors["abort"],
+            description_placeholders=self.interview_description_placeholders,
         )
 
     async def async_step_basic_options(
@@ -408,6 +445,14 @@ class PioneerAVRConfigFlow(
                 CONF_SOURCES: self.sources,
             },
         )
+
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> PioneerOptionsFlow:
+        """Get the options flow for this handler."""
+        return PioneerOptionsFlow()
 
 
 class PioneerOptionsFlow(config_entries.OptionsFlow):
