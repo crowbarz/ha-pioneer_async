@@ -17,10 +17,12 @@ from homeassistant.components.media_player import (
 )
 from homeassistant.const import (
     Platform,
+    CONF_NAME,
+    CONF_HOST,
+    CONF_PORT,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
-
 
 DOMAIN = "pioneer_async"
 PLATFORMS_CONFIG_FLOW = [
@@ -83,8 +85,14 @@ OPTIONS_DEFAULTS = {
     CONF_DEBUG_INTEGRATION: False,
     CONF_DEBUG_CONFIG_FLOW: False,
     CONF_DEBUG_ACTION: False,
+    ## NOTE: CONF_QUERY_SOURCES is not retained in config entry
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
+CONFIG_DATA = [
+    CONF_NAME,
+    CONF_HOST,
+    CONF_PORT,
+]
 
 OPTIONS_DICT_INT_KEY = [
     CONF_SOURCES,

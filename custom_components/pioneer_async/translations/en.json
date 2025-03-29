@@ -2,9 +2,9 @@
     "title": "Pioneer AVR",
     "config": {
         "step": {
-            "user": {
-                "title": "AVR details",
-                "description": "Enter the details for the Pioneer AVR:",
+            "connection": {
+                "title": "AVR connection",
+                "description": "Enter the connection details for the Pioneer AVR:",
                 "data": {
                     "name": "Device name",
                     "host": "Host",
@@ -50,7 +50,8 @@
         "abort": {
             "already_configured": "AVR is already configured",
             "zone_1_not_discovered": "Main zone not discovered on AVR",
-            "exception": "Unexpected exception: {exception}"
+            "exception": "Unexpected exception: {exception}",
+            "reconfigure_successful": "AVR reconfiguration successful"
         }
     },
     "options": {
