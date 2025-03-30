@@ -79,72 +79,54 @@ from .debug import Debug
 _LOGGER = logging.getLogger(__name__)
 
 
-def _convert_sources(sources: dict[str, Any]) -> list[str]:
-    """Convert sources dict to format for data entry flow."""
-    return list(f"{k}:{v}" for k, v in sources.items())
-
-
 def get_entry_config(
     config_entry: config_entries.ConfigEntry, pioneer: PioneerAVR
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     """Generate config from config entry."""
     options = config_entry.options.copy()
-    process_entry_options(options, remove_invalid=True)
+    process_options(options, remove_invalid=True)
     config = copy.deepcopy(config_entry.data | options)
     config[CONF_QUERY_SOURCES] = bool(not config.get(CONF_SOURCES, {}))
     defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
     return config, defaults
 
 
-def process_entry_options(
-    options: dict[str, Any], process_options: list[str] = None, remove_invalid=False
+def _process_dict(
+    items: dict[str, Any], dict_keys: list[str], remove_invalid=False
 ) -> list[str]:
-    """Process config entry options."""
-    if process_options is None:
-        process_options = OPTIONS_DICT_INT_KEY
+    """Process a dict of options or params."""
     options_invalid = []
-    for option in process_options:
+    for key in dict_keys:
         try:
             ## Restore dicts with int keys converted to str on JSON serialisation
-            if option in options:
-                if option == CONF_PARAMS:
-                    options_invalid.extend(process_params(options[CONF_PARAMS]))
-                elif isinstance(options[option], dict):
-                    options[option] = {int(k): v for k, v in options[option].items()}
+            if key in items:
+                if key == CONF_PARAMS:
+                    options_invalid.extend(process_params(items[CONF_PARAMS]))
+                elif isinstance(items[key], dict):
+                    items[key] = {int(k): v for k, v in items[key].items()}
         except ValueError:
-            options_invalid.append(option)
+            options_invalid.append(key)
 
     if options_invalid and remove_invalid:
         _LOGGER.warning("removing invalid options %s", options_invalid)
-        for option in options_invalid:
-            del options[option]
+        for key in options_invalid:
+            del items[key]
 
     return options_invalid
 
 
-def process_params(params: dict[str, Any], remove_invalid=False) -> list[str]:
-    """Process params."""
-    return process_entry_options(
-        params, process_options=PARAMS_DICT_INT_KEY, remove_invalid=remove_invalid
+def process_options(options: dict[str, Any], remove_invalid=False) -> list[str]:
+    """Process options."""
+    return _process_dict(
+        options, dict_keys=OPTIONS_DICT_INT_KEY, remove_invalid=remove_invalid
     )
 
 
-def _validate_sources(sources_list: list[str]) -> Tuple[dict[str, Any] | None, list]:
-    """Validate sources are in correct format and convert to dict."""
-    sources_invalid = []
-    sources = {}
-    for source_entry in sources_list:
-        try:
-            if len(source_items := source_entry.split(":", 1)) != 2:
-                raise ValueError
-            if (source_id := int(source_items[0])) < 0 or source_id > 99:
-                raise ValueError
-        except ValueError:
-            sources_invalid.append(source_entry)
-        else:
-            sources[source_id] = source_items[1]
-
-    return sources, sources_invalid
+def process_params(params: dict[str, Any], remove_invalid=False) -> list[str]:
+    """Process params."""
+    return _process_dict(
+        params, dict_keys=PARAMS_DICT_INT_KEY, remove_invalid=remove_invalid
+    )
 
 
 def _filter_options(config: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
@@ -201,6 +183,29 @@ class PioneerAVRConfigFlow(
         self.interview_errors: dict[str, str] = {}
         self.interview_description_placeholders: dict[str, str] = {}
 
+    @staticmethod
+    def convert_sources(sources: dict[str, Any]) -> list[str]:
+        """Convert sources dict to format for data entry flow."""
+        return list(f"{k}:{v}" for k, v in sources.items())
+
+    @staticmethod
+    def validate_sources(sources_list: list[str]) -> Tuple[dict[int, str] | None, list]:
+        """Validate sources are in correct format and convert to dict."""
+        sources_invalid: list[str] = []
+        sources: dict[int, str] = {}
+        for source_entry in sources_list:
+            try:
+                if len(source_items := source_entry.split(":", 1)) != 2:
+                    raise ValueError
+                if (source_id := int(source_items[0])) < 0 or source_id > 99:
+                    raise ValueError
+            except ValueError:
+                sources_invalid.append(source_entry)
+            else:
+                sources[source_id] = source_items[1]
+
+        return sources, sources_invalid
+
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
@@ -223,7 +228,7 @@ class PioneerAVRConfigFlow(
         config, self.defaults = get_entry_config(self.config_entry, self.pioneer)
 
         sources = config.get(CONF_SOURCES, {})
-        config[CONF_SOURCES] = _convert_sources(sources)
+        config[CONF_SOURCES] = self.convert_sources(sources)
         self.config_parsed[CONF_SOURCES] = sources
 
         ignore_volume_check = config.get(PARAM_IGNORE_VOLUME_CHECK)
@@ -351,7 +356,7 @@ class PioneerAVRConfigFlow(
                 if self.config[CONF_QUERY_SOURCES]:
                     await pioneer.build_source_dict()
                     sources = pioneer.properties.get_source_dict()
-                    self.config[CONF_SOURCES] = _convert_sources(sources)
+                    self.config[CONF_SOURCES] = self.convert_sources(sources)
                     self.config_parsed[CONF_SOURCES] = sources
                 self.config[PARAM_MODEL] = pioneer.properties.amp.get("model")
                 self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
@@ -362,7 +367,7 @@ class PioneerAVRConfigFlow(
             """Update AVR sources on reconfigure."""
             await self.pioneer.build_source_dict()
             sources = self.pioneer.properties.get_source_dict()
-            self.config[CONF_SOURCES] = _convert_sources(sources)
+            self.config[CONF_SOURCES] = self.convert_sources(sources)
             self.config_parsed[CONF_SOURCES] = sources
 
         if not self.interview_task:
@@ -429,7 +434,7 @@ class PioneerAVRConfigFlow(
 
         if user_input is not None:
             ## Convert CONF_SOURCES to config entry value
-            sources, sources_invalid = _validate_sources(user_input[CONF_SOURCES])
+            sources, sources_invalid = self.validate_sources(user_input[CONF_SOURCES])
             if sources_invalid:
                 errors[CONF_SOURCES] = "invalid_sources"
                 description_placeholders["sources"] = json.dumps(sources_invalid)
