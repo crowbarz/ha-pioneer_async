@@ -2,7 +2,6 @@
 
 # pylint: disable=logging-format-interpolation
 
-import asyncio
 from datetime import timedelta
 import json
 import logging
@@ -29,7 +28,7 @@ from homeassistant.helpers import device_registry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
-from .config_flow import PioneerAVRConfigFlow, process_entry_options
+from .config_flow import PioneerAVRConfigFlow, process_options
 from .const import (
     DOMAIN,
     PLATFORMS_CONFIG_FLOW,
@@ -64,9 +63,9 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         return False
 
     data_current = config_entry.data
-    data_new = {**data_current}
+    data_new = data_current.copy()
     options_current = config_entry.options
-    options_new = {**options_current}
+    options_new = options_current.copy()
 
     ## Migrate options that have been renamed
     for option_current, option_new in MIGRATE_OPTIONS.items():
@@ -166,9 +165,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer = None
     try:
         pioneer = PioneerAVR(
-            host,
-            port,
-            timeout,
+            host=host,
+            port=port,
+            timeout=timeout,
             scan_interval=scan_interval,
             params=params,
         )
