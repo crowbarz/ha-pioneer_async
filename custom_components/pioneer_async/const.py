@@ -2,19 +2,15 @@
 
 from datetime import timedelta
 
+from aiopioneer.const import Zone
 from aiopioneer.params import (
-    PARAM_ZONE_1_SOURCES,
-    PARAM_ZONE_2_SOURCES,
-    PARAM_ZONE_3_SOURCES,
     PARAM_HDZONE_SOURCES,
     PARAM_DISABLE_AUTO_QUERY,
     PARAM_EXTRA_LISTENING_MODES,
     PARAM_SPEAKER_SYSTEM_MODES,
 )
 
-from homeassistant.components.media_player import (
-    MediaPlayerDeviceClass,
-)
+from homeassistant.components.media_player import MediaPlayerDeviceClass
 from homeassistant.const import (
     Platform,
     CONF_NAME,
@@ -93,6 +89,11 @@ CONFIG_DATA = [
     CONF_HOST,
     CONF_PORT,
 ]
+CONFIG_IGNORE_ZONES = {
+    Zone.Z2: CONF_IGNORE_ZONE_2,
+    Zone.Z3: CONF_IGNORE_ZONE_3,
+    Zone.HDZ: CONF_IGNORE_HDZONE,
+}
 
 OPTIONS_DICT_INT_KEY = [
     CONF_SOURCES,
@@ -101,14 +102,6 @@ OPTIONS_DICT_INT_KEY = [
 PARAMS_DICT_INT_KEY = [
     PARAM_EXTRA_LISTENING_MODES,
     PARAM_SPEAKER_SYSTEM_MODES,
-]
-
-## Don't inherit defaults for these options/parameters
-DEFAULTS_EXCLUDE = [
-    PARAM_ZONE_1_SOURCES,
-    PARAM_ZONE_2_SOURCES,
-    PARAM_ZONE_3_SOURCES,
-    PARAM_HDZONE_SOURCES,
 ]
 
 CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER

@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 import asyncio
+import copy
 import json
 import logging
-from copy import deepcopy
 from typing import Any, Tuple
 
 import voluptuous as vol
@@ -68,8 +68,8 @@ from .const import (
     DEFAULT_PORT,
     OPTIONS_DEFAULTS,
     CONFIG_DATA,
+    CONFIG_IGNORE_ZONES,
     OPTIONS_ALL,
-    DEFAULTS_EXCLUDE,
     ATTR_PIONEER,
     OPTIONS_DICT_INT_KEY,
     PARAMS_DICT_INT_KEY,
@@ -77,61 +77,6 @@ from .const import (
 from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
-
-
-def _get_schema_basic_options(defaults: dict) -> dict:
-    """Return basic options schema."""
-    return {
-        vol.Optional(PARAM_MODEL): selector.TextSelector(selector.TextSelectorConfig()),
-        vol.Required(CONF_SOURCES, default=[]): selector.SelectSelector(
-            selector.SelectSelectorConfig(options=[], custom_value=True, multiple=True),
-        ),
-        vol.Optional(
-            CONF_SCAN_INTERVAL, default=defaults[CONF_SCAN_INTERVAL]
-        ): vol.Coerce(
-            int,
-            selector.NumberSelector(
-                selector.NumberSelectorConfig(
-                    min=1,
-                    max=2592000,  # 30 days
-                    unit_of_measurement="s",
-                    mode=selector.NumberSelectorMode.BOX,
-                )
-            ),
-        ),
-        vol.Optional(
-            CONF_TIMEOUT, default=defaults[CONF_TIMEOUT]
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1.0,
-                max=10.0,
-                step=0.1,
-                unit_of_measurement="s",
-                mode=selector.NumberSelectorMode.SLIDER,
-            )
-        ),
-        vol.Optional(
-            PARAM_COMMAND_DELAY, default=defaults[PARAM_COMMAND_DELAY]
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=0.0,
-                max=1.0,
-                step=0.1,
-                unit_of_measurement="s",
-                mode=selector.NumberSelectorMode.SLIDER,
-            )
-        ),
-        vol.Optional(
-            CONF_REPEAT_COUNT, default=defaults[CONF_REPEAT_COUNT]
-        ): selector.NumberSelector(
-            selector.NumberSelectorConfig(
-                min=1,
-                max=10,
-                step=1,
-                mode=selector.NumberSelectorMode.SLIDER,
-            )
-        ),
-    }
 
 
 def _convert_sources(sources: dict[str, Any]) -> list[str]:
@@ -145,7 +90,7 @@ def get_entry_config(
     """Generate config from config entry."""
     options = config_entry.options.copy()
     process_entry_options(options, remove_invalid=True)
-    config = deepcopy(config_entry.data | options)
+    config = copy.deepcopy(config_entry.data | options)
     config[CONF_QUERY_SOURCES] = bool(not config.get(CONF_SOURCES, {}))
     defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
     return config, defaults
@@ -163,11 +108,7 @@ def process_entry_options(
             ## Restore dicts with int keys converted to str on JSON serialisation
             if option in options:
                 if option == CONF_PARAMS:
-                    options_invalid.extend(
-                        process_entry_options(
-                            options[CONF_PARAMS], process_options=PARAMS_DICT_INT_KEY
-                        )
-                    )
+                    options_invalid.extend(process_params(options[CONF_PARAMS]))
                 elif isinstance(options[option], dict):
                     options[option] = {int(k): v for k, v in options[option].items()}
         except ValueError:
@@ -179,6 +120,13 @@ def process_entry_options(
             del options[option]
 
     return options_invalid
+
+
+def process_params(params: dict[str, Any], remove_invalid=False) -> list[str]:
+    """Process params."""
+    return process_entry_options(
+        params, process_options=PARAMS_DICT_INT_KEY, remove_invalid=remove_invalid
+    )
 
 
 def _validate_sources(sources_list: list[str]) -> Tuple[dict[str, Any] | None, list]:
@@ -204,7 +152,7 @@ def _filter_options(config: dict[str, Any], defaults: dict[str, Any]) -> dict[st
     return {
         k: config[k]
         for k in OPTIONS_ALL
-        if k in config and config[k] != defaults.get(k)
+        if k in config and config[k] is not None and config[k] != defaults.get(k)
     }
 
 
@@ -213,9 +161,7 @@ def _filter_params(config: dict[str, Any], defaults: dict[str, Any]) -> dict[str
     return {
         k: config[k]
         for k in PARAMS_ALL
-        if k not in PARAM_ZONE_SOURCES.values()
-        and k in config
-        and config[k] != defaults.get(k)
+        if k in config and config[k] is not None and config[k] != defaults.get(k)
     }
 
 
@@ -275,7 +221,6 @@ class PioneerAVRConfigFlow(
         self.config_entry = self._get_reconfigure_entry()
         self.pioneer = self.hass.data[DOMAIN][self.config_entry.entry_id][ATTR_PIONEER]
         config, self.defaults = get_entry_config(self.config_entry, self.pioneer)
-        self.defaults |= {k: config[k] for k in CONFIG_DATA if k in config}
 
         sources = config.get(CONF_SOURCES, {})
         config[CONF_SOURCES] = _convert_sources(sources)
@@ -298,7 +243,9 @@ class PioneerAVRConfigFlow(
                 ">> PioneerAVRConfigFlow.async_step_connection(%s)", user_input
             )
 
-        _LOGGER.critical("connection: config=%s", self.config)
+        _LOGGER.critical(
+            "connection: user_input=%s, config=%s", user_input, self.config
+        )
 
         step_id = "connection"
         errors = self.interview_errors
@@ -313,12 +260,7 @@ class PioneerAVRConfigFlow(
             ignore_volume_check = {"default": None, "off": False, "on": True}[
                 self.config[PARAM_IGNORE_VOLUME_CHECK]
             ]
-            if ignore_volume_check is None:
-                del self.config[PARAM_IGNORE_VOLUME_CHECK]
-                if PARAM_IGNORE_VOLUME_CHECK in self.config_parsed:
-                    del self.config_parsed[PARAM_IGNORE_VOLUME_CHECK]
-            else:
-                self.config_parsed[PARAM_IGNORE_VOLUME_CHECK] = ignore_volume_check
+            self.config_parsed[PARAM_IGNORE_VOLUME_CHECK] = ignore_volume_check
 
             self.data = {k: v for k, v in self.config.items() if k in CONFIG_DATA}
             return await self.async_step_interview()
@@ -477,17 +419,17 @@ class PioneerAVRConfigFlow(
             _LOGGER.debug(
                 ">> PioneerAVRConfigFlow.async_step_basic_options(%s)", user_input
             )
-        _LOGGER.critical("basic_options: config=%s", self.config)
+        _LOGGER.critical(
+            "basic_options: user_input=%s, config=%s", user_input, self.config
+        )
 
         step_id = "basic_options"
         errors = {}
         description_placeholders = {}
 
         if user_input is not None:
-            self.config |= user_input
-
             ## Convert CONF_SOURCES to config entry value
-            sources, sources_invalid = _validate_sources(self.config[CONF_SOURCES])
+            sources, sources_invalid = _validate_sources(user_input[CONF_SOURCES])
             if sources_invalid:
                 errors[CONF_SOURCES] = "invalid_sources"
                 description_placeholders["sources"] = json.dumps(sources_invalid)
@@ -497,6 +439,7 @@ class PioneerAVRConfigFlow(
                 self.config_parsed[CONF_SOURCES] = sources
 
             if not errors:
+                self.config |= user_input
                 return await self.create_update_config_entry()
         else:
             user_input = self.config
@@ -577,7 +520,13 @@ class PioneerAVRConfigFlow(
         defaults = self.defaults
         data = {k: v for k, v in config.items() if k in CONFIG_DATA}
         options = _filter_options(config, defaults) | _filter_params(config, defaults)
-        _LOGGER.critical("create_config_entry: data=%s, options=%s", data, options)
+
+        if Debug.config_flow:
+            _LOGGER.debug(">> PioneerOptionsFlow.update_config_entry(data=%s)", options)
+
+        _LOGGER.critical(
+            "create_update_config_entry: data=%s, options=%s", data, options
+        )
 
         if self.source == config_entries.SOURCE_RECONFIGURE:
             ## Complete reconfiguration
@@ -590,11 +539,14 @@ class PioneerAVRConfigFlow(
                 )
                 ## TODO: update PioneerAVR and abort instead of reloading
             return self.async_update_reload_and_abort(
-                entry=self.config_entry, data=data, options=options
+                entry=self.config_entry,
+                title=config[CONF_NAME],
+                data=data,
+                options=options,
             )
 
         return self.async_create_entry(
-            title=self.config[CONF_NAME], data=data, options=options
+            title=config[CONF_NAME], data=data, options=options
         )
 
     @staticmethod
@@ -613,41 +565,11 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         """Initialise Pioneer AVR options flow."""
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerOptionsFlow.__init__()")
-        self.pioneer = None
-        self.defaults = {}
-        self.options = {}
-        self.options_parsed = {}
+        self.pioneer: PioneerAVR = None
+        self.defaults: dict[str, Any] = {}
+        self.config: dict[str, Any] = {}
+        self.config_parsed: dict[str, Any] = {}
         self.default_source_ids: list[int] = {}
-
-    def update_zone_source_subsets(self) -> None:
-        """Update zone source IDs to be a valid subset of configured/available sources."""
-        ## NOTE: param defaults may include sources excluded from main zone
-        if Debug.config_flow:
-            _LOGGER.debug(">> PioneerOptionsFlow.update_zone_source_subsets()")
-        sources = self.options_parsed[CONF_SOURCES]
-        source_ids = list(sources.keys())
-        for zone, param_zone_sources in PARAM_ZONE_SOURCES.items():
-            self.default_source_ids[zone] = default_source_ids = (
-                list([s for s in self.defaults[param_zone_sources] if s in source_ids])
-                or source_ids
-            )
-
-            ## Filter zone sources with valid sources for zone
-            zone_sources = [
-                source_id
-                for source_id_str in self.options.get(param_zone_sources, [])
-                if (source_id := int(source_id_str)) in self.default_source_ids[zone]
-            ]
-
-            ## Set parsed zone sources and update options with str zone sources
-            if zone_sources and (sorted(zone_sources) != sorted(default_source_ids)):
-                self.options_parsed[param_zone_sources] = list(zone_sources)
-                self.options[param_zone_sources] = list([str(s) for s in zone_sources])
-            else:
-                if param_zone_sources in self.options_parsed:
-                    del self.options_parsed[param_zone_sources]
-                if param_zone_sources in self.options:
-                    del self.options[param_zone_sources]
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None
@@ -660,101 +582,35 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if config_entry.entry_id not in self.hass.data[DOMAIN]:
             return self.async_abort(reason="not_set_up")
 
-        pioneer: PioneerAVR = self.hass.data[DOMAIN][config_entry.entry_id][
-            ATTR_PIONEER
-        ]
-        self.pioneer = pioneer
+        self.pioneer = self.hass.data[DOMAIN][config_entry.entry_id][ATTR_PIONEER]
+        config, defaults = get_entry_config(self.config_entry, self.pioneer)
+        config_parsed = {}
 
-        defaults = {
-            **OPTIONS_DEFAULTS,  ## defaults
-            **pioneer.params.default_params,  ## aiopioneer defaults
-        }
-        entry_options = config_entry.options
-        defaults_inherit = {
-            k: v for k, v in defaults.items() if k not in DEFAULTS_EXCLUDE
-        }
-        options = {**defaults_inherit, **entry_options}
-        options_parsed = {}
-        process_entry_options(options, remove_invalid=True)
+        _LOGGER.critical("async_step_init: config=%s", config)
 
-        ## Convert CONF_SOURCES for options flow
-        sources = options[CONF_SOURCES]
-        options[CONF_QUERY_SOURCES] = False
-        if not sources:
-            sources = pioneer.properties.get_source_dict()
-            options[CONF_QUERY_SOURCES] = True
-        options[CONF_SOURCES] = _convert_sources(sources)
-        options_parsed[CONF_SOURCES] = sources
+        ## Expand PARAM_IGNORED_ZONES to CONF_IGNORE_ZONE_*
+        ignored_zones = config.get(PARAM_IGNORED_ZONES, defaults[PARAM_IGNORED_ZONES])
+        config_parsed[PARAM_IGNORED_ZONES] = ignored_zones
+        for zone, param in CONFIG_IGNORE_ZONES.items():
+            config[param] = zone.value in ignored_zones
+        if PARAM_IGNORED_ZONES in config:
+            del config[PARAM_IGNORED_ZONES]
 
-        self.options = options
-        self.options_parsed = options_parsed
+        ## Convert PARAM_ZONE_*_SOURCES to user input value and calculate defaults
+        sources: dict[int, str] = config[CONF_SOURCES]
+        source_ids_all = list(sources.keys())
+        for zone, param in PARAM_ZONE_SOURCES.items():
+            zone_source_ids = list(s for s in defaults[param] if s in source_ids_all)
+            defaults[param] = zone_source_ids or source_ids_all
+            source_ids = config.get(param, [])
+            config[param] = list(map(str, source_ids))
+            config_parsed[param] = source_ids
+
+        self.config = config
+        self.config_parsed = config_parsed
         self.defaults = defaults
-        self.update_zone_source_subsets()
 
-        return await self.async_step_basic_options()
-
-    async def async_step_basic_options(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle basic options for Pioneer AVR."""
-        if Debug.config_flow:
-            _LOGGER.debug(
-                ">> PioneerOptionsFlow.async_step_basic_options(%s)", user_input
-            )
-
-        step_id = "basic_options"
-
-        errors = {}
-        description_placeholders = {}
-        if user_input is not None:
-            # query_sources = options[CONF_QUERY_SOURCES]
-            result = await self._update_options(step_id, user_input)
-            if result is True:
-                if user_input[CONF_QUERY_SOURCES]:
-                    pioneer = self.pioneer
-                    pioneer.params.set_user_params(  # update max_source_id before query
-                        pioneer.params.user_params
-                        | {PARAM_MAX_SOURCE_ID: user_input[PARAM_MAX_SOURCE_ID]}
-                    )
-                    await pioneer.build_source_dict()
-                    sources = pioneer.properties.get_source_dict() or {}
-                    self.options[CONF_SOURCES] = _convert_sources(sources)
-                    self.options[CONF_QUERY_SOURCES] = False
-                else:
-                    return await self.async_step_zone_options()
-            else:
-                (errors, description_placeholders) = result
-
-        options = self.options
-        defaults = self.defaults
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_QUERY_SOURCES, default=True
-                ): selector.BooleanSelector(),
-                vol.Optional(
-                    PARAM_MAX_SOURCE_ID, default=defaults[PARAM_MAX_SOURCE_ID]
-                ): vol.Coerce(
-                    int,
-                    selector.NumberSelector(
-                        selector.NumberSelectorConfig(
-                            min=1,
-                            max=99,
-                            mode=selector.NumberSelectorMode.BOX,
-                        )
-                    ),
-                ),
-                **_get_schema_basic_options(defaults),
-            }
-        )
-
-        return self.async_show_form(
-            step_id=step_id,
-            data_schema=self.add_suggested_values_to_schema(data_schema, options),
-            errors=errors,
-            description_placeholders=description_placeholders,
-            last_step=False,
-        )
+        return await self.async_step_zone_options()
 
     async def async_step_zone_options(
         self, user_input: dict[str, Any] | None = None
@@ -765,60 +621,80 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ">> PioneerOptionsFlow.async_step_zone_options(%s)", user_input
             )
 
+        _LOGGER.critical(
+            "zone_options: user_input=%s, config=%s", user_input, self.config
+        )
+
         step_id = "zone_options"
         errors = {}
         description_placeholders = {}
+
         if user_input is not None:
-            result = await self._update_options(step_id, user_input)
-            if result is True:
+            ## Coalesce CONF_IGNORE_ZONE_* options into PARAM_IGNORED_ZONES
+            ignored_zones = []
+            for zone, param in CONFIG_IGNORE_ZONES.items():
+                self.config_parsed[param] = None
+                if user_input.get(param):
+                    ignored_zones.append(zone.value)
+            if ignored_zones:
+                self.config_parsed[PARAM_IGNORED_ZONES] = ignored_zones
+
+            ## Convert PARAM_ZONE_*_SOURCES to config entry value
+            for zone, param in PARAM_ZONE_SOURCES.items():
+                if source_ids := list(map(int, user_input[param])):
+                    self.config_parsed[param] = source_ids
+                    continue
+                self.config_parsed[param] = None
+
+            if not errors:
+                self.config |= user_input
                 if self.show_advanced_options:
                     return await self.async_step_advanced_options()
-                return await self._create_entry()
-            (errors, description_placeholders) = result
+                return await self.update_config_entry()
+        else:
+            user_input = self.config
 
-        options = self.options
-        defaults = self.defaults
-
-        def zone_options(zone: Zone):
+        def source_options(zone: Zone):
+            """Get available sources for zone."""
+            sources: dict[int, str] = self.config[CONF_SOURCES]
             return sorted(
-                [
+                list(
                     {
-                        "label": self.options_parsed[CONF_SOURCES].get(
-                            source_id, f"Source {source_id}"
-                        ),
+                        "label": sources.get(source_id, f"Source {source_id}"),
                         "value": str(source_id),
                     }
-                    for source_id in self.default_source_ids[zone]
-                ],
+                    for source_id in self.defaults[PARAM_ZONE_SOURCES[zone]]
+                ),
                 key=lambda i: i["label"],
             )
 
+        defaults = self.defaults
         data_schema = vol.Schema(
             {
-                vol.Optional(PARAM_ZONE_1_SOURCES, default=[]): selector.SelectSelector(
+                vol.Optional(PARAM_ZONE_1_SOURCES): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zone.Z1),
+                        options=source_options(Zone.Z1),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
-                vol.Optional(PARAM_ZONE_2_SOURCES, default=[]): selector.SelectSelector(
+                vol.Optional(PARAM_ZONE_2_SOURCES): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zone.Z2),
+                        options=source_options(Zone.Z2),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
-                vol.Optional(PARAM_ZONE_3_SOURCES, default=[]): selector.SelectSelector(
+                vol.Optional(PARAM_ZONE_3_SOURCES): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zone.Z3),
+                        options=source_options(Zone.Z3),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
                 ),
-                vol.Optional(PARAM_HDZONE_SOURCES, default=[]): selector.SelectSelector(
+                vol.Optional(PARAM_HDZONE_SOURCES): selector.SelectSelector(
                     selector.SelectSelectorConfig(
-                        options=zone_options(Zone.HDZ),
+                        options=source_options(Zone.HDZ),
                         multiple=True,
                         mode=selector.SelectSelectorMode.DROPDOWN,
                     ),
@@ -837,7 +713,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=self.add_suggested_values_to_schema(data_schema, options),
+            data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
             last_step=not self.show_advanced_options,
@@ -853,16 +729,27 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 user_input,
             )
 
+        _LOGGER.critical(
+            "advanced_options: user_input=%s, config=%s, config_parsed=%s",
+            user_input,
+            self.config,
+            self.config_parsed,
+        )
+
         step_id = "advanced_options"
         errors = {}
         description_placeholders = {}
-        if user_input is not None:
-            result = await self._update_options(step_id, user_input)
-            if result is True:
-                return await self.async_step_debug_options()
-            (errors, description_placeholders) = result
 
-        options = self.options
+        if user_input is not None:
+            if params_invalid := process_params(user_input[CONF_PARAMS]):
+                errors[CONF_PARAMS] = "invalid_params"
+                description_placeholders["params"] = json.dumps(params_invalid)
+            if not errors:
+                self.config |= user_input
+                return await self.async_step_debug_options()
+        else:
+            user_input = self.config
+
         defaults = self.defaults
         data_schema = vol.Schema(
             {
@@ -885,8 +772,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ): selector.BooleanSelector(),
                 vol.Optional(
                     PARAM_MAX_VOLUME, default=defaults[PARAM_MAX_VOLUME]
-                ): vol.Coerce(
-                    int,
+                ): vol.All(
                     selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0,
@@ -894,11 +780,11 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    vol.Coerce(int),
                 ),
                 vol.Optional(
                     PARAM_MAX_VOLUME_ZONEX, default=defaults[PARAM_MAX_VOLUME_ZONEX]
-                ): vol.Coerce(
-                    int,
+                ): vol.All(
                     selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=0,
@@ -906,6 +792,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                             mode=selector.NumberSelectorMode.BOX,
                         )
                     ),
+                    vol.Coerce(int),
                 ),
                 vol.Optional(CONF_PARAMS, default={}): selector.ObjectSelector(),
             }
@@ -913,7 +800,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         return self.async_show_form(
             step_id=step_id,
-            data_schema=self.add_suggested_values_to_schema(data_schema, options),
+            data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
             last_step=False,
@@ -928,16 +815,16 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ">> PioneerOptionsFlow.async_step_debug_options(%s)", user_input
             )
 
+        _LOGGER.critical("debug: user_input=%s, config=%s", user_input, self.config)
+
         step_id = "debug_options"
         errors = {}
         description_placeholders = {}
-        if user_input is not None:
-            result = await self._update_options(step_id, user_input)
-            if result is True:
-                return await self._create_entry()
-            (errors, description_placeholders) = result
 
-        options = self.options
+        if user_input is not None:
+            self.config |= user_input
+            return await self.update_config_entry()
+
         defaults = self.defaults
         data_schema = vol.Schema(
             {
@@ -970,81 +857,22 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         )
         return self.async_show_form(
             step_id=step_id,
-            data_schema=self.add_suggested_values_to_schema(data_schema, options),
+            data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
             last_step=True,
         )
 
-    async def _update_options(
-        self, step_id: str, user_input: dict[str, Any] | None
-    ) -> Tuple[list[str], list[str]] | bool:
-        """Update config entry options."""
-        if Debug.config_flow:
-            _LOGGER.debug(
-                ">> PioneerOptionsFlow._update_options(step_id=%s, user_input=%s)",
-                step_id,
-                dict(user_input),
-            )
-        errors = {}
-        description_placeholders = {}
-        self.options.update(user_input)
-
-        ## Coalesce CONF_IGNORE_ZONE_* options into param
-        if step_id == "zone_options":
-            ignored_zones = []
-            if user_input.get(CONF_IGNORE_ZONE_2):
-                ignored_zones.append("2")
-            if user_input.get(CONF_IGNORE_ZONE_3):
-                ignored_zones.append("3")
-            if user_input.get(CONF_IGNORE_HDZONE):
-                ignored_zones.append("Z")
-            if ignored_zones:
-                self.options[PARAM_IGNORED_ZONES] = ignored_zones
-
-        ## Validate CONF_SOURCES is a dict of names to numeric IDs
-        if step_id == "basic_options":
-            if not user_input.get(PARAM_MODEL):
-                del self.options[PARAM_MODEL]
-            if not user_input[CONF_QUERY_SOURCES]:
-                sources_new, sources_invalid = _validate_sources(
-                    user_input[CONF_SOURCES]
-                )
-                if sources_new is None:
-                    errors[CONF_SOURCES] = "invalid_sources"
-                    description_placeholders["sources"] = json.dumps(sources_invalid)
-                elif not sources_new:
-                    errors[CONF_SOURCES] = "sources_required"
-                else:
-                    self.options_parsed[CONF_SOURCES] = sources_new
-
-        if step_id == "zone_options":
-            self.update_zone_source_subsets()  ## Recalculate valid zones for sub-zones
-
-        ## Convert params dict options with int keys back to int
-        if options_invalid := process_entry_options(
-            self.options[CONF_PARAMS], process_options=PARAMS_DICT_INT_KEY
-        ):
-            errors[CONF_PARAMS] = "invalid_params"
-            description_placeholders["params"] = json.dumps(options_invalid)
-
-        return (errors, description_placeholders) if errors else True
-
-    async def _create_entry(self) -> FlowResult:
+    async def update_config_entry(self) -> FlowResult:
         """Create/update config entry using submitted options."""
-        options = self.options
+        config = self.config | self.config_parsed
         defaults = self.defaults
-        Debug.setconfig(self.options_parsed)
+        Debug.setconfig(config)
+        options = _filter_options(config, defaults) | _filter_params(config, defaults)
 
-        options_conf = _filter_options(options, defaults)  ## non-default options only
-        params = _filter_params(options, defaults)  ## non-default params only
+        _LOGGER.critical("update_config_entry: options=%s", options)
 
-        ## Include CONF_SOURCES only if not querying sources
-        if options[CONF_QUERY_SOURCES] and CONF_SOURCES in self.options_parsed:
-            del self.options_parsed[CONF_SOURCES]
-
-        data = {**options_conf, **self.options_parsed, **params}
         if Debug.config_flow:
-            _LOGGER.debug(">> PioneerOptionsFlow._create_entry(data=%s)", data)
+            _LOGGER.debug(">> PioneerOptionsFlow.update_config_entry(data=%s)", options)
 
-        return self.async_create_entry(title="", data=data)
+        return self.async_create_entry(title="", data=options)

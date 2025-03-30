@@ -56,29 +56,6 @@
     },
     "options": {
         "step": {
-            "basic_options": {
-                "title": "Basic options",
-                "description": "Configure Pioneer AVR basic options",
-                "data": {
-                    "model": "AVR model",
-                    "query_sources": "Query sources from AVR",
-                    "max_source_id": "Maximum source ID",
-                    "sources": "Manually configured sources",
-                    "scan_interval": "Scan interval",
-                    "timeout": "Timeout",
-                    "command_delay": "Command delay",
-                    "repeat_count": "Repeat action commands"
-                },
-                "data_description": {
-                    "query_sources": "When enabled, sources will be discovered from the AVR and replace manually configured sources",
-                    "max_source_id": "Maximum source ID that AVR source query will check",
-                    "sources": "Add source mappings using the format: \"00:Source Name\"",
-                    "scan_interval": "Polling update frequency",
-                    "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands sent to the AVR",
-                    "repeat_count": "Repeat action commands on failure up to the specified count"
-                }
-            },
             "zone_options": {
                 "title": "Zone options",
                 "description": "Configure Pioneer AVR Zone options",
