@@ -17,7 +17,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
-    CONF_NAME,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
     EVENT_HOMEASSISTANT_CLOSE,
@@ -32,6 +31,7 @@ from .config_flow import PioneerAVRConfigFlow, process_options
 from .const import (
     DOMAIN,
     PLATFORMS_CONFIG_FLOW,
+    MIGRATE_DATA,
     MIGRATE_OPTIONS,
     OPTIONS_DEFAULTS,
     CONF_SOURCES,
@@ -67,10 +67,18 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
     options_current = config_entry.options
     options_new = options_current.copy()
 
-    ## Migrate options that have been renamed
+    ## Migrate data that has been renamed or removed
+    for data_item_current, data_item_new in MIGRATE_DATA.items():
+        if data_item_current in data_current:
+            if data_item_new is not None:
+                data_new[data_item_new] = data_current[data_item_current]
+            del data_new[data_item_current]
+
+    ## Migrate options that have been renamed or removed
     for option_current, option_new in MIGRATE_OPTIONS.items():
         if option_current in options_current:
-            options_new[option_new] = options_current[option_current]
+            if option_new is not None:
+                options_new[option_new] = options_current[option_current]
             del options_new[option_current]
 
     ## Ensure CONF_SOURCES is a dict and convert if string
@@ -141,7 +149,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer_data = {}
     host = entry.data[CONF_HOST]
     port = entry.data[CONF_PORT]
-    name = entry.data[CONF_NAME]
+    name = entry.title
 
     ## Compile options and params
     entry_options = entry.options.copy()
@@ -271,7 +279,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
-            name=(name + " " + zone.full_name),
+            name=f"{name} {zone.full_name}",
             model=zone.full_name,
             via_device=(DOMAIN, entry.entry_id),
         )

@@ -281,11 +281,15 @@ class PioneerAVRConfigFlow(
                     "on" if ignore_volume_check else "off"
                 )
 
+        schema_source = {}
+        if self.source == config_entries.SOURCE_USER:
+            schema_source = {vol.Required(CONF_NAME, default=DEFAULT_NAME): str}
+
         data_schema = vol.Schema(
             {
-                vol.Optional(CONF_NAME, default=DEFAULT_NAME): str,
+                **schema_source,
                 vol.Required(CONF_HOST, default=DEFAULT_HOST): str,
-                vol.Optional(CONF_PORT, default=DEFAULT_PORT): vol.All(
+                vol.Required(CONF_PORT, default=DEFAULT_PORT): vol.All(
                     selector.NumberSelector(
                         selector.NumberSelectorConfig(
                             min=1,
@@ -371,7 +375,8 @@ class PioneerAVRConfigFlow(
             self.config_parsed[CONF_SOURCES] = sources
 
         if not self.interview_task:
-            if self.config_entry and self.data == self.config_entry.data:
+            _, new_data, _ = self.get_updated_config()
+            if self.config_entry and new_data == self.config_entry.data:
                 ## Update sources on reconfigure of unchanged connection
                 if not self.config[CONF_QUERY_SOURCES]:
                     return await self.async_step_basic_options()
@@ -519,39 +524,49 @@ class PioneerAVRConfigFlow(
             last_step=True,
         )
 
-    async def create_update_config_entry(self) -> FlowResult:
-        """Create or update config entry using submitted options."""
+    def get_updated_config(
+        self,
+    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
+        """Split current config into data and options."""
         config = self.config | self.config_parsed
         defaults = self.defaults
         data = {k: v for k, v in config.items() if k in CONFIG_DATA}
         options = _filter_options(config, defaults) | _filter_params(config, defaults)
 
+        return config, data, options
+
+    async def create_update_config_entry(self) -> FlowResult:
+        """Create or update config entry using submitted options."""
+        config, data, options = self.get_updated_config()
+
         if Debug.config_flow:
-            _LOGGER.debug(">> PioneerOptionsFlow.update_config_entry(data=%s)", options)
+            _LOGGER.debug(
+                ">> PioneerOptionsFlow.update_config_entry(data=%s, options=%s)",
+                data,
+                options,
+            )
 
         _LOGGER.critical(
             "create_update_config_entry: data=%s, options=%s", data, options
         )
 
-        if self.source == config_entries.SOURCE_RECONFIGURE:
-            ## Complete reconfiguration
-            # self.async_set_unique_id(user_id)
-            # self._abort_if_unique_id_mismatch()
-            if data == self.config_entry.data:
-                ## Data has not changed, just update options
-                self.hass.config_entries.async_update_entry(
-                    entry=self.config_entry, options=options
-                )
-                ## TODO: update PioneerAVR and abort instead of reloading
-            return self.async_update_reload_and_abort(
-                entry=self.config_entry,
-                title=config[CONF_NAME],
-                data=data,
-                options=options,
+        if self.source == config_entries.SOURCE_USER:
+            return self.async_create_entry(
+                title=config[CONF_NAME], data=data, options=options
             )
 
-        return self.async_create_entry(
-            title=config[CONF_NAME], data=data, options=options
+        ## Complete reconfiguration
+        # self.async_set_unique_id(user_id)
+        # self._abort_if_unique_id_mismatch()
+        if data == self.config_entry.data:
+            ## Data has not changed, just update options
+            self.hass.config_entries.async_update_entry(
+                entry=self.config_entry, options=options
+            )
+            ## TODO: update PioneerAVR and abort instead of reloading
+
+        return self.async_update_reload_and_abort(
+            entry=self.config_entry, data=data, options=options
         )
 
     @staticmethod

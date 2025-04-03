@@ -30,7 +30,7 @@ PLATFORMS_CONFIG_FLOW = [
 ]
 VERSION = "0.10.0"
 CONFIG_ENTRY_VERSION = 5
-CONFIG_ENTRY_VERSION_MINOR = 1
+CONFIG_ENTRY_VERSION_MINOR = 2
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
@@ -51,13 +51,18 @@ CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
 CONF_DEBUG_ACTION = "debug_action"  # action
 
 ## Deprecated options
+# CONF_NAME  ## deprecated
 OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
 OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
-OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated (not removed)
+OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
 
+MIGRATE_DATA = {
+    CONF_NAME: None,
+}
 MIGRATE_CONFIG = {
+    OLD_CONF_DEBUG_CONFIG: None,
     OLD_CONF_IGNORE_ZONE_H: CONF_IGNORE_HDZONE,
     OLD_CONF_IGNORE_ZONE_Z: CONF_IGNORE_HDZONE,
 }
@@ -85,7 +90,6 @@ OPTIONS_DEFAULTS = {
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
 CONFIG_DATA = [
-    CONF_NAME,
     CONF_HOST,
     CONF_PORT,
 ]
