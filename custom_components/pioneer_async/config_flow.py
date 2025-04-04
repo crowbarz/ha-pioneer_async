@@ -281,10 +281,6 @@ class PioneerAVRConfigFlow(
                 ">> PioneerAVRConfigFlow.async_step_connection(%s)", user_input
             )
 
-        _LOGGER.critical(
-            "connection: user_input=%s, config=%s", user_input, self.config
-        )
-
         step_id = "connection"
         errors = self.interview_errors
         description_placeholders = self.interview_description_placeholders
@@ -382,7 +378,6 @@ class PioneerAVRConfigFlow(
             _LOGGER.debug(
                 ">> PioneerAVRConfigFlow.async_step_interview(%s)", user_input
             )
-        _LOGGER.critical("interview: config=%s", self.config)
 
         async def interview_avr():
             """Perform AVR interview."""
@@ -414,13 +409,6 @@ class PioneerAVRConfigFlow(
                 data, options = get_config_data_options(config, self.defaults)
                 new_data, new_options = get_config_data_options(
                     self.config | self.config_parsed, self.defaults
-                )
-                _LOGGER.critical(
-                    "interview: data=%s, config=%s, new_data=%s, new_config=%s",
-                    data,
-                    options,
-                    new_data,
-                    new_options,
                 )
                 if (new_data, new_options) == (data, options) and not self.config[
                     CONF_QUERY_SOURCES
@@ -476,9 +464,6 @@ class PioneerAVRConfigFlow(
             _LOGGER.debug(
                 ">> PioneerAVRConfigFlow.async_step_basic_options(%s)", user_input
             )
-        _LOGGER.critical(
-            "basic_options: user_input=%s, config=%s", user_input, self.config
-        )
 
         step_id = "basic_options"
         errors = {}
@@ -583,10 +568,6 @@ class PioneerAVRConfigFlow(
                 options,
             )
 
-        _LOGGER.critical(
-            "create_update_config_entry: data=%s, options=%s", data, options
-        )
-
         if self.source == config_entries.SOURCE_USER:
             return self.async_create_entry(
                 title=config[CONF_NAME], data=data, options=options
@@ -644,8 +625,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         defaults = CONFIG_DEFAULTS | self.pioneer.params.default_params
         config_parsed = {}
 
-        _LOGGER.critical("async_step_init: config=%s", config)
-
         ## Expand PARAM_IGNORED_ZONES to CONF_IGNORE_ZONE_*
         ignored_zones = config.get(PARAM_IGNORED_ZONES, defaults[PARAM_IGNORED_ZONES])
         config_parsed[PARAM_IGNORED_ZONES] = ignored_zones
@@ -678,10 +657,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             _LOGGER.debug(
                 ">> PioneerOptionsFlow.async_step_zone_options(%s)", user_input
             )
-
-        _LOGGER.critical(
-            "zone_options: user_input=%s, config=%s", user_input, self.config
-        )
 
         step_id = "zone_options"
         errors = {}
@@ -787,13 +762,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 user_input,
             )
 
-        _LOGGER.critical(
-            "advanced_options: user_input=%s, config=%s, config_parsed=%s",
-            user_input,
-            self.config,
-            self.config_parsed,
-        )
-
         step_id = "advanced_options"
         errors = {}
         description_placeholders = {}
@@ -873,8 +841,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
                 ">> PioneerOptionsFlow.async_step_debug_options(%s)", user_input
             )
 
-        _LOGGER.critical("debug: user_input=%s, config=%s", user_input, self.config)
-
         step_id = "debug_options"
         errors = {}
         description_placeholders = {}
@@ -926,8 +892,6 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         config = self.config | self.config_parsed
         _, options = get_config_data_options(config, self.defaults)
         Debug.setconfig(config)
-
-        _LOGGER.critical("update_config_entry: options=%s", options)
 
         if Debug.config_flow:
             _LOGGER.debug(">> PioneerOptionsFlow.update_config_entry(data=%s)", options)
