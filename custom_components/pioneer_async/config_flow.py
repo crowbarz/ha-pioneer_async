@@ -79,16 +79,13 @@ from .debug import Debug
 _LOGGER = logging.getLogger(__name__)
 
 
-def get_entry_config(
-    config_entry: config_entries.ConfigEntry, pioneer: PioneerAVR
-) -> tuple[dict[str, Any], dict[str, Any]]:
+def get_entry_config(config_entry: config_entries.ConfigEntry) -> dict[str, Any]:
     """Generate config from config entry."""
     options = config_entry.options.copy()
     process_options(options, remove_invalid=True)
     config = copy.deepcopy(config_entry.data | options)
     config[CONF_QUERY_SOURCES] = bool(not config.get(CONF_SOURCES, {}))
-    defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
-    return config, defaults
+    return config
 
 
 def _process_dict(
@@ -129,22 +126,44 @@ def process_params(params: dict[str, Any], remove_invalid=False) -> list[str]:
     )
 
 
-def _filter_options(config: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
-    """Filter options and remove defaults."""
+def get_config_options(
+    config: dict[str, Any], defaults: dict[str, Any] = None
+) -> dict[str, Any]:
+    """Return config options with defaults removed."""
+    if defaults is None:
+        defaults = {}
     return {
-        k: config[k]
-        for k in OPTIONS_ALL
-        if k in config and config[k] is not None and config[k] != defaults.get(k)
+        k: v
+        for k, v in config.items()
+        if k in OPTIONS_ALL and config[k] is not None and config[k] != defaults.get(k)
     }
 
 
-def _filter_params(config: dict[str, Any], defaults: dict[str, Any]) -> dict[str, Any]:
-    """Filter params and remove defaults."""
+def get_config_params(
+    config: dict[str, Any], defaults: dict[str, Any] = None
+) -> dict[str, Any]:
+    """Return params with defaults removed."""
+    if defaults is None:
+        defaults = {}
     return {
-        k: config[k]
-        for k in PARAMS_ALL
-        if k in config and config[k] is not None and config[k] != defaults.get(k)
+        k: v
+        for k, v in config.items()
+        if k in PARAMS_ALL
+        and k not in CONFIG_DATA
+        and config[k] is not None
+        and config[k] != defaults.get(k)
     }
+
+
+def get_config_data_options(
+    config: dict[str, Any], defaults: dict[str, Any] = None
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Split config into data and options."""
+    if defaults is None:
+        defaults = {}
+    data = {k: v for k, v in config.items() if k in CONFIG_DATA}
+    options = get_config_options(config, defaults) | get_config_params(config, defaults)
+    return data, options
 
 
 class Zone1NotDiscovered(HomeAssistantError):
@@ -225,7 +244,8 @@ class PioneerAVRConfigFlow(
             )
         self.config_entry = self._get_reconfigure_entry()
         self.pioneer = self.hass.data[DOMAIN][self.config_entry.entry_id][ATTR_PIONEER]
-        config, self.defaults = get_entry_config(self.config_entry, self.pioneer)
+        config = get_entry_config(self.config_entry)
+        self.defaults = OPTIONS_DEFAULTS | self.pioneer.params.default_params
 
         sources = config.get(CONF_SOURCES, {})
         config[CONF_SOURCES] = self.convert_sources(sources)
@@ -350,7 +370,7 @@ class PioneerAVRConfigFlow(
             pioneer = PioneerAVR(
                 host=self.config[CONF_HOST],
                 port=self.config[CONF_PORT],
-                params=_filter_params(config=self.config, defaults={}),
+                params=get_config_params(config=self.config, defaults={}),
             )
             try:
                 await pioneer.connect(reconnect=False)
@@ -375,7 +395,7 @@ class PioneerAVRConfigFlow(
             self.config_parsed[CONF_SOURCES] = sources
 
         if not self.interview_task:
-            _, new_data, _ = self.get_updated_config()
+            new_data, _ = get_config_data_options(self.config, self.defaults)
             if self.config_entry and new_data == self.config_entry.data:
                 ## Update sources on reconfigure of unchanged connection
                 if not self.config[CONF_QUERY_SOURCES]:
@@ -524,20 +544,10 @@ class PioneerAVRConfigFlow(
             last_step=True,
         )
 
-    def get_updated_config(
-        self,
-    ) -> tuple[dict[str, Any], dict[str, Any], dict[str, Any]]:
-        """Split current config into data and options."""
-        config = self.config | self.config_parsed
-        defaults = self.defaults
-        data = {k: v for k, v in config.items() if k in CONFIG_DATA}
-        options = _filter_options(config, defaults) | _filter_params(config, defaults)
-
-        return config, data, options
-
     async def create_update_config_entry(self) -> FlowResult:
         """Create or update config entry using submitted options."""
-        config, data, options = self.get_updated_config()
+        config = self.config | self.config_parsed
+        data, options = get_config_data_options(config, self.defaults)
 
         if Debug.config_flow:
             _LOGGER.debug(
@@ -603,7 +613,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             return self.async_abort(reason="not_set_up")
 
         self.pioneer = self.hass.data[DOMAIN][config_entry.entry_id][ATTR_PIONEER]
-        config, defaults = get_entry_config(self.config_entry, self.pioneer)
+        config = get_entry_config(self.config_entry)
+        defaults = OPTIONS_DEFAULTS | self.pioneer.params.default_params
         config_parsed = {}
 
         _LOGGER.critical("async_step_init: config=%s", config)
@@ -886,9 +897,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
     async def update_config_entry(self) -> FlowResult:
         """Create/update config entry using submitted options."""
         config = self.config | self.config_parsed
-        defaults = self.defaults
+        _, options = get_config_data_options(config, self.defaults)
         Debug.setconfig(config)
-        options = _filter_options(config, defaults) | _filter_params(config, defaults)
 
         _LOGGER.critical("update_config_entry: options=%s", options)
 
