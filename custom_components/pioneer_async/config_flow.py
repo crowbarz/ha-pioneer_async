@@ -66,13 +66,13 @@ from .const import (
     DEFAULT_NAME,
     DEFAULT_HOST,
     DEFAULT_PORT,
-    OPTIONS_DEFAULTS,
-    CONFIG_DATA,
-    CONFIG_IGNORE_ZONES,
     OPTIONS_ALL,
-    ATTR_PIONEER,
     OPTIONS_DICT_INT_KEY,
+    DATA_ALL,
     PARAMS_DICT_INT_KEY,
+    CONFIG_IGNORE_ZONES,
+    CONFIG_DEFAULTS,
+    ATTR_PIONEER,
 )
 from .debug import Debug
 
@@ -126,6 +126,19 @@ def process_params(params: dict[str, Any], remove_invalid=False) -> list[str]:
     )
 
 
+def get_config_data(
+    config: dict[str, Any], defaults: dict[str, Any] = None
+) -> dict[str, Any]:
+    """Return config data."""
+    if defaults is None:
+        defaults = {}
+    return {
+        k: v
+        for k, v in config.items()
+        if k in DATA_ALL and config[k] is not None and config[k] != defaults.get(k)
+    }
+
+
 def get_config_options(
     config: dict[str, Any], defaults: dict[str, Any] = None
 ) -> dict[str, Any]:
@@ -149,7 +162,7 @@ def get_config_params(
         k: v
         for k, v in config.items()
         if k in PARAMS_ALL
-        and k not in CONFIG_DATA
+        and k not in DATA_ALL
         and config[k] is not None
         and config[k] != defaults.get(k)
     }
@@ -161,7 +174,7 @@ def get_config_data_options(
     """Split config into data and options."""
     if defaults is None:
         defaults = {}
-    data = {k: v for k, v in config.items() if k in CONFIG_DATA}
+    data = get_config_data(config, defaults)
     options = get_config_options(config, defaults) | get_config_params(config, defaults)
     return data, options
 
@@ -194,7 +207,7 @@ class PioneerAVRConfigFlow(
         self.config_entry: config_entries.ConfigEntry = None
         self.pioneer: PioneerAVR = None
         self.model: str = None
-        self.defaults: dict[str, Any] = OPTIONS_DEFAULTS
+        self.defaults: dict[str, Any] = CONFIG_DEFAULTS
         self.data: dict[str, Any] = {}
         self.config: dict[str, Any] = {CONF_QUERY_SOURCES: True}
         self.config_parsed: dict[str, Any] = {}
@@ -245,7 +258,7 @@ class PioneerAVRConfigFlow(
         self.config_entry = self._get_reconfigure_entry()
         self.pioneer = self.hass.data[DOMAIN][self.config_entry.entry_id][ATTR_PIONEER]
         config = get_entry_config(self.config_entry)
-        self.defaults = OPTIONS_DEFAULTS | self.pioneer.params.default_params
+        self.defaults = CONFIG_DEFAULTS | self.pioneer.params.default_params
 
         sources = config.get(CONF_SOURCES, {})
         config[CONF_SOURCES] = self.convert_sources(sources)
@@ -287,7 +300,11 @@ class PioneerAVRConfigFlow(
             ]
             self.config_parsed[PARAM_IGNORE_VOLUME_CHECK] = ignore_volume_check
 
-            self.data = {k: v for k, v in self.config.items() if k in CONFIG_DATA}
+            ## Remove PARAM_MODEL if not provided
+            if not user_input.get(PARAM_MODEL) and PARAM_MODEL in self.config:
+                del self.config[PARAM_MODEL]
+
+            self.data = get_config_data(self.config, self.defaults)
             return await self.async_step_interview()
 
         if user_input is None:
@@ -304,7 +321,6 @@ class PioneerAVRConfigFlow(
         schema_source = {}
         if self.source == config_entries.SOURCE_USER:
             schema_source = {vol.Required(CONF_NAME, default=DEFAULT_NAME): str}
-
         data_schema = vol.Schema(
             {
                 **schema_source,
@@ -318,6 +334,9 @@ class PioneerAVRConfigFlow(
                         )
                     ),
                     vol.Coerce(int),
+                ),
+                vol.Optional(PARAM_MODEL): selector.TextSelector(
+                    selector.TextSelectorConfig()
                 ),
                 vol.Optional(
                     CONF_QUERY_SOURCES, default=True
@@ -382,34 +401,38 @@ class PioneerAVRConfigFlow(
                     sources = pioneer.properties.get_source_dict()
                     self.config[CONF_SOURCES] = self.convert_sources(sources)
                     self.config_parsed[CONF_SOURCES] = sources
-                self.config[PARAM_MODEL] = pioneer.properties.amp.get("model")
-                self.defaults = OPTIONS_DEFAULTS | pioneer.params.default_params
+                if PARAM_MODEL not in self.config:
+                    self.config[PARAM_MODEL] = pioneer.properties.amp.get("model")
+                self.defaults = CONFIG_DEFAULTS | pioneer.params.default_params
             finally:
                 await pioneer.shutdown()
 
-        async def update_sources():
-            """Update AVR sources on reconfigure."""
-            await self.pioneer.build_source_dict()
-            sources = self.pioneer.properties.get_source_dict()
-            self.config[CONF_SOURCES] = self.convert_sources(sources)
-            self.config_parsed[CONF_SOURCES] = sources
-
         if not self.interview_task:
-            new_data, _ = get_config_data_options(self.config, self.defaults)
-            if self.config_entry and new_data == self.config_entry.data:
-                ## Update sources on reconfigure of unchanged connection
-                if not self.config[CONF_QUERY_SOURCES]:
+            if self.source == config_entries.SOURCE_RECONFIGURE:
+                config = get_entry_config(self.config_entry)
+                data, options = get_config_data_options(config, self.defaults)
+                new_data, new_options = get_config_data_options(
+                    self.config | self.config_parsed, self.defaults
+                )
+                _LOGGER.critical(
+                    "interview: data=%s, config=%s, new_data=%s, new_config=%s",
+                    data,
+                    options,
+                    new_data,
+                    new_options,
+                )
+                if (new_data, new_options) == (data, options) and not self.config[
+                    CONF_QUERY_SOURCES
+                ]:
                     return await self.async_step_basic_options()
-                coro = update_sources()
-            else:
-                coro = interview_avr()
-            self.interview_task = self.hass.async_create_task(coro)
+            self.interview_task = self.hass.async_create_task(interview_avr())
         if not self.interview_task.done():
             return self.async_show_progress(
                 step_id="interview",
                 progress_action="interview",
                 progress_task=self.interview_task,
             )
+
         try:
             await self.interview_task
         except AlreadyConfigured:
@@ -614,7 +637,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
         self.pioneer = self.hass.data[DOMAIN][config_entry.entry_id][ATTR_PIONEER]
         config = get_entry_config(self.config_entry)
-        defaults = OPTIONS_DEFAULTS | self.pioneer.params.default_params
+        defaults = CONFIG_DEFAULTS | self.pioneer.params.default_params
         config_parsed = {}
 
         _LOGGER.critical("async_step_init: config=%s", config)

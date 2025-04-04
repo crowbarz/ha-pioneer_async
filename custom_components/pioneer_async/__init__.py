@@ -37,9 +37,9 @@ from .const import (
     DOMAIN,
     PLATFORMS_CONFIG_FLOW,
     MIGRATE_CONFIG,
-    OPTIONS_DEFAULTS,
     CONF_SOURCES,
     CONF_PARAMS,
+    CONFIG_DEFAULTS,
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
@@ -150,7 +150,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     name = entry.title
 
     ## Compile config and params
-    config = pioneer_data[ATTR_OPTIONS] = OPTIONS_DEFAULTS | get_entry_config(entry)
+    config = pioneer_data[ATTR_OPTIONS] = CONFIG_DEFAULTS | get_entry_config(entry)
     params = get_config_params(config) | config.get(CONF_PARAMS, {})
 
     if Debug.integration:
