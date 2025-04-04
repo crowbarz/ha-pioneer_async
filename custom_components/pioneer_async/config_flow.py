@@ -402,7 +402,8 @@ class PioneerAVRConfigFlow(
                     self.config[CONF_SOURCES] = self.convert_sources(sources)
                     self.config_parsed[CONF_SOURCES] = sources
                 if PARAM_MODEL not in self.config:
-                    self.config[PARAM_MODEL] = pioneer.properties.amp.get("model")
+                    if model := await pioneer.query_device_model():
+                        self.config[PARAM_MODEL] = model
                 self.defaults = CONFIG_DEFAULTS | pioneer.params.default_params
             finally:
                 await pioneer.shutdown()
@@ -424,6 +425,9 @@ class PioneerAVRConfigFlow(
                 if (new_data, new_options) == (data, options) and not self.config[
                     CONF_QUERY_SOURCES
                 ]:
+                    if PARAM_MODEL not in self.config:
+                        if model := await self.pioneer.query_device_model():
+                            self.config[PARAM_MODEL] = model
                     return await self.async_step_basic_options()
             self.interview_task = self.hass.async_create_task(interview_avr())
         if not self.interview_task.done():
