@@ -368,6 +368,7 @@ class PioneerAVRConfigFlow(
             data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
+            last_step=False,
         )
 
     async def async_step_interview(
