@@ -2,25 +2,24 @@
 
 from datetime import timedelta
 
+from aiopioneer.const import Zone
 from aiopioneer.params import (
-    PARAM_ZONE_1_SOURCES,
-    PARAM_ZONE_2_SOURCES,
-    PARAM_ZONE_3_SOURCES,
+    PARAM_MODEL,
     PARAM_HDZONE_SOURCES,
     PARAM_DISABLE_AUTO_QUERY,
     PARAM_EXTRA_LISTENING_MODES,
     PARAM_SPEAKER_SYSTEM_MODES,
 )
 
-from homeassistant.components.media_player import (
-    MediaPlayerDeviceClass,
-)
+from homeassistant.components.media_player import MediaPlayerDeviceClass
 from homeassistant.const import (
     Platform,
+    CONF_NAME,
+    CONF_HOST,
+    CONF_PORT,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
-
 
 DOMAIN = "pioneer_async"
 PLATFORMS_CONFIG_FLOW = [
@@ -32,7 +31,7 @@ PLATFORMS_CONFIG_FLOW = [
 ]
 VERSION = "0.10.0"
 CONFIG_ENTRY_VERSION = 5
-CONFIG_ENTRY_VERSION_MINOR = 1
+CONFIG_ENTRY_VERSION_MINOR = 2
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
@@ -53,23 +52,32 @@ CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
 CONF_DEBUG_ACTION = "debug_action"  # action
 
 ## Deprecated options
+# CONF_NAME  ## deprecated
 OLD_CONF_IGNORE_ZONE_H = "ignore_zone_h"  ## deprecated
 OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
-OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated (not removed)
+OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
 
 MIGRATE_CONFIG = {
+    CONF_NAME: None,
+    OLD_CONF_DEBUG_CONFIG: None,
     OLD_CONF_IGNORE_ZONE_H: CONF_IGNORE_HDZONE,
     OLD_CONF_IGNORE_ZONE_Z: CONF_IGNORE_HDZONE,
-}
-MIGRATE_PARAMS = {
     OLD_PARAM_HDZONE_SOURCES: PARAM_HDZONE_SOURCES,
     OLD_PARAM_DISABLE_AUTO_QUERY: PARAM_DISABLE_AUTO_QUERY,
 }
-MIGRATE_OPTIONS = {**MIGRATE_CONFIG, **MIGRATE_PARAMS}
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
+
+DATA_DEFAULTS = {
+    PARAM_MODEL: "",
+}
+DATA_ALL = [
+    CONF_HOST,
+    CONF_PORT,
+    *DATA_DEFAULTS.keys(),
+]
 
 OPTIONS_DEFAULTS = {
     CONF_SCAN_INTERVAL: DEFAULT_SCAN_INTERVAL.total_seconds(),
@@ -83,25 +91,25 @@ OPTIONS_DEFAULTS = {
     CONF_DEBUG_INTEGRATION: False,
     CONF_DEBUG_CONFIG_FLOW: False,
     CONF_DEBUG_ACTION: False,
+    ## NOTE: CONF_QUERY_SOURCES is not retained in config entry
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()
-
 OPTIONS_DICT_INT_KEY = [
     CONF_SOURCES,
     CONF_PARAMS,
 ]
+
 PARAMS_DICT_INT_KEY = [
     PARAM_EXTRA_LISTENING_MODES,
     PARAM_SPEAKER_SYSTEM_MODES,
 ]
 
-## Don't inherit defaults for these options/parameters
-DEFAULTS_EXCLUDE = [
-    PARAM_ZONE_1_SOURCES,
-    PARAM_ZONE_2_SOURCES,
-    PARAM_ZONE_3_SOURCES,
-    PARAM_HDZONE_SOURCES,
-]
+CONFIG_IGNORE_ZONES = {
+    Zone.Z2: CONF_IGNORE_ZONE_2,
+    Zone.Z3: CONF_IGNORE_ZONE_3,
+    Zone.HDZ: CONF_IGNORE_HDZONE,
+}
+CONFIG_DEFAULTS = OPTIONS_DEFAULTS | DATA_DEFAULTS  # default params from aiopioneer
 
 CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
 

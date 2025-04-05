@@ -2,7 +2,6 @@
 
 # pylint: disable=logging-format-interpolation
 
-import asyncio
 from datetime import timedelta
 import json
 import logging
@@ -18,7 +17,6 @@ from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_HOST,
     CONF_PORT,
-    CONF_NAME,
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
     EVENT_HOMEASSISTANT_CLOSE,
@@ -29,14 +27,19 @@ from homeassistant.helpers import device_registry
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.typing import UNDEFINED
 
-from .config_flow import PioneerAVRConfigFlow, process_entry_options
+from .config_flow import (
+    PioneerAVRConfigFlow,
+    get_config_params,
+    get_entry_config,
+    get_config_data_options,
+)
 from .const import (
     DOMAIN,
     PLATFORMS_CONFIG_FLOW,
-    MIGRATE_OPTIONS,
-    OPTIONS_DEFAULTS,
+    MIGRATE_CONFIG,
     CONF_SOURCES,
     CONF_PARAMS,
+    CONFIG_DEFAULTS,
     ATTR_PIONEER,
     ATTR_COORDINATORS,
     ATTR_DEVICE_INFO,
@@ -63,19 +66,21 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         _LOGGER.error("migration to config entry version unsupported")
         return False
 
-    data_current = config_entry.data
-    data_new = {**data_current}
-    options_current = config_entry.options
-    options_new = {**options_current}
+    config_current = config_entry.data | config_entry.options
+    config_new = config_current.copy()
+    _LOGGER.debug(
+        "config: data=%s, options=%s", config_entry.data, config_entry.options
+    )
 
-    ## Migrate options that have been renamed
-    for option_current, option_new in MIGRATE_OPTIONS.items():
-        if option_current in options_current:
-            options_new[option_new] = options_current[option_current]
-            del options_new[option_current]
+    ## Migrate config that has been renamed or removed
+    for config_item_current, config_item_new in MIGRATE_CONFIG.items():
+        if config_item_current in config_current:
+            if config_item_new is not None:
+                config_new[config_item_new] = config_current[config_item_current]
+            del config_new[config_item_current]
 
     ## Ensure CONF_SOURCES is a dict and convert if string
-    sources = options_current.get(CONF_SOURCES, {})
+    sources = config_current.get(CONF_SOURCES, {})
     try:
         if isinstance(sources, str):
             sources = json.loads(sources)
@@ -89,13 +94,13 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
             }
     except (json.JSONDecodeError, ValueError):
         _LOGGER.warning('invalid source config "%s", resetting to default', sources)
-        del options_new[CONF_SOURCES]
+        del config_new[CONF_SOURCES]
     else:
-        options_new[CONF_SOURCES] = sources
+        config_new[CONF_SOURCES] = sources
 
     ## Validate PARAM_ZONE_*_SOURCES are lists and convert if string
     for zone, param_zone_sources in PARAM_ZONE_SOURCES.items():
-        zone_sources = options_current.get(param_zone_sources, [])
+        zone_sources = config_current.get(param_zone_sources, [])
         try:
             if isinstance(zone_sources, str):
                 zone_sources = json.loads(zone_sources)
@@ -111,13 +116,14 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
                 zone_sources,
             )
             zone_sources = []
-        options_new[param_zone_sources] = zone_sources
+        config_new[param_zone_sources] = zone_sources
 
     ## Convert CONF_SCAN_INTERVAL timedelta object to seconds
-    scan_interval = options_current.get(CONF_SCAN_INTERVAL)
+    scan_interval = config_current.get(CONF_SCAN_INTERVAL)
     if isinstance(scan_interval, timedelta):
-        options_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
+        config_new[CONF_SCAN_INTERVAL] = scan_interval.total_seconds()
 
+    data_new, options_new = get_config_data_options(config_new)
     hass.config_entries.async_update_entry(
         config_entry,
         data=data_new,
@@ -126,6 +132,7 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
         minor_version=PioneerAVRConfigFlow.MINOR_VERSION,
     )
 
+    _LOGGER.debug("migrated config: data=%s, options=%s", data_new, options_new)
     _LOGGER.info(
         "config migration to version %d.%d successful",
         config_entry.version,
@@ -140,44 +147,36 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
     hass.data.setdefault(DOMAIN, {})
     pioneer_data = {}
-    host = entry.data[CONF_HOST]
-    port = entry.data[CONF_PORT]
-    name = entry.data[CONF_NAME]
+    name = entry.title
 
-    ## Compile options and params
-    entry_options = entry.options.copy() if entry.options else {}
-    process_entry_options(entry_options, remove_invalid=True)
-    pioneer_data[ATTR_OPTIONS] = (options := OPTIONS_DEFAULTS | entry_options)
-    scan_interval = options[CONF_SCAN_INTERVAL]
-    timeout = options[CONF_TIMEOUT]
-    sources = options[CONF_SOURCES]
-    params = {k: entry_options[k] for k in PARAMS_ALL if k in entry_options}
-    params |= options.get(CONF_PARAMS, {})
+    ## Compile config and params
+    config = pioneer_data[ATTR_OPTIONS] = CONFIG_DEFAULTS | get_entry_config(entry)
+    params = get_config_params(config) | config.get(CONF_PARAMS, {})
 
     if Debug.integration:
         _LOGGER.debug(
-            ">> async_setup_entry(entry_id=%s, data=%s, options=%s)",
+            ">> async_setup_entry(entry_id=%s, config=%s, params=%s)",
             entry.entry_id,
-            entry.data,
-            entry.options,
+            config,
+            params,
         )
 
     ## Create PioneerAVR API object
     pioneer = None
     try:
         pioneer = PioneerAVR(
-            host,
-            port,
-            timeout,
-            scan_interval=scan_interval,
+            host=config[CONF_HOST],
+            port=config[CONF_PORT],
+            timeout=config[CONF_TIMEOUT],
+            scan_interval=config[CONF_SCAN_INTERVAL],
             params=params,
         )
         await pioneer.connect()
         await pioneer.query_zones()
         if not Zone.Z1 in pioneer.properties.zones:
             raise RuntimeError(f"{Zone.Z1.full_name} not discovered on AVR")
-        if sources:
-            pioneer.properties.set_source_dict(sources)
+        if config[CONF_SOURCES]:
+            pioneer.properties.set_source_dict(config[CONF_SOURCES])
         else:
             await pioneer.build_source_dict()
     except AVRConnectError as exc:
@@ -210,7 +209,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     ## Update devices with new device_unique_ids (config entry and MAC address)
     ## TODO: remove legacy device_unique_ids from device entries in 0.10.0 or later
     ## NOTE: legacy connections with "unknown" MAC address can't be removed
-    legacy_unique_id = host + ":" + str(port)
+    legacy_unique_id = f"{config[CONF_HOST]}:{config[CONF_PORT]}"
 
     dr = device_registry.async_get(hass)
     for device_entry in device_registry.async_entries_for_config_entry(
@@ -242,7 +241,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         name=name,
         model=model,
         sw_version=software_version or UNDEFINED,
-        configuration_url=f"http://{host}",
+        configuration_url=f"http://{config[CONF_HOST]}",
     )
 
     pioneer_data[ATTR_DEVICE_INFO] = {}
@@ -272,7 +271,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
-            name=(name + " " + zone.full_name),
+            name=f"{name} {zone.full_name}",
             model=zone.full_name,
             via_device=(DOMAIN, entry.entry_id),
         )

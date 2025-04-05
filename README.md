@@ -31,18 +31,38 @@ Some AVR models stop responding on the network when all zones are powered off to
 
 This integration is configured via the UI. Once installed, add an instance for the AVR in Home Assistant by navigating to **Settings > Devices & Services > Integrations > Add Integration** and searching for **Pioneer AVR**. (Note that the **Pioneer** integration is the original integration built into Home Assistant)
 
-The following options that configure the connection to the AVR are available from the initial setup page:
+### AVR connection
+
+The following options are available on the **AVR connection** page to configure the connection to the AVR:
 
 | Option | Default | Function
 | --- | --- | ---
-| Device name | Pioneer AVR | Default base name for the AVR
+| Device name | Pioneer AVR | Default base name for the AVR. To change the base name, rename the integration instance from the integration Hubs page
 | Host | avr | DNS name/IP address for AVR to be added
 | Port | 8102 | Port to be used to communicate with the AVR API. Try port `23` if your AVR doesn't respond on the default port
-| Query sources from AVR | on | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
+| AVR model | | Manually specify the AVR model, or query from the AVR during interview if empty
+| Query sources from AVR | on | Query the list of available sources from the AVR when **Next** is clicked. Disable to enter sources manually. See [AVR sources](#avr-sources)
 | Maximum source ID | 60 | The highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
 | Don't check volume when querying AVR source | AVR default | Don't query zone volume when determining whether a zone is present on the AVR. Enable if zones on your AVR are not all detected
 
-Once the integration is successfully added, [devices](#devices) and [entities](#entities) representing the AVR are created as described in the respective sections below.
+### Basic options
+
+After the integration connects to the AVR and queries the available sources, the **Basic options** page is shown:
+
+| Option | Default | Function
+| --- | --- | ---
+| AVR model | | Manually specify the AVR model, or query from the AVR during interview on integration start if empty
+| Manually configured sources | | List of all input sources available on the AVR. See [AVR sources](#avr-sources) for more details
+| Scan interval | 60s | Idle period between full refreshes of the AVR. If the **Always poll the AVR every scan interval** option in [Advanced options](#advanced-options) is not enabled, then any response from the AVR (eg. indicating a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, and these also reset the idle timer and prevent a full refresh from being performed. Set this option to `0` to disable polling
+| Timeout | 5s | Number of seconds to wait for the initial connection and for responses to commands sent to the AVR. Also used to set the TCP connection idle timeout
+| Command delay | 0.1s | Delay between commands sent to the AVR. Increase the delay if you are experiencing errors with basic commands that are sent to the AVR
+| Repeat action commands | 4 | Number of times to repeat idempotent action commands on AVR error. After certain AVR commands that take time to execute (such as power on/off) are requested, there is a delay before further AVR commands are accepted. Action commands that set a specific state (such as volume set) can be retried up to this number of times after a short delay
+
+When the integration is successfully added, [devices](#devices) and [entities](#entities) representing the AVR are created as described in the respective sections below.
+
+### Reconfiguration
+
+To reconfigure the integration connection configuration and basic options later, select **Reconfigure** from the overflow menu.
 
 ### Troubleshooting
 
@@ -56,22 +76,11 @@ Some steps to try if you are unable to add an instance of the integration for yo
 
 After an instance is added, options that modify how the integration operates can be changed by clicking **Configure** on the appropriate instance on the integration's **Hubs** page. The available options are described in the subsections below.
 
-### Basic options
-
-| Option | Default | Function
-| --- | --- | ---
-| Query sources from AVR | off | Query the list of available sources from the AVR when **Next** is clicked. See [AVR sources](#avr-sources)
-| Maximum source ID | 60 | Highest source ID that will be queried when querying available sources from the AVR. See [AVR sources](#avr-sources)
-| Manually configured sources | | List of all input sources available on the AVR. See [AVR sources](#avr-sources)
-| Scan interval | 60s | Idle period between full refreshes of the AVR. If the **Always poll the AVR every scan interval** option in [Advanced options](#advanced-options) is not enabled, then any response from the AVR (eg. indicating a power, volume or source change) will reset the idle timer. Some AVRs also send empty responses every 30 seconds, and these also reset the idle timer and prevent a full refresh from being performed. Set this option to `0` to disable polling
-| Timeout | 5s | Number of seconds to wait for the initial connection and for responses to commands sent to the AVR. Also used to set the TCP connection idle timeout
-| Command delay | 0.1s | Delay between commands sent to the AVR. Increase the delay if you are experiencing errors with basic commands that are sent to the AVR
-
 ### Zone options
 
 | Option | Default | Function
 | --- | --- | ---
-| Available sources for _zone_ | all | List of sources available for selection as input for each zone. Use this option to limit the sources available for a zone in accordance with your AVR's capabilities. If no sources are specified, then all available sources as configured in [Basic options](#basic-options) are made available
+| Available sources for _zone_ | all | List of sources available for selection as input for each zone. Use this option to limit the sources available for a zone in accordance with your AVR's capabilities. If no sources are specified, then all available sources as configured in [Basic options](#basic-options) are made available. See [AVR sources](#avr-sources) for more details
 | Don't create entities for _zone_ | off | Disable the creation of entities for a specific zone. Used when the integration detects a zone that does not exist for your AVR
 
 ### Advanced options
@@ -117,11 +126,11 @@ Additional debug logging for both the underlying aiopioneer package and the inte
 
 ## AVR sources
 
-The integration saves a master list of available sources on the AVR, and a subset of these sources can be made available for selection as the zone's input source. On some models of AVR, some zones do not support the use of certain sources for input, and also some sources may only be selected on one zone.
+The integration saves a master list of available sources on the AVR, and a subset of these sources can be made available for selection as the zone's input source. On some models of AVR, some zones do not support the use of certain sources for input, and also some sources may only be selected on one zone at a time.
 
-The master list of sources can be queried from the AVR when adding an integration instance by enabling **Query sources from AVR**. They can also be re-queried when reconfiguring the integration instance from the **Basic options** page. To do this, enable the **Query sources from AVR** option then click **Next**. Note that the current list of sources will be replaced by the list returned by the AVR.
+The master list of sources can be queried from the AVR when adding an integration instance by enabling **Query sources from AVR** on the **AVR connection** page. They can also be modified or updated from the AVR by [reconfiguring the integration](#reconfiguration). Note that the current list of sources will be replaced by the updated list when the reconfiguration is submitted.
 
-Source mappings in the master source list can be edited in the **Basic options** screen by removing unwanted mappings and adding extra mappings via the **Manually configured sources** option. Additional mappings can be added if your AVR does not automatically detect them. Each source mapping is in the form `id:name`, where `id` is the source ID (0-99), and `name` is the friendly name for the source. You can rename a source mapping by removing the mapping and adding a new mapping with the same `id`.
+Source mappings in the master source list can be edited in the **Basic options** page by removing unwanted mappings and adding extra mappings via the **Manually configured sources** option. Additional mappings can be added if your AVR does not automatically detect them. Each source mapping is in the form `id:name`, where `id` is the source ID (0-99), and `name` is the friendly name for the source. You can rename a source mapping by removing the mapping and adding a new mapping with the same `id`.
 
 Source IDs can be found in the [`aiopioneer` documentation](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#source-list)
 

@@ -2,11 +2,12 @@
     "title": "Pioneer AVR",
     "config": {
         "step": {
-            "user": {
-                "title": "AVR details",
-                "description": "Enter the details for the Pioneer AVR:",
+            "connection": {
+                "title": "AVR connection",
+                "description": "Enter the connection details for the Pioneer AVR:",
                 "data": {
                     "name": "Device name",
+                    "model": "AVR model",
                     "host": "Host",
                     "port": "Port",
                     "query_sources": "Query sources from AVR",
@@ -14,6 +15,8 @@
                     "ignore_volume_check": "Don't check volume when querying AVR source"
                 },
                 "data_description": {
+                    "model": "If empty, AVR model will be queried from AVR after this step",
+                    "query_sources": "Disable for AVRs that do not support source discovery or to enter sources manually",
                     "max_source_id": "Maximum source ID that AVR source query will check",
                     "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically.\n[ignore_volume_check]"
                 }
@@ -30,6 +33,7 @@
                     "repeat_count": "Repeat action commands"
                 },
                 "data_description": {
+                    "model": "If empty, AVR model will be queried from AVR on integration start",
                     "query_sources": "Disable for AVRs that do not support source discovery",
                     "sources": "Add source mappings using the format: \"00:Source Name\"",
                     "scan_interval": "Polling update frequency",
@@ -39,6 +43,9 @@
                 }
             }
         },
+        "progress": {
+            "interview": "Interviewing AVR to determine characteristics"
+        },
         "error": {
             "cannot_connect": "Cannot connect to AVR: {exception}",
             "invalid_sources": "Invalid source name mapping: {sources}",
@@ -47,34 +54,12 @@
         "abort": {
             "already_configured": "AVR is already configured",
             "zone_1_not_discovered": "Main zone not discovered on AVR",
-            "exception": "Unexpected exception: {exception}"
+            "exception": "Unexpected exception: {exception}",
+            "reconfigure_successful": "AVR reconfiguration successful"
         }
     },
     "options": {
         "step": {
-            "basic_options": {
-                "title": "Basic options",
-                "description": "Configure Pioneer AVR basic options",
-                "data": {
-                    "model": "AVR model",
-                    "query_sources": "Query sources from AVR",
-                    "max_source_id": "Maximum source ID",
-                    "sources": "Manually configured sources",
-                    "scan_interval": "Scan interval",
-                    "timeout": "Timeout",
-                    "command_delay": "Command delay",
-                    "repeat_count": "Repeat action commands"
-                },
-                "data_description": {
-                    "query_sources": "When enabled, sources will be discovered from the AVR and replace manually configured sources",
-                    "max_source_id": "Maximum source ID that AVR source query will check",
-                    "sources": "Add source mappings using the format: \"00:Source Name\"",
-                    "scan_interval": "Polling update frequency",
-                    "timeout": "Connection/command timeout",
-                    "command_delay": "Delay between commands sent to the AVR",
-                    "repeat_count": "Repeat action commands on failure up to the specified count"
-                }
-            },
             "zone_options": {
                 "title": "Zone options",
                 "description": "Configure Pioneer AVR Zone options",
