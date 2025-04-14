@@ -18,7 +18,7 @@
                     "model": "If empty, AVR model will be queried from AVR after this step",
                     "query_sources": "Disable for AVRs that do not support source discovery or to enter sources manually",
                     "max_source_id": "Maximum source ID that AVR source query will check",
-                    "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically.\n[ignore_volume_check]"
+                    "ignore_volume_check": "Enable for AVRs that do not report volume when the zone is off, causing it not to be detected automatically\n[ignore_volume_check]"
                 }
             },
             "basic_options": {
@@ -35,7 +35,7 @@
                 "data_description": {
                     "model": "If empty, AVR model will be queried from AVR on integration start",
                     "query_sources": "Disable for AVRs that do not support source discovery",
-                    "sources": "Add source mappings using the format: \"00:Source Name\"",
+                    "sources": "Add source mappings using the format: \"1:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
                     "command_delay": "Delay between commands sent to the AVR",
