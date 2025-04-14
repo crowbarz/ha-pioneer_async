@@ -2,19 +2,18 @@
 
 from typing import Any
 
-import asyncio
 import logging
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
-from aiopioneer.exceptions import AVRError, AVRCommandResponseError
+from aiopioneer.exceptions import AVRError
 
 from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.device_registry import DeviceInfo
 from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
-from .const import DOMAIN, CONF_REPEAT_COUNT
+from .const import DOMAIN
 from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
@@ -60,24 +59,12 @@ class PioneerEntityBase(Entity):
             )
         )
 
-    async def pioneer_command(self, aw_f, command: str = None, repeat: bool = False):
-        """Execute a PioneerAVR command, handle exceptions and optionally repeating."""
-        options = self.entry_options
-        repeat_count = options[CONF_REPEAT_COUNT] if repeat else 1
-
-        count = 0
+    async def pioneer_command(self, aw_f, command: str = None):
+        """Execute a PioneerAVR command and handle exceptions."""
         if command is None:
             command = aw_f.__name__
         try:
-            while count < repeat_count:
-                try:
-                    return await aw_f()
-                except AVRCommandResponseError:
-                    count += 1
-                    if count > repeat_count:
-                        raise
-                    _LOGGER.warning("repeating failed command (%d): %s", count, command)
-                    await asyncio.sleep(1)
+            return await aw_f()
         except AVRError as exc:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,

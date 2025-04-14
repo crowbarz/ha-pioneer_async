@@ -141,7 +141,7 @@ class TunerPresetSelect(
         async def select_tuner_preset() -> bool:
             return await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
 
-        await self.pioneer_command(select_tuner_preset, repeat=True)
+        await self.pioneer_command(select_tuner_preset)
 
 
 class TunerBandSelect(
@@ -178,7 +178,7 @@ class TunerBandSelect(
         async def select_tuner_band() -> bool:
             return await self.pioneer.select_tuner_band(TunerBand(option))
 
-        await self.pioneer_command(select_tuner_band, repeat=True)
+        await self.pioneer_command(select_tuner_band)
 
 
 class ToneModeSelect(
@@ -215,7 +215,7 @@ class ToneModeSelect(
         async def select_tone_mode() -> bool:
             return await self.pioneer.set_tone_settings(zone=self.zone, tone=option)
 
-        await self.pioneer_command(select_tone_mode, repeat=True)
+        await self.pioneer_command(select_tone_mode)
 
 
 class SpeakerSystemSelect(
@@ -266,4 +266,4 @@ class SpeakerSystemSelect(
         async def set_speaker_system() -> bool:
             return await self.pioneer.send_command("set_system_speaker_system", option)
 
-        await self.pioneer_command(set_speaker_system, repeat=True)
+        await self.pioneer_command(set_speaker_system)
