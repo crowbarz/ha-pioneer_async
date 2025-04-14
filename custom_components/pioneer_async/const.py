@@ -9,6 +9,7 @@ from aiopioneer.params import (
     PARAM_DISABLE_AUTO_QUERY,
     PARAM_EXTRA_LISTENING_MODES,
     PARAM_SPEAKER_SYSTEM_MODES,
+    PARAM_RETRY_COUNT,
 )
 
 from homeassistant.components.media_player import MediaPlayerDeviceClass
@@ -31,7 +32,7 @@ PLATFORMS_CONFIG_FLOW = [
 ]
 VERSION = "0.11.0"
 CONFIG_ENTRY_VERSION = 5
-CONFIG_ENTRY_VERSION_MINOR = 2
+CONFIG_ENTRY_VERSION_MINOR = 3
 
 DEFAULT_HOST = "avr"
 DEFAULT_NAME = "Pioneer AVR"
@@ -42,7 +43,6 @@ DEFAULT_SOURCES = {}
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"
-CONF_REPEAT_COUNT = "repeat_count"
 CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
@@ -58,6 +58,7 @@ OLD_CONF_IGNORE_ZONE_Z = "ignore_zone_z"  ## deprecated
 OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
+OLD_CONF_REPEAT_COUNT = "repeat_count"
 
 MIGRATE_CONFIG = {
     CONF_NAME: None,
@@ -66,6 +67,7 @@ MIGRATE_CONFIG = {
     OLD_CONF_IGNORE_ZONE_Z: CONF_IGNORE_HDZONE,
     OLD_PARAM_HDZONE_SOURCES: PARAM_HDZONE_SOURCES,
     OLD_PARAM_DISABLE_AUTO_QUERY: PARAM_DISABLE_AUTO_QUERY,
+    OLD_CONF_REPEAT_COUNT: PARAM_RETRY_COUNT,
 }
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
@@ -84,7 +86,6 @@ OPTIONS_DEFAULTS = {
     CONF_TIMEOUT: DEFAULT_TIMEOUT,
     CONF_SOURCES: {},
     CONF_PARAMS: {},
-    CONF_REPEAT_COUNT: 4,
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_HDZONE: False,

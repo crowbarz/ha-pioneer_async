@@ -186,7 +186,7 @@ class TunerFrequencyNumber(
         async def set_tuner_frequency() -> bool:
             return await self.pioneer.set_tuner_frequency(self.band, value)
 
-        await self.pioneer_command(set_tuner_frequency, repeat=True)
+        await self.pioneer_command(set_tuner_frequency)
 
 
 class ToneNumber(PioneerEntityBase, NumberEntity):  # pylint: disable=abstract-method
@@ -238,7 +238,7 @@ class ToneTrebleNumber(
         async def set_tone_treble() -> bool:
             return await self.pioneer.set_tone_settings(zone=self.zone, treble=value)
 
-        await self.pioneer_command(set_tone_treble, repeat=True)
+        await self.pioneer_command(set_tone_treble)
 
 
 class ToneBassNumber(ToneNumber, CoordinatorEntity):  # pylint: disable=abstract-method
@@ -270,4 +270,4 @@ class ToneBassNumber(ToneNumber, CoordinatorEntity):  # pylint: disable=abstract
         async def set_tone_treble() -> bool:
             return await self.pioneer.set_tone_settings(zone=self.zone, bass=value)
 
-        await self.pioneer_command(set_tone_treble, repeat=True)
+        await self.pioneer_command(set_tone_treble)

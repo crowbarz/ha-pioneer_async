@@ -30,7 +30,7 @@
                     "scan_interval": "Scan interval",
                     "timeout": "Timeout",
                     "command_delay": "Command delay",
-                    "repeat_count": "Repeat action commands"
+                    "retry_count": "Retry action commands"
                 },
                 "data_description": {
                     "model": "If empty, AVR model will be queried from AVR on integration start",
@@ -39,7 +39,7 @@
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
                     "command_delay": "Delay between commands sent to the AVR",
-                    "repeat_count": "Repeat action commands on failure up to the specified count"
+                    "retry_count": "Retry action commands on failure up to the specified count\n[ignore_volume_check]"
                 }
             }
         },

@@ -30,6 +30,7 @@ from aiopioneer.params import (
     PARAM_IGNORE_VOLUME_CHECK,
     PARAM_DISABLE_AUTO_QUERY,
     PARAM_ALWAYS_POLL,
+    PARAM_RETRY_COUNT,
     PARAM_DEBUG_LISTENER,
     PARAM_DEBUG_UPDATER,
     PARAM_DEBUG_COMMAND,
@@ -55,7 +56,6 @@ from .const import (
     CONF_TIMEOUT,
     CONF_SOURCES,
     CONF_PARAMS,
-    CONF_REPEAT_COUNT,
     CONF_IGNORE_ZONE_2,
     CONF_IGNORE_ZONE_3,
     CONF_IGNORE_HDZONE,
@@ -534,7 +534,7 @@ class PioneerAVRConfigFlow(
                     )
                 ),
                 vol.Optional(
-                    CONF_REPEAT_COUNT, default=defaults[CONF_REPEAT_COUNT]
+                    PARAM_RETRY_COUNT, default=defaults[PARAM_RETRY_COUNT]
                 ): vol.All(
                     selector.NumberSelector(
                         selector.NumberSelectorConfig(
