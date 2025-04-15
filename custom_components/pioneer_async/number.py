@@ -26,7 +26,6 @@ from .const import (
     ATTR_TUNER_AM_FREQUENCY_STEP,
 )
 from .coordinator import PioneerAVRZoneCoordinator
-from .debug import Debug
 from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
@@ -63,13 +62,7 @@ async def async_setup_entry(
     options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
     coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
-    if Debug.integration:
-        _LOGGER.debug(
-            ">> number.async_setup_entry(entry_id=%s, data=%s, options=%s)",
-            config_entry.entry_id,
-            config_entry.data,
-            options,
-        )
+    _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level numbers
     entities = []

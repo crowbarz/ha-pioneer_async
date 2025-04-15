@@ -104,16 +104,11 @@
                 "description": "Configure Pioneer AVR debug options",
                 "data": {
                     "debug_listener": "Enable listener task debug logging",
-                    "debug_responder": "Enable responder task debug logging",
                     "debug_updater": "Enable updater task debug logging",
                     "debug_command": "Enable command debug logging",
-                    "debug_command_queue": "Enable command queue debug logging",
-                    "debug_integration": "Integration load/unload debug logging",
-                    "debug_config_flow": "Integration config/options flow debug logging",
-                    "debug_action": "Integration action debug logging"
+                    "debug_command_queue": "Enable command queue debug logging"
                 },
                 "data_description": {
-                    "debug_config": "Additional integration debug configuration. See https://github.com/crowbarz/ha-pioneer_async?tab=readme-ov-file#enabling-debugging for available options"
                 }
             }
         },

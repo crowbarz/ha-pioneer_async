@@ -115,7 +115,6 @@ from .const import (
     ATTR_DSP_RENDERING_MODE,
 )
 from .coordinator import PioneerAVRZoneCoordinator
-from .debug import Debug
 from .entity_base import PioneerEntityBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -246,13 +245,7 @@ async def async_setup_entry(
     options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
     coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
     zone_device_info = pioneer_data[ATTR_DEVICE_INFO]
-    if Debug.integration:
-        _LOGGER.debug(
-            ">> media_player.async_setup_entry(entry_id=%s, data=%s, options=%s)",
-            config_entry.entry_id,
-            config_entry.data,
-            options,
-        )
+    _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     if Zone.Z1 not in pioneer.properties.zones:
         _LOGGER.error("Main zone not found on AVR")
@@ -335,8 +328,6 @@ class PioneerZone(
         zone: Zone,
     ) -> None:
         """Initialize the Pioneer media_player class."""
-        if Debug.integration:
-            _LOGGER.debug("PioneerZone.__init__(%s)", zone)
         super().__init__(pioneer, options, device_info=device_info, zone=zone)
         CoordinatorEntity.__init__(self, coordinator)
 
@@ -459,8 +450,7 @@ class PioneerZone(
 
     async def async_update(self) -> None:
         """Refresh zone properties on demand."""
-        if Debug.config_flow:
-            _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
+        _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
         return await self.pioneer.update(zones=[self.zone])
 
     async def async_turn_on(self) -> None:
@@ -601,13 +591,6 @@ class PioneerZone(
 
     async def async_set_channel_levels(self, channel: str, level: float) -> None:
         """Set AVR level (gain) for amplifier channel in zone."""
-        if Debug.action:
-            _LOGGER.debug(
-                ">> PioneerZone.set_channel_levels(%s, channel=%s, level=%f)",
-                self.zone,
-                channel,
-                level,
-            )
 
         async def set_channel_levels() -> None:
             await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
@@ -616,8 +599,6 @@ class PioneerZone(
 
     async def async_set_amp_settings(self, **kwargs) -> None:
         """Set AVR amp settings."""
-        # if Debug.action:
-        _LOGGER.debug(">> PioneerZone.async_set_amp_settings(kwargs=%s)", kwargs)
 
         async def set_amp_settings() -> None:
             await self.pioneer.set_amp_settings(**kwargs)
@@ -626,10 +607,6 @@ class PioneerZone(
 
     async def async_set_video_settings(self, **kwargs) -> None:
         """Set AVR video settings."""
-        # if Debug.action:
-        _LOGGER.debug(
-            ">> PioneerZone.set_video_settings(%s, kwargs=%s)", self.zone, kwargs
-        )
 
         async def set_video_settings() -> None:
             await self.pioneer.set_video_settings(zone=self.zone, **kwargs)
@@ -638,10 +615,6 @@ class PioneerZone(
 
     async def async_set_dsp_settings(self, **kwargs) -> None:
         """Set AVR DSP settings."""
-        # if Debug.action:
-        _LOGGER.debug(
-            ">> PioneerZone.set_dsp_settings(%s, kwargs=%s)", self.zone, kwargs
-        )
 
         async def set_dsp_settings() -> None:
             await self.pioneer.set_dsp_settings(zone=self.zone, **kwargs)
