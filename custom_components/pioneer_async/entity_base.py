@@ -14,7 +14,6 @@ from homeassistant.helpers.entity import Entity
 from homeassistant.util import slugify
 
 from .const import DOMAIN
-from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -33,8 +32,6 @@ class PioneerEntityBase(Entity):
         zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer AVR entity base class."""
-        if Debug.integration:
-            _LOGGER.debug("%s.__init__()", type(self).__name__)
         self.pioneer = pioneer
         self.entry_options = options
         self.zone = zone

@@ -47,9 +47,6 @@ CONF_IGNORE_ZONE_2 = "ignore_zone_2"  ## UI option only
 CONF_IGNORE_ZONE_3 = "ignore_zone_3"  ## UI option only
 CONF_IGNORE_HDZONE = "ignore_hdzone"  ## UI option only
 CONF_QUERY_SOURCES = "query_sources"  ## UI option only, inferred from CONF_SOURCES
-CONF_DEBUG_INTEGRATION = "debug_integration"  # integration load/unload
-CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
-CONF_DEBUG_ACTION = "debug_action"  # action
 
 ## Deprecated options
 # CONF_NAME  ## deprecated
@@ -59,6 +56,9 @@ OLD_CONF_DEBUG_CONFIG = "debug_config"  ## deprecated
 OLD_PARAM_HDZONE_SOURCES = "zone_z_sources"  ## deprecated
 OLD_PARAM_DISABLE_AUTO_QUERY = "disable_autoquery"  ## deprecated
 OLD_CONF_REPEAT_COUNT = "repeat_count"
+OLD_CONF_DEBUG_INTEGRATION = "debug_integration"  # integration load/unload
+OLD_CONF_DEBUG_CONFIG_FLOW = "debug_config_flow"  # config and options flow
+OLD_CONF_DEBUG_ACTION = "debug_action"  # action
 
 MIGRATE_CONFIG = {
     CONF_NAME: None,
@@ -68,6 +68,9 @@ MIGRATE_CONFIG = {
     OLD_PARAM_HDZONE_SOURCES: PARAM_HDZONE_SOURCES,
     OLD_PARAM_DISABLE_AUTO_QUERY: PARAM_DISABLE_AUTO_QUERY,
     OLD_CONF_REPEAT_COUNT: PARAM_RETRY_COUNT,
+    OLD_CONF_DEBUG_INTEGRATION: None,
+    OLD_CONF_DEBUG_CONFIG_FLOW: None,
+    OLD_CONF_DEBUG_ACTION: None,
 }
 
 PIONEER_OPTIONS_UPDATE = "pioneer_options_update"
@@ -89,9 +92,6 @@ OPTIONS_DEFAULTS = {
     CONF_IGNORE_ZONE_2: False,
     CONF_IGNORE_ZONE_3: False,
     CONF_IGNORE_HDZONE: False,
-    CONF_DEBUG_INTEGRATION: False,
-    CONF_DEBUG_CONFIG_FLOW: False,
-    CONF_DEBUG_ACTION: False,
     ## NOTE: CONF_QUERY_SOURCES is not retained in config entry
 }
 OPTIONS_ALL = OPTIONS_DEFAULTS.keys()

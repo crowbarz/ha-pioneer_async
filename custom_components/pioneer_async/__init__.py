@@ -47,7 +47,6 @@ from .const import (
     ATTR_OPTIONS,
 )
 from .coordinator import PioneerAVRZoneCoordinator
-from .debug import Debug
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -143,8 +142,6 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Pioneer AVR from a config entry."""
-    Debug.setconfig(entry.options)
-
     hass.data.setdefault(DOMAIN, {})
     pioneer_data = {}
     name = entry.title
@@ -153,13 +150,9 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     config = pioneer_data[ATTR_OPTIONS] = CONFIG_DEFAULTS | get_entry_config(entry)
     params = get_config_params(config) | config.get(CONF_PARAMS, {})
 
-    if Debug.integration:
-        _LOGGER.debug(
-            ">> async_setup_entry(entry_id=%s, config=%s, params=%s)",
-            entry.entry_id,
-            config,
-            params,
-        )
+    _LOGGER.debug(
+        ">> async_setup_entry(entry_id=%s, config=%s)", entry.entry_id, config
+    )
 
     ## Create PioneerAVR API object
     pioneer = None
@@ -306,8 +299,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
-    if Debug.integration:
-        _LOGGER.debug(">> async_unload_entry()")
+    _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)
     pioneer: PioneerAVR = hass.data[DOMAIN][entry.entry_id][ATTR_PIONEER]

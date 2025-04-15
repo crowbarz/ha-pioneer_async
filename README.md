@@ -114,9 +114,6 @@ These options enable additional debugging to be output to the Home Assistant log
 | Enable updater task debug logging | (`debug_updater` parameter) Enables additional debug messages in the updater task
 | Enable command debug logging | (`debug_command` parameter) Enables additional debug messages in the AVR command sending and command queue methods
 | Enable command queue debug logging | (`debug_command_queue` parameter) Enables additional debug messages in the AVR command queue methods and task
-| Integration load/unload debug logging | Enables additional integration load/unload debug messages
-| Integration config flow debug logging | Enables additional integration config flow debug messages
-| Integration action debug logging | Enables additional integration debug messages on running integration specific actions
 
 ## Enabling debugging
 
