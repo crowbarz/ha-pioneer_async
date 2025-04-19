@@ -37,6 +37,7 @@ from aiopioneer.params import (
     PARAM_DEBUG_COMMAND_QUEUE,
     PARAM_DEFAULTS,
     PARAMS_ALL,
+    PARAMS_DICT_INT_KEY,
 )
 
 from homeassistant import config_entries
@@ -66,7 +67,6 @@ from .const import (
     OPTIONS_ALL,
     OPTIONS_DICT_INT_KEY,
     DATA_ALL,
-    PARAMS_DICT_INT_KEY,
     CONFIG_IGNORE_ZONES,
     CONFIG_DEFAULTS,
     ATTR_PIONEER,

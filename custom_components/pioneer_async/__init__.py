@@ -10,7 +10,7 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
-from aiopioneer.params import PARAMS_ALL, PARAM_ZONE_SOURCES
+from aiopioneer.params import PARAM_ZONE_SOURCES
 from aiopioneer.exceptions import AVRConnectError
 
 from homeassistant.config_entries import ConfigEntry
