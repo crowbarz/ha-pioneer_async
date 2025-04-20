@@ -267,7 +267,7 @@ async def async_setup_entry(
         _LOGGER.debug("Created entity for zone %s", zone)
 
     try:
-        await pioneer.update()
+        await pioneer.refresh()
     except Exception as exc:  # pylint: disable=broad-except
         _LOGGER.error("Could not perform AVR initial update: %s", repr(exc))
         raise PlatformNotReady  # pylint: disable=raise-missing-from
@@ -451,23 +451,23 @@ class PioneerZone(
     async def async_update(self) -> None:
         """Refresh zone properties on demand."""
         _LOGGER.debug(">> PioneerZone.async_update(%s)", self.zone)
-        return await self.pioneer.update(zones=[self.zone])
+        return await self.pioneer.refresh(zones=[self.zone])
 
     async def async_turn_on(self) -> None:
         """Turn the media player on."""
 
-        async def turn_on() -> None:
-            await self.pioneer.turn_on(zone=self.zone)
+        async def power_on() -> None:
+            await self.pioneer.power_on(zone=self.zone)
 
-        await self.pioneer_command(turn_on)
+        await self.pioneer_command(power_on)
 
     async def async_turn_off(self) -> None:
         """Turn off media player."""
 
-        async def turn_off() -> None:
-            await self.pioneer.turn_off(zone=self.zone)
+        async def power_off() -> None:
+            await self.pioneer.power_off(zone=self.zone)
 
-        await self.pioneer_command(turn_off)
+        await self.pioneer_command(power_off)
 
     async def async_select_source(self, source: str) -> None:
         """Select input source."""
