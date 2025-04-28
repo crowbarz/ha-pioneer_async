@@ -7,7 +7,10 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
+from aiopioneer.decoders.code_map import CodeFloatMap
 from aiopioneer.decoders.tuner import FrequencyAM
+from aiopioneer.property_entry import AVRPropertyEntry
+from aiopioneer.property_registry import get_property_entry, get_code_maps
 
 from homeassistant.components.number import NumberEntity, NumberMode, NumberDeviceClass
 from homeassistant.config_entries import ConfigEntry
@@ -87,6 +90,17 @@ async def async_setup_entry(
             ),
         ]
     )
+    for code_map in get_code_maps(CodeFloatMap, zone=Zone.ALL, is_ha_auto_entity=True):
+        _LOGGER.critical(code_map.__name__)
+        entities.append(
+            PioneerGenericNumber(
+                pioneer,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
+                property_entry=get_property_entry(code_map),
+            )
+        )
 
     ## Add zone specific selects
     for zone in pioneer.properties.zones & {Zone.Z1, Zone.Z2}:
@@ -110,8 +124,91 @@ async def async_setup_entry(
                 ),
             ]
         )
+        for code_map in get_code_maps(CodeFloatMap, zone=zone, is_ha_auto_entity=True):
+            _LOGGER.critical(code_map.__name__)
+            entities.append(
+                PioneerGenericNumber(
+                    pioneer,
+                    options,
+                    coordinator=coordinator,
+                    device_info=device_info,
+                    property_entry=get_property_entry(code_map),
+                    zone=zone,
+                )
+            )
 
     async_add_entities(entities)
+
+
+class PioneerGenericNumber(
+    PioneerEntityBase, NumberEntity, CoordinatorEntity
+):  # pylint: disable=abstract-method
+    """Pioneer generic number entity."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        property_entry: AVRPropertyEntry,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer generic number entity."""
+        self.property_entry = property_entry
+        self.code_map: type[CodeFloatMap] = property_entry.code_map
+        self._attr_name = self.code_map.get_ss_class_name()
+        self._attr_icon = self.code_map.icon
+        self._attr_entity_registry_enabled_default = self.code_map.ha_enable_default
+        self._attr_native_unit_of_measurement = self.code_map.unit_of_measurement
+        self._attr_native_min_value = self.code_map.value_min
+        self._attr_native_max_value = self.code_map.value_max
+        self._attr_native_step = self.code_map.value_step
+        self._attr_device_class = self.code_map.ha_device_class
+        self._attr_mode = self.code_map.ha_number_mode
+
+        translation_key = self.code_map.base_property
+        if property_name := self.code_map.property_name:
+            translation_key += f"_{property_name}"
+        self._attr_translation_key = translation_key
+
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the AVR property is available."""
+        return super().available and self.native_value is not None
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the current value for the AVR property."""
+        base_value = getattr(self.pioneer.properties, self.code_map.base_property, {})
+        if self.zone is not None:
+            base_value = base_value.get(self.zone, {})
+        if self.code_map.property_name is None:
+            return base_value or None
+        return base_value.get(self.code_map.property_name)
+
+    async def async_set_native_value(self, value: float) -> None:
+        """Set the AVR property."""
+
+        async def set_property() -> bool:
+            command = self.property_entry.set_command.name
+            return await self.pioneer.send_command(command, value)
+
+        await self.pioneer_command(set_property)
+
+    async def async_update(self) -> None:
+        """Refresh the AVR property."""
+
+        async def query_property() -> bool:
+            command = self.property_entry.query_command.name
+            return await self.pioneer.send_command(command)
+
+        await self.pioneer_command(query_property)
 
 
 class TunerFrequencyNumber(
