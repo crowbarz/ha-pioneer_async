@@ -1,5 +1,7 @@
 """Pioneer AVR switch entities."""
 
+# pylint: disable=abstract-method
+
 from __future__ import annotations
 
 import logging
@@ -79,12 +81,31 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class PioneerGenericSwitch(
-    PioneerEntityBase, SwitchEntity, CoordinatorEntity
-):  # pylint: disable=abstract-method
-    """Pioneer generic switch entity."""
+class PioneerSwitch(PioneerEntityBase, SwitchEntity, CoordinatorEntity):
+    """Pioneer switch base class."""
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer number base class."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
 
     _attr_entity_category = EntityCategory.CONFIG
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the AVR property is available."""
+        return super().available and self.is_on is not None
+
+
+class PioneerGenericSwitch(PioneerSwitch):
+    """Pioneer generic switch entity."""
 
     def __init__(
         self,
@@ -96,6 +117,13 @@ class PioneerGenericSwitch(
         zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer generic switch entity."""
+        super().__init__(
+            pioneer,
+            options,
+            coordinator=coordinator,
+            device_info=device_info,
+            zone=zone,
+        )
         self.property_entry = property_entry
         self.code_map: type[CodeBoolMap] = property_entry.code_map
         self._attr_name = self.code_map.get_ss_class_name()
@@ -106,14 +134,6 @@ class PioneerGenericSwitch(
         if property_name := self.code_map.property_name:
             translation_key += f"_{property_name}"
         self._attr_translation_key = translation_key
-
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the AVR property is available."""
-        return super().available and self.is_on is not None
 
     @property
     def is_on(self) -> bool | None:
@@ -128,26 +148,26 @@ class PioneerGenericSwitch(
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the AVR property."""
 
-        async def turn_on_property() -> bool:
+        async def turn_on_property() -> None:
             command = self.property_entry.set_command.name
-            return await self.pioneer.send_command(command, True)
+            await self.pioneer.send_command(command, True)
 
         await self.pioneer_command(turn_on_property)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the AVR property."""
 
-        async def turn_off_property() -> bool:
+        async def turn_off_property() -> None:
             command = self.property_entry.set_command.name
-            return await self.pioneer.send_command(command, True)
+            await self.pioneer.send_command(command, False)
 
         await self.pioneer_command(turn_off_property)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
 
-        async def query_property() -> bool:
+        async def query_property() -> None:
             command = self.property_entry.query_command.name
-            return await self.pioneer.send_command(command)
+            await self.pioneer.send_command(command)
 
         await self.pioneer_command(query_property)
