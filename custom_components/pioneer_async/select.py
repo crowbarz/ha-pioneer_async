@@ -1,5 +1,7 @@
 """Pioneer AVR select entities."""
 
+# pylint: disable=abstract-method
+
 from __future__ import annotations
 
 import logging
@@ -12,11 +14,12 @@ from aiopioneer.property_entry import AVRPropertyEntry
 from aiopioneer.property_registry import get_property_entry, get_code_maps
 from aiopioneer.decoders.code_map import CodeDictStrMap
 from aiopioneer.decoders.system import SpeakerSystem
+from aiopioneer.decoders.tuner import TunerPreset
 
 from homeassistant.components.select import SelectEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
-from homeassistant.core import HomeAssistant, callback
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
@@ -60,6 +63,7 @@ async def async_setup_entry(
                 options,
                 coordinator=coordinator,
                 device_info=device_info,
+                property_entry=get_property_entry(TunerPreset),
             ),
             TunerBandSelect(
                 pioneer,
@@ -72,6 +76,7 @@ async def async_setup_entry(
                 options,
                 coordinator=coordinator,
                 device_info=device_info,
+                property_entry=get_property_entry(SpeakerSystem),
             ),
         ]
     )
@@ -107,12 +112,31 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class PioneerGenericSelect(
-    PioneerEntityBase, SelectEntity, CoordinatorEntity
-):  # pylint: disable=abstract-method
-    """Pioneer generic select entity."""
+class PioneerSelect(PioneerEntityBase, SelectEntity, CoordinatorEntity):
+    """Pioneer select base class."""
 
     _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer select base class."""
+        super().__init__(pioneer, options, device_info=device_info, zone=zone)
+        CoordinatorEntity.__init__(self, coordinator)
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the AVR property is available."""
+        return super().available and self.current_option is not None
+
+
+class PioneerGenericSelect(PioneerSelect):
+    """Pioneer generic select entity."""
 
     def __init__(
         self,
@@ -124,6 +148,13 @@ class PioneerGenericSelect(
         zone: Zone | None = None,
     ) -> None:
         """Initialize the Pioneer generic select entity."""
+        super().__init__(
+            pioneer,
+            options,
+            coordinator=coordinator,
+            device_info=device_info,
+            zone=zone,
+        )
         self.property_entry = property_entry
         self.code_map: type[CodeDictStrMap] = property_entry.code_map
         self._attr_name = self.code_map.get_ss_class_name()
@@ -134,14 +165,6 @@ class PioneerGenericSelect(
         if property_name := self.code_map.property_name:
             translation_key += f"_{property_name}"
         self._attr_translation_key = translation_key
-
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the AVR property is available."""
-        return super().available and self.current_option is not None
 
     @property
     def current_option(self) -> str | None:
@@ -161,100 +184,60 @@ class PioneerGenericSelect(
     async def async_select_option(self, option: str) -> None:
         """Change the selected option for the AVR property."""
 
-        async def set_property() -> bool:
+        async def set_property() -> None:
             command = self.property_entry.set_command.name
-            return await self.pioneer.send_command(command, option)
+            await self.pioneer.send_command(command, option)
 
         await self.pioneer_command(set_property)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
 
-        async def query_property() -> bool:
+        async def query_property() -> None:
             command = self.property_entry.query_command.name
-            return await self.pioneer.send_command(command)
+            await self.pioneer.send_command(command)
 
         await self.pioneer_command(query_property)
 
 
-class TunerPresetSelect(
-    PioneerTunerEntity, SelectEntity, CoordinatorEntity
-):  # pylint: disable=abstract-method
+class TunerPresetSelect(PioneerTunerEntity, PioneerGenericSelect):
     """Pioneer tuner preset select entity."""
 
-    _attr_entity_category = EntityCategory.CONFIG
-    _attr_name = "Tuner Preset"
-    _attr_icon = "mdi:radio"
-    _attr_options = [
-        c + str(n) for c in ["A", "B", "C", "D", "E", "F", "G"] for n in range(1, 10)
-    ]
+    @property
+    def options(self) -> list[str]:
+        """Return the available tuner presets."""
+        return [
+            c + str(n)
+            for c in ["A", "B", "C", "D", "E", "F", "G"]
+            for n in range(1, 10)
+        ]
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
-        """Initialize the Pioneer tuner preset select entity."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
-        self._attr_current_option = None
-
-    @callback
-    def _handle_coordinator_update(self) -> None:
-        """Handle updated data from the coordinator."""
+    @property
+    def current_option(self) -> str | None:
+        """Return the selected tuner preset."""
         tuner_class = self.pioneer.properties.tuner.get("class")
         tuner_preset = self.pioneer.properties.tuner.get("preset")
         if tuner_preset is None or tuner_class is None:
-            self._attr_current_option = None
-        else:
-            preset = tuner_class + str(tuner_preset)
-            self._attr_current_option = preset
-
-        self.async_write_ha_state()
+            return None
+        return tuner_class + str(tuner_preset)
 
     async def async_select_option(self, option: str) -> None:
-        """Change the selected option."""
+        """Change the tuner preset."""
         tuner_class = option[0]
         tuner_preset = int(option[1])
 
-        async def select_tuner_preset() -> bool:
-            return await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
+        async def select_tuner_preset() -> None:
+            await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
 
         await self.pioneer_command(select_tuner_preset)
 
-    async def async_update(self) -> None:
-        """Refresh the tuner preset property."""
 
-        async def query_tuner_preset() -> bool:
-            return await self.pioneer.send_command("query_tuner_preset")
-
-        await self.pioneer_command(query_tuner_preset)
-
-
-class TunerBandSelect(
-    PioneerTunerEntity, SelectEntity, CoordinatorEntity
-):  # pylint: disable=abstract-method
+class TunerBandSelect(PioneerTunerEntity, PioneerSelect):
     """Pioneer tuner frequency band select entity."""
 
-    _attr_entity_category = EntityCategory.CONFIG
     _attr_name = "Tuner Band"
     _attr_icon = "mdi:radio"
     _attr_options = [b.value for b in TunerBand]
-
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
-        """Initialize the Pioneer tuner frequency band select entity."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
 
     @property
     def current_option(self) -> str | None:
@@ -263,42 +246,24 @@ class TunerBandSelect(
         return band.value if isinstance(band, TunerBand) else None
 
     async def async_select_option(self, option: str) -> None:
-        """Change the selected option."""
+        """Change the tuner band."""
 
-        async def select_tuner_band() -> bool:
-            return await self.pioneer.select_tuner_band(TunerBand(option))
+        async def select_tuner_band() -> None:
+            await self.pioneer.select_tuner_band(TunerBand(option))
 
         await self.pioneer_command(select_tuner_band)
 
     async def async_update(self) -> None:
         """Refresh the tuner frequency band property (encoded in frequency)."""
 
-        async def query_tuner_frequency() -> bool:
-            return await self.pioneer.send_command("query_tuner_frequency")
+        async def query_tuner_frequency() -> None:
+            await self.pioneer.send_command("query_tuner_frequency")
 
         await self.pioneer_command(query_tuner_frequency)
 
 
-class SpeakerSystemSelect(PioneerGenericSelect):  # pylint: disable=abstract-method
+class SpeakerSystemSelect(PioneerGenericSelect):
     """Pioneer speaker system select entity."""
-
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
-        """Initialize the Pioneer speaker system select entity."""
-        super().__init__(
-            pioneer,
-            options,
-            coordinator=coordinator,
-            device_info=device_info,
-            property_entry=get_property_entry(SpeakerSystem),
-            zone=zone,
-        )
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
