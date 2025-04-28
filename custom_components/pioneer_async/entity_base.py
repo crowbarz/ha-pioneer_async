@@ -1,6 +1,6 @@
 """Pioneer AVR entity base."""
 
-from typing import Any
+from typing import Any, Callable, Awaitable
 
 import logging
 
@@ -56,7 +56,9 @@ class PioneerEntityBase(Entity):
             )
         )
 
-    async def pioneer_command(self, aw_f, command: str = None):
+    async def pioneer_command(
+        self, aw_f: Callable[..., Awaitable], command: str = None
+    ):
         """Execute a PioneerAVR command and handle exceptions."""
         if command is None:
             command = aw_f.__name__
