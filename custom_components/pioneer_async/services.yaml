@@ -62,6 +62,9 @@ set_channel_levels:
 
 set_amp_settings:
   target:
+    device:
+      integration: pioneer_async
+      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player
@@ -147,6 +150,9 @@ set_amp_settings:
 
 set_video_settings:
   target:
+    device:
+      integration: pioneer_async
+      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player
@@ -296,6 +302,9 @@ set_video_settings:
 
 set_dsp_settings:
   target:
+    device:
+      integration: pioneer_async
+      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player

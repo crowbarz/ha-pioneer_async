@@ -268,6 +268,9 @@ Actions are used to perform an activity or change parameters on the AVR. They ca
 
 All of the integration specific actions described below require a target to be specified. The zone device or the `media_player` entity for the zone can be used.
 
+> [!CAUTION]
+> Amp, DSP and video settings can only be changed via the AVR main zone device or entity only. Due to HA selector filtering limitations, other zone entities can be selected on the actions page. The main zone entity should always be used as the target for these actions.
+
 > [!NOTE]
 > Prior to Home Assistant 2024.8, actions were referred to as service calls. See the [2024.8 release post](https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-) for more details on this change in terminology.
 
