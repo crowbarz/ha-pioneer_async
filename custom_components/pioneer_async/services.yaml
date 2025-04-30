@@ -27,6 +27,7 @@ set_channel_levels:
       example: "L"
       selector:
         select:
+          translation_key: audio_channel_level
           options:
             - "L"
             - "R"

@@ -126,7 +126,7 @@
         }
     },
     "selector": {
-        "tone_mode": {
+        "tone_status": {
             "options": {
                 "bypass": "bypass",
                 "on": "on"
@@ -138,7 +138,7 @@
                 "AM": "AM"
             }
         },
-        "channel": {
+        "audio_channel_level": {
             "options": {
                 "L": "front left",
                 "R": "front right",
