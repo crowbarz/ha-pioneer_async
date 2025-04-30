@@ -12,6 +12,7 @@ from aiopioneer.const import Zone, TunerBand
 from aiopioneer.params import PARAM_SPEAKER_SYSTEM_MODES
 from aiopioneer.property_entry import AVRPropertyEntry
 from aiopioneer.property_registry import get_property_entry, get_code_maps
+from aiopioneer.decoders.amp import Dimmer
 from aiopioneer.decoders.code_map import CodeDictStrMap
 from aiopioneer.decoders.system import SpeakerSystem
 from aiopioneer.decoders.tuner import TunerPreset
@@ -77,6 +78,13 @@ async def async_setup_entry(
                 coordinator=coordinator,
                 device_info=device_info,
                 property_entry=get_property_entry(SpeakerSystem),
+            ),
+            DimmerSelect(
+                pioneer,
+                options,
+                coordinator=coordinator,
+                device_info=device_info,
+                property_entry=get_property_entry(Dimmer),
             ),
         ]
     )
@@ -278,3 +286,16 @@ class SpeakerSystemSelect(PioneerGenericSelect):
         return list(
             self.pioneer.params.get_param(PARAM_SPEAKER_SYSTEM_MODES, {}).values()
         )
+
+
+class DimmerSelect(PioneerGenericSelect):
+    """Pioneer dimmer select entity."""
+
+    @property
+    def available(self) -> bool:
+        """Returns whether the dimmer property is available."""
+        return PioneerEntityBase.is_available(self)
+
+    async def async_update(self) -> None:
+        """Don't refresh dimmer property as AVR command does not exist."""
+        pass

@@ -213,6 +213,11 @@ Not all speaker system modes are available on all AVR models. The AVR will respo
 | --- | --- | ---
 | Speaker System | select | Currently configured speaker system
 
+### Amp entities
+
+> [!NOTE]
+> The AVR does not report the current dimmer status until it is set. Thus, the dimmer select will not show a value if it has not been set since the integration last connected successfully to the AVR.
+
 ### AVR property entities
 
 The following AVR properties and property groups are available as entities where supported and reported by your AVR model. These entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
