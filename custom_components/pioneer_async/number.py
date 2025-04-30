@@ -78,40 +78,39 @@ async def async_setup_entry(
         )
 
     ## Add zone specific selects
-    for zone in pioneer.properties.zones & {Zone.Z1, Zone.Z2}:
-        device_info = zone_device_info[zone]
-        coordinator = coordinators[zone]
+    for zone in pioneer.properties.zones & ToneDb.supported_zones:
         entities.extend(
             [
                 ToneTrebleNumber(
                     pioneer,
                     options,
-                    coordinator=coordinator,
-                    device_info=device_info,
+                    coordinator=coordinators[zone],
+                    device_info=zone_device_info[zone],
                     property_entry=get_property_entry(ToneTreble),
                     zone=zone,
                 ),
                 ToneBassNumber(
                     pioneer,
                     options,
-                    coordinator=coordinator,
-                    device_info=device_info,
+                    coordinator=coordinators[zone],
+                    device_info=zone_device_info[zone],
                     property_entry=get_property_entry(ToneBass),
                     zone=zone,
                 ),
             ]
         )
-    for code_map in get_code_maps(CodeFloatMap, zone=zone, is_ha_auto_entity=True):
-        entities.append(
-            PioneerGenericNumber(
-                pioneer,
-                options,
-                coordinator=coordinator,
-                device_info=device_info,
-                property_entry=get_property_entry(code_map),
-                zone=zone,
+    for zone in pioneer.properties.zones:
+        for code_map in get_code_maps(CodeFloatMap, zone=zone, is_ha_auto_entity=True):
+            entities.append(
+                PioneerGenericNumber(
+                    pioneer,
+                    options,
+                    coordinator=coordinators[zone],
+                    device_info=zone_device_info[zone],
+                    property_entry=get_property_entry(code_map),
+                    zone=zone,
+                )
             )
-        )
 
     async_add_entities(entities)
 
