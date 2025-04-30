@@ -416,20 +416,6 @@
                 }
             }
         },
-        "set_channel_levels": {
-            "name": "Set Channel Levels",
-            "description": "Set AVR level (gain) for an amplifier channel.",
-            "fields": {
-                "channel": {
-                    "name": "Channel",
-                    "description": "Tuner amp channel to modify."
-                },
-                "level": {
-                    "name": "Level",
-                    "description": "Tuner amp channel level."
-                }
-            }
-        },
         "set_amp_settings": {
             "name": "Set Amp Settings",
             "description": "Set AVR settings.",

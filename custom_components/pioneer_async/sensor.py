@@ -164,19 +164,6 @@ async def async_setup_entry(
                         promoted_property="status",  # TODO: to identify
                         exclude_properties=[],
                     ),
-                    PioneerGenericSensor(
-                        pioneer,
-                        options,
-                        coordinator=coordinator,
-                        device_info=device_info,
-                        zone=zone,
-                        name="Channel Level",
-                        icon="mdi:surround-sound",
-                        base_property="channel_levels",
-                        promoted_property="C",
-                        exclude_properties=["!C"],
-                        enabled_default=True,
-                    ),
                 ]
             )
 

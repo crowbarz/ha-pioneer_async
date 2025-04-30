@@ -110,7 +110,6 @@ CLASS_PIONEER = MediaPlayerDeviceClass.RECEIVER
 
 SERVICE_SEND_COMMAND = "send_command"
 SERVICE_SET_AMP_SETTINGS = "set_amp_settings"
-SERVICE_SET_CHANNEL_LEVELS = "set_channel_levels"
 SERVICE_SET_VIDEO_SETTINGS = "set_video_settings"
 SERVICE_SET_DSP_SETTINGS = "set_dsp_settings"
 

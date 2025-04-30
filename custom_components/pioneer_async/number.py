@@ -9,7 +9,14 @@ from typing import Any
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
-from aiopioneer.decoders.audio import ToneTreble, ToneBass
+from aiopioneer.decoders.audio import (
+    ToneDb,
+    ToneTreble,
+    ToneBass,
+    ChannelLevel,
+    SpeakerChannel,
+    SpeakerChannelLevel,
+)
 from aiopioneer.decoders.code_map import CodeFloatMap
 from aiopioneer.decoders.tuner import TunerAMFrequency, TunerFMFrequency
 from aiopioneer.property_entry import AVRPropertyEntry
@@ -78,6 +85,18 @@ async def async_setup_entry(
         )
 
     ## Add zone specific selects
+    for zone in pioneer.properties.zones & ChannelLevel.supported_zones:
+        for channel in SpeakerChannel.CHANNELS_ALL:
+            entities.append(
+                ChannelLevelNumber(
+                    pioneer,
+                    options,
+                    coordinator=coordinators[zone],
+                    device_info=zone_device_info[zone],
+                    channel=channel,
+                    zone=zone,
+                )
+            )
     for zone in pioneer.properties.zones & ToneDb.supported_zones:
         entities.extend(
             [
@@ -149,6 +168,8 @@ class PioneerGenericNumber(PioneerNumber):
         device_info: DeviceInfo,
         property_entry: AVRPropertyEntry,
         zone: Zone | None = None,
+        code_map: CodeFloatMap = None,
+        name: str = None,
     ) -> None:
         """Initialize the Pioneer generic number entity."""
         super().__init__(
@@ -159,16 +180,18 @@ class PioneerGenericNumber(PioneerNumber):
             zone=zone,
         )
         self.property_entry = property_entry
-        self.code_map: type[CodeFloatMap] = property_entry.code_map
-        self._attr_name = self.code_map.get_ss_class_name()
-        self._attr_icon = self.code_map.icon
-        self._attr_entity_registry_enabled_default = self.code_map.ha_enable_default
-        self._attr_native_unit_of_measurement = self.code_map.unit_of_measurement
-        self._attr_native_min_value = self.code_map.value_min
-        self._attr_native_max_value = self.code_map.value_max
-        self._attr_native_step = self.code_map.value_step
-        self._attr_device_class = self.code_map.ha_device_class
-        self._attr_mode = self.code_map.ha_number_mode
+        if code_map is None:
+            code_map = property_entry.code_map
+        self.code_map = code_map
+        self._attr_name = name or code_map.get_ss_class_name()
+        self._attr_icon = code_map.icon
+        self._attr_entity_registry_enabled_default = code_map.ha_enable_default
+        self._attr_native_unit_of_measurement = code_map.unit_of_measurement
+        self._attr_native_min_value = code_map.value_min
+        self._attr_native_max_value = code_map.value_max
+        self._attr_native_step = code_map.value_step
+        self._attr_device_class = code_map.ha_device_class
+        self._attr_mode = code_map.ha_number_mode
 
         translation_key = self.code_map.base_property
         if property_name := self.code_map.property_name:
@@ -286,6 +309,55 @@ class TunerAMFrequencyNumber(TunerFrequencyNumber):
         if am_frequency_step := self.native_step:
             attrs |= {ATTR_TUNER_AM_FREQUENCY_STEP: am_frequency_step}
         return attrs
+
+
+class ChannelLevelNumber(PioneerGenericNumber):
+    """Pioneer channel level number entity."""
+
+    def __init__(
+        self,
+        pioneer: PioneerAVR,
+        options: dict[str, Any],
+        coordinator: PioneerAVRZoneCoordinator,
+        device_info: DeviceInfo,
+        channel: str,
+        zone: Zone | None = None,
+    ) -> None:
+        """Initialize the Pioneer channel level number entity."""
+        super().__init__(
+            pioneer,
+            options,
+            coordinator=coordinator,
+            device_info=device_info,
+            property_entry=get_property_entry(SpeakerChannelLevel),
+            zone=zone,
+            code_map=ChannelLevel,
+            name=f"{ChannelLevel.get_ss_class_name()} {channel}",
+        )
+        self.channel = channel
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the level for the configured channel."""
+        return (super().native_value or {}).get(self.channel)
+
+    async def async_set_native_value(self, value: int) -> None:
+        """Set the channel level."""
+
+        async def set_channel_level() -> None:
+            await self.pioneer.set_channel_level(
+                channel=self.channel, level=value, zone=self.zone
+            )
+
+        await self.pioneer_command(set_channel_level)
+
+    async def async_update(self) -> None:
+        """Refresh the channel level."""
+
+        async def query_channel_level() -> None:
+            await self.pioneer.send_command("query_channel_level", self.channel)
+
+        await self.pioneer_command(query_channel_level)
 
 
 class ToneNumber(PioneerGenericNumber):
