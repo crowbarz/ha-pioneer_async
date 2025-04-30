@@ -64,7 +64,6 @@ async def async_setup_entry(
                 icon="mdi:fullscreen",
                 base_property="amp",
                 promoted_property="display",
-                include_properties=["dimmer"],
             ),
             PioneerGenericSensor(
                 pioneer,

@@ -35,7 +35,7 @@ from .config_flow import (
 )
 from .const import (
     DOMAIN,
-    PLATFORMS_CONFIG_FLOW,
+    PLATFORMS,
     MIGRATE_CONFIG,
     CONF_SOURCES,
     CONF_PARAMS,
@@ -277,7 +277,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data[DOMAIN][entry.entry_id] = pioneer_data
 
     ## Set up platforms for Pioneer AVR
-    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS_CONFIG_FLOW)
+    await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
 
     async def _update_listener(hass: HomeAssistant, config_entry: ConfigEntry):
         """Handle options update."""
@@ -306,9 +306,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     pioneer.clear_zone_callbacks()
 
     ## Unload platforms for Pioneer AVR
-    unload_ok = await hass.config_entries.async_unload_platforms(
-        entry, PLATFORMS_CONFIG_FLOW
-    )
+    unload_ok = await hass.config_entries.async_unload_platforms(entry, PLATFORMS)
 
     ## Shutdown Pioneer AVR for removal
     await pioneer.shutdown()
