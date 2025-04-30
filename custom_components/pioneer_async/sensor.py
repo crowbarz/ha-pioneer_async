@@ -128,7 +128,7 @@ async def async_setup_entry(
                 icon="mdi:cog",
                 base_property="system",
                 promoted_property="osd_language",
-                exclude_properties=["speaker_system", "speaker_system_raw"],
+                exclude_properties=["speaker_system", "speaker_system_id"],
             ),
         ]
     )
