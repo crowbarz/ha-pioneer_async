@@ -294,7 +294,9 @@ class DimmerSelect(PioneerGenericSelect):
     @property
     def available(self) -> bool:
         """Returns whether the dimmer property is available."""
-        return PioneerEntityBase.is_available(self)
+        return PioneerEntityBase.is_available(self) and any(
+            self.pioneer.properties.power.values()
+        )
 
     async def async_update(self) -> None:
         """Don't refresh dimmer property as AVR command does not exist."""
