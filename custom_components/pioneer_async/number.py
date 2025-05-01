@@ -332,14 +332,16 @@ class ChannelLevelNumber(PioneerGenericNumber):
             property_entry=get_property_entry(SpeakerChannelLevel),
             zone=zone,
             code_map=ChannelLevel,
-            name=f"{ChannelLevel.get_ss_class_name()} {channel}",
+            name=f"Channel {channel}",
         )
         self.channel = channel
 
     @property
     def native_value(self) -> float | None:
         """Return the level for the configured channel."""
-        return (super().native_value or {}).get(self.channel)
+        return self.pioneer.properties.channel_level.get(self.zone, {}).get(
+            self.channel
+        )
 
     async def async_set_native_value(self, value: int) -> None:
         """Set the channel level."""
