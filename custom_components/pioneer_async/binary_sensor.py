@@ -5,30 +5,17 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 
-from homeassistant.components.binary_sensor import (
-    # BinarySensorDeviceClass,
-    BinarySensorEntity,
-    # BinarySensorStateClass,
-)
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from . import select_dict, reject_dict
-from .const import (
-    DOMAIN,
-    ATTR_PIONEER,
-    ATTR_COORDINATORS,
-    ATTR_DEVICE_INFO,
-    ATTR_OPTIONS,
-)
-from .coordinator import PioneerAVRZoneCoordinator
+from .const import DOMAIN, PioneerData
 from .entity_base import PioneerEntityBase
 
 
@@ -41,25 +28,15 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the binary_sensor platform."""
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
-    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
-    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
+    pioneer_data: PioneerData = hass.data[DOMAIN][config_entry.entry_id]
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level binary_sensors
     entities = []
-    zone = Zone.ALL
-    device_info = zone_device_info[zone]
-    coordinator = coordinators[zone]
     entities.extend(
         [
             PioneerGenericBinarySensor(
-                pioneer,
-                options,
-                coordinator=coordinator,
-                device_info=device_info,
+                pioneer_data,
                 name="Input Multichannel",
                 icon="mdi:surround-sound",
                 base_property="audio",
@@ -79,17 +56,10 @@ class PioneerBinarySensor(PioneerEntityBase, BinarySensorEntity, CoordinatorEnti
     _attr_entity_registry_enabled_default = False
     _attr_entity_registry_visible_default = True
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
+    def __init__(self, pioneer_data: PioneerData, zone: Zone = Zone.ALL) -> None:
         """Initialize the Pioneer AVR binary sensor."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
+        super().__init__(pioneer_data, zone=zone)
+        CoordinatorEntity.__init__(self, pioneer_data.coordinators[zone])
 
 
 class PioneerGenericBinarySensor(PioneerBinarySensor):
@@ -99,23 +69,18 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
 
     def __init__(
         self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
+        pioneer_data: PioneerData,
         name: str,
         base_property: str,
         promoted_property: str | None,
         include_properties: list[str] | None = None,
         exclude_properties: list[str] | None = None,
         enabled_default: bool = False,
-        zone: Zone | None = None,
+        zone: Zone = Zone.ALL,
         icon: str | None = None,
     ) -> None:
         """Initialize the Pioneer AVR sensor."""
-        super().__init__(
-            pioneer, options, coordinator, device_info=device_info, zone=zone
-        )
+        super().__init__(pioneer_data, zone=zone)
         self._attr_name = name
         self._attr_icon = icon
         self._attr_entity_registry_enabled_default = enabled_default
@@ -137,7 +102,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
     def is_on(self) -> bool:
         """Retrieve boolean state."""
         base_property_value = getattr(self.pioneer.properties, self.base_property, {})
-        if self.zone is not None:
+        if self.zone is not Zone.ALL:
             base_property_value = base_property_value.get(self.zone, {})
         if self.promoted_property is None:
             value = base_property_value
@@ -153,7 +118,7 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
         if self.include_properties is None and self.exclude_properties is None:
             return None
         attrs = getattr(self.pioneer.properties, self.base_property, {})
-        if self.zone is not None:
+        if self.zone is not Zone.ALL:
             attrs = attrs.get(self.zone, {})
         if not isinstance(attrs, dict):
             return None

@@ -7,7 +7,6 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone, TunerBand
 from aiopioneer.decoders.audio import (
     ToneDb,
@@ -26,19 +25,10 @@ from homeassistant.components.number import NumberEntity, NumberMode, NumberDevi
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    DOMAIN,
-    ATTR_PIONEER,
-    ATTR_COORDINATORS,
-    ATTR_DEVICE_INFO,
-    ATTR_OPTIONS,
-    ATTR_TUNER_AM_FREQUENCY_STEP,
-)
-from .coordinator import PioneerAVRZoneCoordinator
+from .const import DOMAIN, PioneerData, ATTR_TUNER_AM_FREQUENCY_STEP
 from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
@@ -51,36 +41,23 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the number platform."""
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
-    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
-    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
+    pioneer_data: PioneerData = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer = pioneer_data.pioneer
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level number entities
     entities = []
     zone = Zone.ALL
-    device_info = zone_device_info[zone]
-    coordinator = coordinators[zone]
     entities.extend(
         [
-            TunerFMFrequencyNumber(
-                pioneer, options, coordinator=coordinator, device_info=device_info
-            ),
-            TunerAMFrequencyNumber(
-                pioneer, options, coordinator=coordinator, device_info=device_info
-            ),
+            TunerFMFrequencyNumber(pioneer_data),
+            TunerAMFrequencyNumber(pioneer_data),
         ]
     )
     for code_map in get_code_maps(CodeFloatMap, zone=Zone.ALL, is_ha_auto_entity=True):
         entities.append(
             PioneerGenericNumber(
-                pioneer,
-                options,
-                coordinator=coordinator,
-                device_info=device_info,
-                property_entry=get_property_entry(code_map),
+                pioneer_data, property_entry=get_property_entry(code_map)
             )
         )
 
@@ -88,33 +65,18 @@ async def async_setup_entry(
     for zone in pioneer.properties.zones & ChannelLevel.supported_zones:
         for channel in SpeakerChannel.CHANNELS_ALL:
             entities.append(
-                ChannelLevelNumber(
-                    pioneer,
-                    options,
-                    coordinator=coordinators[zone],
-                    device_info=zone_device_info[zone],
-                    channel=channel,
-                    zone=zone,
-                )
+                ChannelLevelNumber(pioneer_data, channel=channel, zone=zone)
             )
     for zone in pioneer.properties.zones & ToneDb.supported_zones:
         entities.extend(
             [
                 ToneTrebleNumber(
-                    pioneer,
-                    options,
-                    coordinator=coordinators[zone],
-                    device_info=zone_device_info[zone],
+                    pioneer_data,
                     property_entry=get_property_entry(ToneTreble),
                     zone=zone,
                 ),
                 ToneBassNumber(
-                    pioneer,
-                    options,
-                    coordinator=coordinators[zone],
-                    device_info=zone_device_info[zone],
-                    property_entry=get_property_entry(ToneBass),
-                    zone=zone,
+                    pioneer_data, property_entry=get_property_entry(ToneBass), zone=zone
                 ),
             ]
         )
@@ -122,12 +84,7 @@ async def async_setup_entry(
         for code_map in get_code_maps(CodeFloatMap, zone=zone, is_ha_auto_entity=True):
             entities.append(
                 PioneerGenericNumber(
-                    pioneer,
-                    options,
-                    coordinator=coordinators[zone],
-                    device_info=zone_device_info[zone],
-                    property_entry=get_property_entry(code_map),
-                    zone=zone,
+                    pioneer_data, property_entry=get_property_entry(code_map), zone=zone
                 )
             )
 
@@ -139,17 +96,10 @@ class PioneerNumber(PioneerEntityBase, NumberEntity, CoordinatorEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
+    def __init__(self, pioneer_data: PioneerData, zone: Zone = Zone.ALL) -> None:
         """Initialize the Pioneer number base class."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
+        super().__init__(pioneer_data, zone=zone)
+        CoordinatorEntity.__init__(self, pioneer_data.coordinators[zone])
 
     @property
     def available(self) -> bool:
@@ -162,23 +112,14 @@ class PioneerGenericNumber(PioneerNumber):
 
     def __init__(
         self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
+        pioneer_data: PioneerData,
         property_entry: AVRPropertyEntry,
-        zone: Zone | None = None,
+        zone: Zone = Zone.ALL,
         code_map: CodeFloatMap = None,
         name: str = None,
     ) -> None:
         """Initialize the Pioneer generic number entity."""
-        super().__init__(
-            pioneer,
-            options,
-            coordinator=coordinator,
-            device_info=device_info,
-            zone=zone,
-        )
+        super().__init__(pioneer_data, zone=zone)
         self.property_entry = property_entry
         if code_map is None:
             code_map = property_entry.code_map
@@ -298,21 +239,10 @@ class TunerAMFrequencyNumber(TunerFrequencyNumber):
 class ChannelLevelNumber(PioneerGenericNumber):
     """Pioneer channel level number entity."""
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        channel: str,
-        zone: Zone | None = None,
-    ) -> None:
+    def __init__(self, pioneer_data: PioneerData, channel: str, zone: Zone) -> None:
         """Initialize the Pioneer channel level number entity."""
         super().__init__(
-            pioneer,
-            options,
-            coordinator=coordinator,
-            device_info=device_info,
+            pioneer_data,
             property_entry=get_property_entry(SpeakerChannelLevel),
             zone=zone,
             code_map=ChannelLevel,

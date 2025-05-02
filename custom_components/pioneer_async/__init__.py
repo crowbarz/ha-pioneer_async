@@ -40,11 +40,7 @@ from .const import (
     CONF_SOURCES,
     CONF_PARAMS,
     CONFIG_DEFAULTS,
-    ATTR_PIONEER,
-    ATTR_COORDINATORS,
-    ATTR_DEVICE_INFO,
-    ATTR_DEVICE_ENTRY,
-    ATTR_OPTIONS,
+    PioneerData,
 )
 from .coordinator import PioneerAVRZoneCoordinator
 
@@ -143,11 +139,11 @@ async def async_migrate_entry(hass: HomeAssistant, config_entry: ConfigEntry):
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Set up Pioneer AVR from a config entry."""
     hass.data.setdefault(DOMAIN, {})
-    pioneer_data = {}
+    hass.data[DOMAIN][entry.entry_id] = pioneer_data = PioneerData()
     name = entry.title
 
     ## Compile config and params
-    config = pioneer_data[ATTR_OPTIONS] = CONFIG_DEFAULTS | get_entry_config(entry)
+    config = pioneer_data.options = CONFIG_DEFAULTS | get_entry_config(entry)
     params = get_config_params(config) | config.get(CONF_PARAMS, {})
 
     _LOGGER.debug(
@@ -184,7 +180,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             del pioneer
         raise ConfigEntryNotReady from exc
 
-    pioneer_data[ATTR_PIONEER] = pioneer
+    pioneer_data.pioneer = pioneer
 
     ## Set up parent device for Pioneer AVR
     model = pioneer.properties.amp.get("model")
@@ -237,12 +233,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         configuration_url=f"http://{config[CONF_HOST]}",
     )
 
-    pioneer_data[ATTR_DEVICE_INFO] = {}
-    pioneer_data[ATTR_DEVICE_INFO][Zone.ALL] = DeviceInfo(
-        identifiers=top_identifiers,
-    )
-    pioneer_data[ATTR_DEVICE_ENTRY] = {}
-    pioneer_data[ATTR_DEVICE_ENTRY][Zone.ALL] = device_entry
+    pioneer_data.zone_device_info[Zone.ALL] = DeviceInfo(identifiers=top_identifiers)
+    pioneer_data.device_entries[Zone.ALL] = device_entry
 
     ## Create top level DataUpdateCooordinator
     def update_top_device() -> None:
@@ -256,12 +248,11 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     coordinator = PioneerAVRZoneCoordinator(hass, pioneer, Zone.ALL)
     await coordinator.async_config_entry_first_refresh()
     coordinator.set_zone_callback()
-    pioneer_data[ATTR_COORDINATORS] = {}
-    pioneer_data[ATTR_COORDINATORS][Zone.ALL] = coordinator
+    pioneer_data.coordinators[Zone.ALL] = coordinator
 
     ## Create DeviceInfo and DataUpdateCoordinator for each zone
     for zone in pioneer.properties.zones:
-        pioneer_data[ATTR_DEVICE_INFO][zone] = DeviceInfo(
+        pioneer_data.zone_device_info[zone] = DeviceInfo(
             identifiers=get_zone_identifiers(zone),
             manufacturer="Pioneer",
             name=f"{name} {zone.full_name}",
@@ -272,9 +263,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         coordinator.set_zone_callback()
         if zone is Zone.Z1:
             coordinator.set_initial_refresh_callback(update_top_device)
-        pioneer_data[ATTR_COORDINATORS][zone] = coordinator
-
-    hass.data[DOMAIN][entry.entry_id] = pioneer_data
+        pioneer_data.coordinators[zone] = coordinator
 
     ## Set up platforms for Pioneer AVR
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
@@ -302,7 +291,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _LOGGER.debug(">> async_unload_entry()")
 
     ## Clear callback references from Pioneer AVR (to allow entities to unload)
-    pioneer: PioneerAVR = hass.data[DOMAIN][entry.entry_id][ATTR_PIONEER]
+    pioneer: PioneerAVR = hass.data[DOMAIN][entry.entry_id].pioneer
     pioneer.clear_zone_callbacks()
 
     ## Unload platforms for Pioneer AVR

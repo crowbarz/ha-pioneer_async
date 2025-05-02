@@ -69,7 +69,7 @@ from .const import (
     DATA_ALL,
     CONFIG_IGNORE_ZONES,
     CONFIG_DEFAULTS,
-    ATTR_PIONEER,
+    PioneerData,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -246,7 +246,8 @@ class PioneerAVRConfigFlow(
         """Handle user requested reconfigure."""
         _LOGGER.debug(">> PioneerAVRConfigFlow.async_step_reconfigure(%s)", user_input)
         self.config_entry = self._get_reconfigure_entry()
-        self.pioneer = self.hass.data[DOMAIN][self.config_entry.entry_id][ATTR_PIONEER]
+        pioneer_data: PioneerData = self.hass.data[DOMAIN][self.config_entry.entry_id]
+        self.pioneer = pioneer_data.pioneer
         config = get_entry_config(self.config_entry)
         self.defaults = CONFIG_DEFAULTS | self.pioneer.params.default_params
 
@@ -595,7 +596,8 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
         if config_entry.entry_id not in self.hass.data[DOMAIN]:
             return self.async_abort(reason="not_set_up")
 
-        self.pioneer = self.hass.data[DOMAIN][config_entry.entry_id][ATTR_PIONEER]
+        pioneer_data: PioneerData = self.hass.data[DOMAIN][self.config_entry.entry_id]
+        self.pioneer = pioneer_data.pioneer
         config = get_entry_config(self.config_entry)
         defaults = CONFIG_DEFAULTS | self.pioneer.params.default_params
         config_parsed = {}

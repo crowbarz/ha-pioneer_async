@@ -8,7 +8,6 @@ from typing import Any
 
 import voluptuous as vol
 
-from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 
 from homeassistant.helpers import entity_platform
@@ -28,7 +27,6 @@ from homeassistant.core import (
 )
 from homeassistant.exceptions import PlatformNotReady
 import homeassistant.helpers.config_validation as cv
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import (
@@ -38,10 +36,7 @@ from .const import (
     SERVICE_SET_AMP_SETTINGS,
     SERVICE_SET_VIDEO_SETTINGS,
     SERVICE_SET_DSP_SETTINGS,
-    ATTR_PIONEER,
-    ATTR_COORDINATORS,
-    ATTR_DEVICE_INFO,
-    ATTR_OPTIONS,
+    PioneerData,
     ATTR_COMMAND,
     ATTR_PREFIX,
     ATTR_SUFFIX,
@@ -111,7 +106,6 @@ from .const import (
     ATTR_DSP_CENTER_SPREAD,
     ATTR_DSP_RENDERING_MODE,
 )
-from .coordinator import PioneerAVRZoneCoordinator
 from .entity_base import PioneerEntityBase
 
 _LOGGER = logging.getLogger(__name__)
@@ -233,11 +227,8 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the media_player platform."""
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
-    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
-    zone_device_info = pioneer_data[ATTR_DEVICE_INFO]
+    pioneer_data: PioneerData = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer = pioneer_data.pioneer
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     if Zone.Z1 not in pioneer.properties.zones:
@@ -248,15 +239,7 @@ async def async_setup_entry(
     entities = []
     _LOGGER.info("Adding entities for zones %s", pioneer.properties.zones)
     for zone in pioneer.properties.zones:
-        entities.append(
-            PioneerZone(
-                pioneer,
-                options,
-                coordinator=coordinators[zone],
-                device_info=zone_device_info[zone],
-                zone=zone,
-            )
-        )
+        entities.append(PioneerZone(pioneer_data, zone=zone))
         _LOGGER.debug("Created entity for zone %s", zone)
 
     try:
@@ -307,17 +290,10 @@ class PioneerZone(
         }
     )
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone,
-    ) -> None:
+    def __init__(self, pioneer_data: PioneerData, zone: Zone) -> None:
         """Initialize the Pioneer media_player class."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
+        super().__init__(pioneer_data, zone=zone)
+        CoordinatorEntity.__init__(self, pioneer_data.coordinators[zone])
 
     @property
     def state(self) -> MediaPlayerState:
