@@ -150,18 +150,8 @@ class PioneerGenericText(PioneerText):
 
     async def async_set_value(self, value: str) -> None:
         """Set the AVR property."""
-
-        async def set_property() -> None:
-            command = self.property_entry.set_command.name
-            await self.pioneer.send_command(command, value)
-
-        await self.pioneer_command(set_property)
+        await self.pioneer_command(self.property_entry.set_command.name, value)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
-
-        async def query_property() -> None:
-            command = self.property_entry.query_command.name
-            await self.pioneer.send_command(command)
-
-        await self.pioneer_command(query_property)
+        await self.pioneer_command(self.property_entry.query_command.name)

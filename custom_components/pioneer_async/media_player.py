@@ -444,117 +444,74 @@ class PioneerZone(
 
     async def async_turn_on(self) -> None:
         """Turn the media player on."""
-
-        async def power_on() -> None:
-            await self.pioneer.power_on(zone=self.zone)
-
-        await self.pioneer_command(power_on)
+        await self.pioneer_command(self.pioneer.power_on, zone=self.zone)
 
     async def async_turn_off(self) -> None:
         """Turn off media player."""
-
-        async def power_off() -> None:
-            await self.pioneer.power_off(zone=self.zone)
-
-        await self.pioneer_command(power_off)
+        await self.pioneer_command(self.pioneer.power_off, zone=self.zone)
 
     async def async_select_source(self, source: str) -> None:
         """Select input source."""
-
-        async def select_source() -> None:
-            await self.pioneer.select_source(source=source, zone=self.zone)
-
-        await self.pioneer_command(select_source)
+        await self.pioneer_command(
+            self.pioneer.select_source, source=source, zone=self.zone
+        )
 
     async def async_volume_up(self) -> None:
         """Volume up media player."""
-
-        async def volume_up() -> None:
-            await self.pioneer.volume_up(zone=self.zone)
-
-        await self.pioneer_command(volume_up)
+        await self.pioneer_command(self.pioneer.volume_up, zone=self.zone)
 
     async def async_volume_down(self) -> None:
         """Volume down media player."""
-
-        async def volume_down() -> None:
-            await self.pioneer.volume_down(zone=self.zone)
-
-        await self.pioneer_command(volume_down)
+        await self.pioneer_command(self.pioneer.volume_down, zone=self.zone)
 
     async def async_media_play(self) -> None:
         """Send play command."""
-
-        async def media_play() -> None:
-            await self.pioneer.media_control("play")
-
-        await self.pioneer_command(media_play)
+        await self.pioneer_command(
+            self.pioneer.media_control, action="play", zone=self.zone
+        )
 
     async def async_media_pause(self) -> None:
         """Send pause command."""
-
-        async def media_pause() -> None:
-            await self.pioneer.media_control("pause")
-
-        await self.pioneer_command(media_pause)
+        await self.pioneer_command(
+            self.pioneer.media_control, action="pause", zone=self.zone
+        )
 
     async def async_media_stop(self) -> None:
         """Send stop command."""
-
-        async def media_stop() -> None:
-            await self.pioneer.media_control("stop")
-
-        await self.pioneer_command(media_stop)
+        await self.pioneer_command(
+            self.pioneer.media_control, action="stop", zone=self.zone
+        )
 
     async def async_media_previous_track(self) -> None:
         """Send previous track command."""
-
-        async def media_previous_track() -> None:
-            await self.pioneer.media_control("previous")
-
-        await self.pioneer_command(media_previous_track)
+        await self.pioneer_command(
+            await self.pioneer.media_control, action="previous", zone=self.zone
+        )
 
     async def async_media_next_track(self) -> None:
         """Send next track command."""
-
-        async def media_next_track() -> None:
-            return await self.pioneer.media_control("next")
-
-        await self.pioneer_command(media_next_track)
+        await self.pioneer_command(
+            self.pioneer.media_control, action="next", zone=self.zone
+        )
 
     async def async_set_volume_level(self, volume) -> None:
         """Set volume level, range 0..1."""
         max_volume = self.pioneer.properties.max_volume.get(self.zone)
-
-        async def set_volume_level() -> None:
-            await self.pioneer.set_volume_level(
-                round(volume * max_volume), zone=self.zone
-            )
-
-        if self.pioneer.params.get_param(PARAM_VOLUME_STEP_ONLY):
-            await self.pioneer_command(set_volume_level)
-        else:
-            await self.pioneer_command(set_volume_level)
+        target_volume = round(volume * max_volume)
+        await self.pioneer_command(
+            self.pioneer.set_volume_level, target_volume=target_volume, zone=self.zone
+        )
 
     async def async_mute_volume(self, mute: bool) -> None:
         """Mute (true) or unmute (false) media player."""
-
-        async def mute_volume() -> None:
-            if mute:
-                await self.pioneer.mute_on(zone=self.zone)
-            else:
-                await self.pioneer.mute_off(zone=self.zone)
-
-        await self.pioneer_command(mute_volume)
+        if mute:
+            await self.pioneer_command(self.pioneer.mute_on, zone=self.zone)
+        else:
+            await self.pioneer_command(self.pioneer.mute_off, zone=self.zone)
 
     async def async_select_sound_mode(self, sound_mode) -> None:
         """Select the sound mode."""
-
-        async def select_sound_mode() -> None:
-            ## aiopioneer will translate sound modes
-            await self.pioneer.select_listening_mode(sound_mode)
-
-        await self.pioneer_command(select_sound_mode)
+        await self.pioneer_command(self.pioneer.select_listening_mode, mode=sound_mode)
 
     async def async_send_command(self, service_call: ServiceCall) -> ServiceResponse:
         """Send command to the AVR."""
@@ -570,36 +527,24 @@ class PioneerZone(
             suffix,
             args,
         )
-
-        async def send_command():
-            return await self.pioneer.send_command(
-                command, *args, zone=self.zone, prefix=prefix, suffix=suffix
-            )
-
-        resp = await self.pioneer_command(send_command, command=command)
+        resp = await self.pioneer_command(
+            command, *args, zone=self.zone, prefix=prefix, suffix=suffix
+        )
         if service_call.return_response:
             return resp
 
     async def async_set_amp_settings(self, **kwargs) -> None:
         """Set AVR amp settings."""
-
-        async def set_amp_settings() -> None:
-            await self.pioneer.set_amp_settings(**kwargs)
-
-        await self.pioneer_command(set_amp_settings)
+        await self.pioneer_command(self.pioneer.set_amp_settings, **kwargs)
 
     async def async_set_video_settings(self, **kwargs) -> None:
         """Set AVR video settings."""
-
-        async def set_video_settings() -> None:
-            await self.pioneer.set_video_settings(zone=self.zone, **kwargs)
-
-        await self.pioneer_command(set_video_settings)
+        await self.pioneer_command(
+            self.pioneer.set_video_settings, zone=self.zone, **kwargs
+        )
 
     async def async_set_dsp_settings(self, **kwargs) -> None:
         """Set AVR DSP settings."""
-
-        async def set_dsp_settings() -> None:
-            await self.pioneer.set_dsp_settings(zone=self.zone, **kwargs)
-
-        await self.pioneer_command(set_dsp_settings)
+        await self.pioneer_command(
+            self.pioneer.set_dsp_settings, zone=self.zone, **kwargs
+        )

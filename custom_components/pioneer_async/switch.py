@@ -142,27 +142,12 @@ class PioneerGenericSwitch(PioneerSwitch):
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the AVR property."""
-
-        async def turn_on_property() -> None:
-            command = self.property_entry.set_command.name
-            await self.pioneer.send_command(command, True)
-
-        await self.pioneer_command(turn_on_property)
+        await self.pioneer_command(self.property_entry.set_command.name, True)
 
     async def async_turn_off(self, **kwargs) -> None:
         """Turn off the AVR property."""
-
-        async def turn_off_property() -> None:
-            command = self.property_entry.set_command.name
-            await self.pioneer.send_command(command, False)
-
-        await self.pioneer_command(turn_off_property)
+        await self.pioneer_command(self.property_entry.set_command.name, False)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
-
-        async def query_property() -> None:
-            command = self.property_entry.query_command.name
-            await self.pioneer.send_command(command)
-
-        await self.pioneer_command(query_property)
+        await self.pioneer_command(self.property_entry.query_command.name)

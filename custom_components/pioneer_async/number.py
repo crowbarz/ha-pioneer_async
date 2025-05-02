@@ -205,21 +205,11 @@ class PioneerGenericNumber(PioneerNumber):
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the AVR property."""
-
-        async def set_property() -> None:
-            command = self.property_entry.set_command.name
-            await self.pioneer.send_command(command, value)
-
-        await self.pioneer_command(set_property)
+        await self.pioneer_command(self.property_entry.set_command.name, value)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
-
-        async def query_property() -> None:
-            command = self.property_entry.query_command.name
-            await self.pioneer.send_command(command)
-
-        await self.pioneer_command(query_property)
+        await self.pioneer_command(self.property_entry.query_command.name)
 
 
 class TunerFrequencyNumber(PioneerTunerEntity, PioneerNumber):
@@ -251,10 +241,9 @@ class TunerFrequencyNumber(PioneerTunerEntity, PioneerNumber):
     async def async_set_native_value(self, value: float) -> None:
         """Set the tuner frequency."""
 
-        async def set_tuner_frequency() -> None:
-            await self.pioneer.set_tuner_frequency(self.band, value)
-
-        await self.pioneer_command(set_tuner_frequency)
+        await self.pioneer_command(
+            self.pioneer.set_tuner_frequency, band=self.band, frequency=value
+        )
 
 
 class TunerFMFrequencyNumber(TunerFrequencyNumber):
@@ -340,21 +329,16 @@ class ChannelLevelNumber(PioneerGenericNumber):
 
     async def async_set_native_value(self, value: int) -> None:
         """Set the channel level."""
-
-        async def set_channel_level() -> None:
-            await self.pioneer.set_channel_level(
-                channel=self.channel, level=value, zone=self.zone
-            )
-
-        await self.pioneer_command(set_channel_level)
+        await self.pioneer_command(
+            self.pioneer.set_channel_level,
+            channel=self.channel,
+            level=value,
+            zone=self.zone,
+        )
 
     async def async_update(self) -> None:
         """Refresh the channel level."""
-
-        async def query_channel_level() -> None:
-            await self.pioneer.send_command("query_channel_level", self.channel)
-
-        await self.pioneer_command(query_channel_level)
+        await self.pioneer_command("query_channel_level", self.channel)
 
 
 class ToneNumber(PioneerGenericNumber):
@@ -372,11 +356,9 @@ class ToneTrebleNumber(ToneNumber):
 
     async def async_set_native_value(self, value: int) -> None:
         """Set the tone treble value."""
-
-        async def set_tone_treble() -> None:
-            await self.pioneer.set_tone_settings(zone=self.zone, treble=value)
-
-        await self.pioneer_command(set_tone_treble)
+        await self.pioneer_command(
+            self.pioneer.set_tone_settings, zone=self.zone, treble=value
+        )
 
 
 class ToneBassNumber(ToneNumber):
@@ -384,8 +366,6 @@ class ToneBassNumber(ToneNumber):
 
     async def async_set_native_value(self, value: int) -> None:
         """Set the tone bass value."""
-
-        async def set_tone_bass() -> None:
-            await self.pioneer.set_tone_settings(zone=self.zone, bass=value)
-
-        await self.pioneer_command(set_tone_bass)
+        await self.pioneer_command(
+            self.pioneer.set_tone_settings, zone=self.zone, bass=value
+        )
