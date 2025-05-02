@@ -10,7 +10,6 @@ import voluptuous as vol
 
 from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
-from aiopioneer.params import PARAM_VOLUME_STEP_ONLY
 
 from homeassistant.helpers import entity_platform
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
