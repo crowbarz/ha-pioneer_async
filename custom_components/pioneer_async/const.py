@@ -28,6 +28,7 @@ PLATFORMS = [
     Platform.SWITCH,
     Platform.SELECT,
     Platform.NUMBER,
+    Platform.TEXT,
 ]
 VERSION = "0.11.0"
 CONFIG_ENTRY_VERSION = 5
