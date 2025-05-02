@@ -406,7 +406,7 @@ class PioneerZone(
     @property
     def source_list(self) -> list[str]:
         """List of available input sources."""
-        return self.pioneer.properties.get_source_list(self.zone)
+        return list(self.pioneer.properties.get_source_dict(self.zone).values())
 
     @property
     def media_title(self) -> str:
