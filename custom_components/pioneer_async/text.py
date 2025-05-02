@@ -5,9 +5,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
-from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 from aiopioneer.property_entry import AVRPropertyEntry
 from aiopioneer.property_registry import get_property_entry, get_code_maps
@@ -17,18 +15,10 @@ from homeassistant.components.text import TextEntity
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import EntityCategory
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import (
-    DOMAIN,
-    ATTR_PIONEER,
-    ATTR_COORDINATORS,
-    ATTR_DEVICE_INFO,
-    ATTR_OPTIONS,
-)
-from .coordinator import PioneerAVRZoneCoordinator
+from .const import DOMAIN, PioneerData
 from .entity_base import PioneerEntityBase
 
 
@@ -41,26 +31,17 @@ async def async_setup_entry(
     async_add_entities: AddEntitiesCallback,
 ) -> None:
     """Set up the text platform."""
-    pioneer_data = hass.data[DOMAIN][config_entry.entry_id]
-    pioneer: PioneerAVR = pioneer_data[ATTR_PIONEER]
-    options: dict[str, Any] = pioneer_data[ATTR_OPTIONS]
-    coordinators: list[PioneerAVRZoneCoordinator] = pioneer_data[ATTR_COORDINATORS]
-    zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
+    pioneer_data: PioneerData = hass.data[DOMAIN][config_entry.entry_id]
+    pioneer = pioneer_data.pioneer
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level text entities
     entities = []
     zone = Zone.ALL
-    device_info = zone_device_info[zone]
-    coordinator = coordinators[zone]
     for code_map in get_code_maps(CodeStrMap, zone=Zone.ALL, is_ha_auto_entity=True):
         entities.append(
             PioneerGenericText(
-                pioneer,
-                options,
-                coordinator=coordinator,
-                device_info=device_info,
-                property_entry=get_property_entry(code_map),
+                pioneer_data, property_entry=get_property_entry(code_map)
             )
         )
 
@@ -69,12 +50,7 @@ async def async_setup_entry(
         for code_map in get_code_maps(CodeStrMap, zone=zone, is_ha_auto_entity=True):
             entities.append(
                 PioneerGenericText(
-                    pioneer,
-                    options,
-                    coordinator=coordinators[zone],
-                    device_info=zone_device_info[zone],
-                    property_entry=get_property_entry(code_map),
-                    zone=zone,
+                    pioneer_data, property_entry=get_property_entry(code_map), zone=zone
                 )
             )
 
@@ -86,17 +62,10 @@ class PioneerText(PioneerEntityBase, TextEntity, CoordinatorEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
-    def __init__(
-        self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
-        zone: Zone | None = None,
-    ) -> None:
+    def __init__(self, pioneer_data: PioneerData, zone: Zone = Zone.ALL) -> None:
         """Initialize the Pioneer text base class."""
-        super().__init__(pioneer, options, device_info=device_info, zone=zone)
-        CoordinatorEntity.__init__(self, coordinator)
+        super().__init__(pioneer_data, zone=zone)
+        CoordinatorEntity.__init__(self, pioneer_data.coordinators[zone])
 
     @property
     def available(self) -> bool:
@@ -109,23 +78,14 @@ class PioneerGenericText(PioneerText):
 
     def __init__(
         self,
-        pioneer: PioneerAVR,
-        options: dict[str, Any],
-        coordinator: PioneerAVRZoneCoordinator,
-        device_info: DeviceInfo,
+        pioneer_data: PioneerData,
         property_entry: AVRPropertyEntry,
-        zone: Zone | None = None,
+        zone: Zone = Zone.ALL,
         code_map: CodeStrMap = None,
         name: str = None,
     ) -> None:
         """Initialize the Pioneer generic text entity."""
-        super().__init__(
-            pioneer,
-            options,
-            coordinator=coordinator,
-            device_info=device_info,
-            zone=zone,
-        )
+        super().__init__(pioneer_data, zone=zone)
         self.property_entry = property_entry
         if code_map is None:
             code_map = property_entry.code_map

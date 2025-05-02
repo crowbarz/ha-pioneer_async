@@ -1,7 +1,9 @@
 """Constants for the pioneer_async integration."""
 
 from datetime import timedelta
+from typing import Any
 
+from aiopioneer import PioneerAVR
 from aiopioneer.const import Zone
 from aiopioneer.params import (
     PARAM_MODEL,
@@ -19,6 +21,9 @@ from homeassistant.const import (
     CONF_TIMEOUT,
     CONF_SCAN_INTERVAL,
 )
+from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.helpers.device_registry import DeviceEntry
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 
 DOMAIN = "pioneer_async"
 PLATFORMS = [
@@ -120,6 +125,17 @@ ATTR_COORDINATORS = "coordinators"
 ATTR_DEVICE_INFO = "device_info"
 ATTR_DEVICE_ENTRY = "device_entry"
 ATTR_OPTIONS = "options"
+
+
+class PioneerData:
+    """Pioneer data object."""
+
+    pioneer: PioneerAVR = None
+    options: dict[str, Any] = {}
+    coordinators: dict[Zone, DataUpdateCoordinator] = {}
+    zone_device_info: dict[Zone, DeviceInfo] = {}
+    device_entries: dict[Zone, DeviceEntry] = {}
+
 
 ## Config attributes
 ATTR_COMMAND = "command"
