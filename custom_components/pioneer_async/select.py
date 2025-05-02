@@ -298,4 +298,3 @@ class DimmerSelect(PioneerGenericSelect):
 
     async def async_update(self) -> None:
         """Don't refresh dimmer property as AVR command does not exist."""
-        pass
