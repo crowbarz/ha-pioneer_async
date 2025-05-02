@@ -46,6 +46,7 @@ from .const import (
     ATTR_COMMAND,
     ATTR_PREFIX,
     ATTR_SUFFIX,
+    ATTR_ARGS,
     ATTR_AMP_SPEAKER_MODE,
     ATTR_AMP_HDMI_OUT,
     ATTR_AMP_HDMI3_OUT,
@@ -124,6 +125,7 @@ PIONEER_SEND_COMMAND_SCHEMA = {
     vol.Required(ATTR_COMMAND): cv.string,
     vol.Optional(ATTR_PREFIX): cv.string,
     vol.Optional(ATTR_SUFFIX): cv.string,
+    vol.Optional(ATTR_ARGS): cv.ensure_list,
 }
 
 PIONEER_SET_AMP_SETTINGS_SCHEMA = {
@@ -556,20 +558,22 @@ class PioneerZone(
 
     async def async_send_command(self, service_call: ServiceCall) -> ServiceResponse:
         """Send command to the AVR."""
-        command = service_call.data[ATTR_COMMAND]
-        prefix = service_call.data.get(ATTR_PREFIX, "")
-        suffix = service_call.data.get(ATTR_SUFFIX, "")
-        _LOGGER.info(
-            ">> send_command(%s, command=%s, prefix=%s, suffix=%s)",
+        command: str = service_call.data[ATTR_COMMAND]
+        prefix: str = service_call.data.get(ATTR_PREFIX)
+        suffix: str = service_call.data.get(ATTR_SUFFIX)
+        args: list = service_call.data.get(ATTR_ARGS, [])
+        _LOGGER.debug(
+            ">> send_command(%s, command=%s, prefix=%s, suffix=%s, args=%s)",
             self.zone,
             command,
             prefix,
             suffix,
+            args,
         )
 
         async def send_command():
             return await self.pioneer.send_command(
-                command, zone=self.zone, prefix=prefix, suffix=suffix
+                command, *args, zone=self.zone, prefix=prefix, suffix=suffix
             )
 
         resp = await self.pioneer_command(send_command, command=command)
