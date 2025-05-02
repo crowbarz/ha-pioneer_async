@@ -201,12 +201,7 @@ class PioneerGenericNumber(PioneerNumber):
     @property
     def native_value(self) -> float | None:
         """Return the current value for the AVR property."""
-        base_value = getattr(self.pioneer.properties, self.code_map.base_property, {})
-        if self.zone is not None:
-            base_value = base_value.get(self.zone, {})
-        if self.code_map.property_name is None:
-            return base_value or None
-        return base_value.get(self.code_map.property_name)
+        return self.code_map.get_property_value(self.pioneer.properties, zone=self.zone)
 
     async def async_set_native_value(self, value: float) -> None:
         """Set the AVR property."""

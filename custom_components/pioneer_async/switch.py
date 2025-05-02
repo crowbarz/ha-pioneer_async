@@ -138,12 +138,7 @@ class PioneerGenericSwitch(PioneerSwitch):
     @property
     def is_on(self) -> bool | None:
         """Return whether the AVR property is on."""
-        base_value = getattr(self.pioneer.properties, self.code_map.base_property, {})
-        if self.zone is not None:
-            base_value = base_value.get(self.zone, {})
-        if self.code_map.property_name is None:
-            return base_value or None
-        return base_value.get(self.code_map.property_name)
+        return self.code_map.get_property_value(self.pioneer.properties, zone=self.zone)
 
     async def async_turn_on(self, **kwargs) -> None:
         """Turn on the AVR property."""
