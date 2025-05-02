@@ -192,6 +192,8 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
 class PioneerGenericSensor(PioneerSensor):
     """Pioneer generic sensor entity."""
 
+    available_on_zones_off = True
+
     def __init__(
         self,
         pioneer: PioneerAVR,
@@ -233,11 +235,6 @@ class PioneerGenericSensor(PioneerSensor):
             and f"!{promoted_property}" not in exclude_properties
         ):
             self.exclude_properties.append(promoted_property)
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the sensor is available."""
-        return super().is_available(available_on_zones_off=True)
 
     @property
     def native_value(self) -> str:

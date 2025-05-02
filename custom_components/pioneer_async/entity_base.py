@@ -24,6 +24,8 @@ class PioneerEntityBase(Entity):
     _attr_should_poll = False
     _attr_has_entity_name = True
 
+    available_on_zones_off = False
+
     def __init__(
         self,
         pioneer: PioneerAVR,
@@ -48,16 +50,11 @@ class PioneerEntityBase(Entity):
     @property
     def available(self) -> bool:
         """Returns whether the AVR is available and the zone is on."""
-        return self.is_available()
-
-    def is_available(self, available_on_zones_off: bool = False) -> bool:
-        """Returns whether the AVR is available and the zone is on."""
-        ## NOTE: defined also as method to be directly callable from derived classes
         return self.pioneer.available and (
             (
                 self.zone is None
                 and (
-                    available_on_zones_off
+                    self.available_on_zones_off
                     or any(self.pioneer.properties.power.values())
                 )
             )

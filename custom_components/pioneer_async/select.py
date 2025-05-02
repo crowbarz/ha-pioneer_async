@@ -125,6 +125,8 @@ class PioneerSelect(PioneerEntityBase, SelectEntity, CoordinatorEntity):
 
     _attr_entity_category = EntityCategory.CONFIG
 
+    available_on_none = False
+
     def __init__(
         self,
         pioneer: PioneerAVR,
@@ -140,7 +142,9 @@ class PioneerSelect(PioneerEntityBase, SelectEntity, CoordinatorEntity):
     @property
     def available(self) -> bool:
         """Returns whether the AVR property is available."""
-        return super().available and self.current_option is not None
+        return super().available and (
+            self.available_on_none or self.current_option is not None
+        )
 
 
 class PioneerGenericSelect(PioneerSelect):
@@ -195,6 +199,8 @@ class PioneerGenericSelect(PioneerSelect):
 
 class TunerPresetSelect(PioneerTunerEntity, PioneerGenericSelect):
     """Pioneer tuner preset select entity."""
+
+    available_on_none = True
 
     @property
     def options(self) -> list[str]:
@@ -270,10 +276,7 @@ class SpeakerSystemSelect(PioneerGenericSelect):
 class DimmerSelect(PioneerGenericSelect):
     """Pioneer dimmer select entity."""
 
-    @property
-    def available(self) -> bool:
-        """Returns whether the dimmer property is available."""
-        return PioneerEntityBase.is_available(self)
+    available_on_none = True
 
     async def async_update(self) -> None:
         """Don't refresh dimmer property as AVR command does not exist."""

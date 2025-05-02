@@ -95,6 +95,8 @@ class PioneerBinarySensor(PioneerEntityBase, BinarySensorEntity, CoordinatorEnti
 class PioneerGenericBinarySensor(PioneerBinarySensor):
     """Pioneer AVR generic sensor."""
 
+    available_on_zones_off = True
+
     def __init__(
         self,
         pioneer: PioneerAVR,
@@ -130,11 +132,6 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
             and f"!{promoted_property}" not in exclude_properties
         ):
             self.exclude_properties.append(promoted_property)
-
-    @property
-    def available(self) -> bool:
-        """Returns whether the sensor is available."""
-        return super().is_available(available_on_zones_off=True)
 
     @property
     def is_on(self) -> bool:
