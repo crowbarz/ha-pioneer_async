@@ -132,6 +132,11 @@ class PioneerGenericBinarySensor(PioneerBinarySensor):
             self.exclude_properties.append(promoted_property)
 
     @property
+    def available(self) -> bool:
+        """Returns whether the sensor is available."""
+        return super().is_available(available_on_zones_off=True)
+
+    @property
     def is_on(self) -> bool:
         """Retrieve boolean state."""
         base_property_value = getattr(self.pioneer.properties, self.base_property, {})

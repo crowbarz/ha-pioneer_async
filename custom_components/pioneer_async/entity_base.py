@@ -50,11 +50,17 @@ class PioneerEntityBase(Entity):
         """Returns whether the AVR is available and the zone is on."""
         return self.is_available()
 
-    def is_available(self) -> bool:
+    def is_available(self, available_on_zones_off: bool = False) -> bool:
         """Returns whether the AVR is available and the zone is on."""
         ## NOTE: defined also as method to be directly callable from derived classes
         return self.pioneer.available and (
-            self.zone is None
+            (
+                self.zone is None
+                and (
+                    available_on_zones_off
+                    or any(self.pioneer.properties.power.values())
+                )
+            )
             or (
                 self.zone in self.pioneer.properties.zones
                 and self.pioneer.properties.power.get(self.zone)
