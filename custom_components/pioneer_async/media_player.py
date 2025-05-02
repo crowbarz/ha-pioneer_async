@@ -36,7 +36,6 @@ from .const import (
     DOMAIN,
     CLASS_PIONEER,
     SERVICE_SEND_COMMAND,
-    SERVICE_SET_CHANNEL_LEVELS,
     SERVICE_SET_AMP_SETTINGS,
     SERVICE_SET_VIDEO_SETTINGS,
     SERVICE_SET_DSP_SETTINGS,
@@ -47,8 +46,6 @@ from .const import (
     ATTR_COMMAND,
     ATTR_PREFIX,
     ATTR_SUFFIX,
-    ATTR_CHANNEL,
-    ATTR_LEVEL,
     ATTR_AMP_SPEAKER_MODE,
     ATTR_AMP_HDMI_OUT,
     ATTR_AMP_HDMI3_OUT,
@@ -127,11 +124,6 @@ PIONEER_SEND_COMMAND_SCHEMA = {
     vol.Required(ATTR_COMMAND): cv.string,
     vol.Optional(ATTR_PREFIX): cv.string,
     vol.Optional(ATTR_SUFFIX): cv.string,
-}
-
-PIONEER_SET_CHANNEL_LEVELS_SCHEMA = {
-    vol.Required(ATTR_CHANNEL): cv.string,
-    vol.Required(ATTR_LEVEL): vol.All(vol.Coerce(float), vol.Range(min=-12, max=12)),
 }
 
 PIONEER_SET_AMP_SETTINGS_SCHEMA = {
@@ -282,11 +274,6 @@ async def async_setup_entry(
         PIONEER_SEND_COMMAND_SCHEMA,
         PioneerZone.async_send_command,
         supports_response=SupportsResponse.OPTIONAL,
-    )
-    platform.async_register_entity_service(
-        SERVICE_SET_CHANNEL_LEVELS,
-        PIONEER_SET_CHANNEL_LEVELS_SCHEMA,
-        "async_set_channel_levels",
     )
     platform.async_register_entity_service(
         SERVICE_SET_AMP_SETTINGS,
@@ -588,14 +575,6 @@ class PioneerZone(
         resp = await self.pioneer_command(send_command, command=command)
         if service_call.return_response:
             return resp
-
-    async def async_set_channel_levels(self, channel: str, level: float) -> None:
-        """Set AVR level (gain) for amplifier channel in zone."""
-
-        async def set_channel_levels() -> None:
-            await self.pioneer.set_channel_levels(channel, level, zone=self.zone)
-
-        await self.pioneer_command(set_channel_levels)
 
     async def async_set_amp_settings(self, **kwargs) -> None:
         """Set AVR amp settings."""

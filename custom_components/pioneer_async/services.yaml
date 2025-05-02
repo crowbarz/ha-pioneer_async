@@ -16,51 +16,6 @@ send_command:
       selector:
         text:
 
-set_channel_levels:
-  target:
-    entity:
-      integration: pioneer_async
-      domain: media_player
-  fields:
-    channel:
-      required: true
-      example: "L"
-      selector:
-        select:
-          translation_key: audio_channel_level
-          options:
-            - "L"
-            - "R"
-            - "C"
-            - "SL"
-            - "SR"
-            - "SBL"
-            - "SBR"
-            - "SW"
-            - "LH"
-            - "RH"
-            - "LW"
-            - "RW"
-            - "TML"
-            - "TMR"
-            - "TFL"
-            - "TFR"
-            - "TRL"
-            - "TRR"
-            - "SW1"
-            - "SW2"
-            - "all"
-    level:
-      required: true
-      example: 0.0
-      default: 0.0
-      selector:
-        number:
-          min: -12.0
-          max: 12.0
-          step: 0.5
-          unit_of_measurement: dB
-
 set_amp_settings:
   target:
     device:
