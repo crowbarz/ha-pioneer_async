@@ -58,7 +58,7 @@ async def async_setup_entry(
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
-    ## Add top level numbers
+    ## Add top level number entities
     entities = []
     zone = Zone.ALL
     device_info = zone_device_info[zone]
@@ -84,7 +84,7 @@ async def async_setup_entry(
             )
         )
 
-    ## Add zone specific selects
+    ## Add zone specific number entities
     for zone in pioneer.properties.zones & ChannelLevel.supported_zones:
         for channel in SpeakerChannel.CHANNELS_ALL:
             entities.append(
@@ -135,7 +135,7 @@ async def async_setup_entry(
 
 
 class PioneerNumber(PioneerEntityBase, NumberEntity, CoordinatorEntity):
-    """Pioneer number base class."""
+    """Pioneer number entity base class."""
 
     _attr_entity_category = EntityCategory.CONFIG
 

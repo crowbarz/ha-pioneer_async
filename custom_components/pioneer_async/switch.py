@@ -48,7 +48,7 @@ async def async_setup_entry(
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
-    ## Add top level switches
+    ## Add top level switch entities
     entities = []
     zone = Zone.ALL
     device_info = zone_device_info[zone]
@@ -64,7 +64,7 @@ async def async_setup_entry(
             )
         )
 
-    ## Add zone specific switches
+    ## Add zone specific switch entities
     for zone in pioneer.properties.zones:
         for code_map in get_code_maps(CodeBoolMap, zone=zone, is_ha_auto_entity=True):
             entities.append(
@@ -82,7 +82,7 @@ async def async_setup_entry(
 
 
 class PioneerSwitch(PioneerEntityBase, SwitchEntity, CoordinatorEntity):
-    """Pioneer switch base class."""
+    """Pioneer switch entity base class."""
 
     def __init__(
         self,

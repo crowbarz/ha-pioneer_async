@@ -1,4 +1,4 @@
-"""Pioneer AVR sensors."""
+"""Pioneer AVR sensor entities."""
 
 from __future__ import annotations
 
@@ -48,7 +48,7 @@ async def async_setup_entry(
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
-    ## Add top level sensors
+    ## Add top level sensor entities
     entities = []
     zone = Zone.ALL
     device_info = zone_device_info[zone]
@@ -133,7 +133,7 @@ async def async_setup_entry(
         ]
     )
 
-    ## Add zone specific sensors
+    ## Add zone specific sensor entities
     for zone in pioneer.properties.zones:
         device_info = zone_device_info[zone]
         coordinator = coordinators[zone]
@@ -171,7 +171,7 @@ async def async_setup_entry(
 
 
 class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
-    """Pioneer sensor base class."""
+    """Pioneer sensor entity base class."""
 
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_entity_registry_enabled_default = False
@@ -190,7 +190,7 @@ class PioneerSensor(PioneerEntityBase, SensorEntity, CoordinatorEntity):
 
 
 class PioneerGenericSensor(PioneerSensor):
-    """Pioneer generic sensor."""
+    """Pioneer generic sensor entity."""
 
     def __init__(
         self,

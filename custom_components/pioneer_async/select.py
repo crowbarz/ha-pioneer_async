@@ -52,7 +52,7 @@ async def async_setup_entry(
     zone_device_info: dict[str, DeviceInfo] = pioneer_data[ATTR_DEVICE_INFO]
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
-    ## Add top level selects
+    ## Add top level select entities
     entities = []
     zone = Zone.ALL
     device_info = zone_device_info[zone]
@@ -101,7 +101,7 @@ async def async_setup_entry(
             )
         )
 
-    ## Add zone specific selects
+    ## Add zone specific select entities
     for zone in pioneer.properties.zones:
         for code_map in get_code_maps(
             CodeDictStrMap, zone=zone, is_ha_auto_entity=True
@@ -121,7 +121,7 @@ async def async_setup_entry(
 
 
 class PioneerSelect(PioneerEntityBase, SelectEntity, CoordinatorEntity):
-    """Pioneer select base class."""
+    """Pioneer select entity base class."""
 
     _attr_entity_category = EntityCategory.CONFIG
 

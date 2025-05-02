@@ -245,7 +245,7 @@ async def async_setup_entry(
         _LOGGER.error("Main zone not found on AVR")
         raise PlatformNotReady  # pylint: disable=raise-missing-from
 
-    ## Add zone specific media_players
+    ## Add zone media_player entities
     entities = []
     _LOGGER.info("Adding entities for zones %s", pioneer.properties.zones)
     for zone in pioneer.properties.zones:
@@ -297,7 +297,7 @@ async def async_setup_entry(
 class PioneerZone(
     PioneerEntityBase, MediaPlayerEntity, CoordinatorEntity
 ):  # pylint: disable=abstract-method
-    """Pioneer media_player class."""
+    """Pioneer media_player entity class."""
 
     _attr_device_class = CLASS_PIONEER
     _attr_name = None
