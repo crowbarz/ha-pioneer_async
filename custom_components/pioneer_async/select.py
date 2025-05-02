@@ -186,21 +186,11 @@ class PioneerGenericSelect(PioneerSelect):
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option for the AVR property."""
-
-        async def set_property() -> None:
-            command = self.property_entry.set_command.name
-            await self.pioneer.send_command(command, option)
-
-        await self.pioneer_command(set_property)
+        await self.pioneer_command(self.property_entry.set_command.name, option)
 
     async def async_update(self) -> None:
         """Refresh the AVR property."""
-
-        async def query_property() -> None:
-            command = self.property_entry.query_command.name
-            await self.pioneer.send_command(command)
-
-        await self.pioneer_command(query_property)
+        await self.pioneer_command(self.property_entry.query_command.name)
 
 
 class TunerPresetSelect(PioneerTunerEntity, PioneerGenericSelect):
@@ -228,11 +218,11 @@ class TunerPresetSelect(PioneerTunerEntity, PioneerGenericSelect):
         """Change the tuner preset."""
         tuner_class = option[0]
         tuner_preset = int(option[1])
-
-        async def select_tuner_preset() -> None:
-            await self.pioneer.select_tuner_preset(tuner_class, tuner_preset)
-
-        await self.pioneer_command(select_tuner_preset)
+        await self.pioneer_command(
+            self.pioneer.select_tuner_preset,
+            tuner_class=tuner_class,
+            tuner_preset=tuner_preset,
+        )
 
 
 class TunerBandSelect(PioneerTunerEntity, PioneerSelect):
@@ -250,19 +240,13 @@ class TunerBandSelect(PioneerTunerEntity, PioneerSelect):
 
     async def async_select_option(self, option: str) -> None:
         """Change the tuner band."""
-
-        async def select_tuner_band() -> None:
-            await self.pioneer.select_tuner_band(TunerBand(option))
-
-        await self.pioneer_command(select_tuner_band)
+        await self.pioneer_command(
+            self.pioneer.select_tuner_band, band=TunerBand(option)
+        )
 
     async def async_update(self) -> None:
         """Refresh the tuner frequency band property (encoded in frequency)."""
-
-        async def query_tuner_frequency() -> None:
-            await self.pioneer.send_command("query_tuner_frequency")
-
-        await self.pioneer_command(query_tuner_frequency)
+        await self.pioneer_command("query_tuner_frequency")
 
 
 class SpeakerSystemSelect(PioneerGenericSelect):

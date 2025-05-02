@@ -68,19 +68,22 @@ class PioneerEntityBase(Entity):
         )
 
     async def pioneer_command(
-        self, aw_f: Callable[..., Awaitable], command: str = None
+        self, command: str | Callable[..., Awaitable], *args, **kwargs
     ):
         """Execute a PioneerAVR command and handle exceptions."""
-        if command is None:
-            command = aw_f.__name__
+        command_name = "(unknown)"
         try:
-            return await aw_f()
+            if isinstance(command, str):
+                command_name = command
+                return await self.pioneer.send_command(command, *args, **kwargs)
+            command_name = command.__name__
+            return await command(*args, **kwargs)
         except AVRError as exc:
             raise ServiceValidationError(
                 translation_domain=DOMAIN,
                 translation_key="command_error",
                 translation_placeholders={
-                    "command": command,
+                    "command": command_name,
                     "exc": str(exc),
                 },
             ) from exc
@@ -89,7 +92,7 @@ class PioneerEntityBase(Entity):
                 translation_domain=DOMAIN,
                 translation_key=getattr(exc, "translation_key", "unknown_exception"),
                 translation_placeholders={
-                    "command": command,
+                    "command": command_name,
                     "zone": self.zone,
                     "exc": repr(exc),
                 },
