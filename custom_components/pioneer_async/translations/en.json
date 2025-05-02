@@ -408,11 +408,15 @@
                 },
                 "prefix": {
                     "name": "Prefix",
-                    "description": "Prefix argument for command."
+                    "description": "Prefix argument for command (deprecated)."
                 },
                 "suffix": {
                     "name": "Suffix",
-                    "description": "Suffix argument for command."
+                    "description": "Suffix argument for command (deprecated)."
+                },
+                "args": {
+                    "name": "Arguments",
+                    "description": "List of free-form arguments for command."
                 }
             }
         },

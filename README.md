@@ -305,8 +305,9 @@ Send a command to the AVR.
 | Action data | Type | Default | Description
 | --- | --- | --- | ---
 | command | string | | Name of command to send. See list of [available commands](https://github.com/crowbarz/aiopioneer/blob/dev/aiopioneer/commands.py) and the Pioneer documentation [linked from the aiopioneer references](https://github.com/crowbarz/aiopioneer?tab=readme-ov-file#references) for the arguments accepted by each command
-| prefix | string | | Prefix argument for command
-| suffix | string | | Suffix argument for command
+| prefix | string | | Prefix argument for command (deprecated)
+| suffix | string | | Suffix argument for command (deprecated)
+| args | list | | List of arguments for the command
 
 ## Breaking changes
 

@@ -15,6 +15,9 @@ send_command:
     suffix:
       selector:
         text:
+    args:
+      selector:
+        object:
 
 set_amp_settings:
   target:
