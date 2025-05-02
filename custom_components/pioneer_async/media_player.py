@@ -363,7 +363,7 @@ class PioneerZone(
         ## Sound mode is only available on main zone when it is powered on
         ## and listening modes are available
         if (
-            self.zone == Zone.Z1
+            self.zone is Zone.Z1
             and pioneer.properties.power.get(self.zone)
             and pioneer.get_listening_modes()
         ):
@@ -393,7 +393,7 @@ class PioneerZone(
     @property
     def sound_mode_list(self) -> list[str]:
         """Returns all valid sound modes from aiopioneer."""
-        if self.zone != Zone.Z1:
+        if self.zone is not Zone.Z1:
             return None
         return list(self.pioneer.get_listening_modes())
 
@@ -424,7 +424,7 @@ class PioneerZone(
         volume = pioneer.properties.volume.get(self.zone)
         max_volume = pioneer.properties.max_volume.get(self.zone)
         if volume is not None and max_volume is not None:
-            if self.zone == Zone.Z1:
+            if self.zone is Zone.Z1:
                 volume_db = volume / 2 - 80.5
             else:
                 volume_db = volume - 81
