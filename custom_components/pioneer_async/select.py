@@ -41,19 +41,12 @@ async def async_setup_entry(
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level select entities
-    entities = []
-    entities.extend(
-        [
-            TunerPresetSelect(
-                pioneer_data, property_entry=get_property_entry(TunerPreset)
-            ),
-            TunerBandSelect(pioneer_data),
-            SpeakerSystemSelect(
-                pioneer_data, property_entry=get_property_entry(SpeakerSystem)
-            ),
-            DimmerSelect(pioneer_data, property_entry=get_property_entry(Dimmer)),
-        ]
-    )
+    entities = [
+        TunerPresetSelect(pioneer_data),
+        TunerBandSelect(pioneer_data),
+        SpeakerSystemSelect(pioneer_data),
+        DimmerSelect(pioneer_data),
+    ]
     for code_map in get_code_maps(
         CodeDictStrMap, zone=Zone.ALL, is_ha_auto_entity=True
     ):
@@ -116,6 +109,7 @@ class PioneerGenericSelect(PioneerSelect):
         self.code_map = code_map
         self._attr_name = name or code_map.get_ss_class_name()
         self._attr_icon = code_map.icon
+        self._attr_unit_of_measurement = code_map.unit_of_measurement
         self._attr_entity_registry_enabled_default = code_map.ha_enable_default
 
         translation_key = code_map.base_property
@@ -146,6 +140,9 @@ class TunerPresetSelect(PioneerTunerEntity, PioneerGenericSelect):
     """Pioneer tuner preset select entity."""
 
     available_on_none = True
+
+    def __init__(self, pioneer_data: PioneerData):
+        super().__init__(pioneer_data, property_entry=get_property_entry(TunerPreset))
 
     @property
     def options(self) -> list[str]:
@@ -203,6 +200,9 @@ class TunerBandSelect(PioneerTunerEntity, PioneerSelect):
 class SpeakerSystemSelect(PioneerGenericSelect):
     """Pioneer speaker system select entity."""
 
+    def __init__(self, pioneer_data: PioneerData):
+        super().__init__(pioneer_data, property_entry=get_property_entry(SpeakerSystem))
+
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return device specific state attributes."""
@@ -222,6 +222,9 @@ class DimmerSelect(PioneerGenericSelect):
     """Pioneer dimmer select entity."""
 
     available_on_none = True
+
+    def __init__(self, pioneer_data: PioneerData):
+        super().__init__(pioneer_data, property_entry=get_property_entry(Dimmer))
 
     async def async_update(self) -> None:
         """Don't refresh dimmer property as AVR command does not exist."""

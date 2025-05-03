@@ -37,7 +37,6 @@ async def async_setup_entry(
 
     ## Add top level text entities
     entities = []
-    zone = Zone.ALL
     for code_map in get_code_maps(CodeStrMap, zone=Zone.ALL, is_ha_auto_entity=True):
         entities.append(
             PioneerGenericText(

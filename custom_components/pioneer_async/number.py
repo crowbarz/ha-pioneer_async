@@ -17,6 +17,7 @@ from aiopioneer.decoders.audio import (
     SpeakerChannelLevel,
 )
 from aiopioneer.decoders.code_map import CodeFloatMap
+from aiopioneer.decoders.dsp import PhaseControlPlus
 from aiopioneer.decoders.tuner import TunerAMFrequency, TunerFMFrequency
 from aiopioneer.property_entry import AVRPropertyEntry
 from aiopioneer.property_registry import get_property_entry, get_code_maps
@@ -46,14 +47,11 @@ async def async_setup_entry(
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level number entities
-    entities = []
-    zone = Zone.ALL
-    entities.extend(
-        [
-            TunerFMFrequencyNumber(pioneer_data),
-            TunerAMFrequencyNumber(pioneer_data),
-        ]
-    )
+    entities = [
+        TunerFMFrequencyNumber(pioneer_data),
+        TunerAMFrequencyNumber(pioneer_data),
+        PhaseControlPlusNumber(pioneer_data),
+    ]
     for code_map in get_code_maps(CodeFloatMap, zone=Zone.ALL, is_ha_auto_entity=True):
         entities.append(
             PioneerGenericNumber(
@@ -299,3 +297,19 @@ class ToneBassNumber(ToneNumber):
         await self.pioneer_command(
             self.pioneer.set_tone_settings, zone=self.zone, bass=value
         )
+
+
+class PhaseControlPlusNumber(PioneerGenericNumber):
+    """Pioneer phase control plus number entity."""
+
+    def __init__(self, pioneer_data: PioneerData):
+        super().__init__(
+            pioneer_data, property_entry=get_property_entry(PhaseControlPlus)
+        )
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the current phase control plus setting if it is not auto."""
+        if (value := super().native_value) == "auto":
+            return None
+        return value

@@ -10,6 +10,7 @@ from aiopioneer.const import Zone
 from aiopioneer.property_entry import AVRPropertyEntry
 from aiopioneer.property_registry import get_property_entry, get_code_maps
 from aiopioneer.decoders.code_map import CodeBoolMap
+from aiopioneer.decoders.dsp import PhaseControlPlus
 
 from homeassistant.components.switch import SwitchEntity
 from homeassistant.config_entries import ConfigEntry
@@ -36,8 +37,9 @@ async def async_setup_entry(
     _LOGGER.debug(">> async_setup_entry(entry_id=%s)", config_entry.entry_id)
 
     ## Add top level switch entities
-    entities = []
-    zone = Zone.ALL
+    entities = [
+        PhaseControlPlusAutoSwitch(pioneer_data),
+    ]
     for code_map in get_code_maps(CodeBoolMap, zone=Zone.ALL, is_ha_auto_entity=True):
         entities.append(
             PioneerGenericSwitch(
@@ -115,3 +117,30 @@ class PioneerGenericSwitch(PioneerSwitch):
     async def async_update(self) -> None:
         """Refresh the AVR property."""
         await self.pioneer_command(self.property_entry.query_command.name)
+
+
+class PhaseControlPlusAutoSwitch(PioneerGenericSwitch):
+    """Phase control plus auto switch."""
+
+    def __init__(self, pioneer_data: PioneerData):
+        super().__init__(
+            pioneer_data,
+            property_entry=get_property_entry(PhaseControlPlus),
+            name="Phase Control Plus Auto",
+        )
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return whether phase control plus is auto."""
+        return (
+            self.code_map.get_property_value(self.pioneer.properties, zone=self.zone)
+            == "auto"
+        )
+
+    async def async_turn_on(self, **kwargs) -> None:
+        """Set phase control plus to auto."""
+        await self.pioneer_command(self.property_entry.set_command.name, "auto")
+
+    async def async_turn_off(self, **kwargs) -> None:
+        """Unset phase control plus auto."""
+        await self.pioneer_command(self.property_entry.set_command.name, 0)
