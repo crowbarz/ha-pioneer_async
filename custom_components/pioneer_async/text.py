@@ -98,8 +98,8 @@ class PioneerGenericText(PioneerText):
         self._attr_mode = code_map.ha_text_mode
         self._attr_pattern = code_map.ha_pattern
 
-        translation_key = self.code_map.base_property
-        if property_name := self.code_map.property_name:
+        translation_key = code_map.base_property
+        if property_name := code_map.property_name:
             translation_key += f"_{property_name}"
         self._attr_translation_key = translation_key
 

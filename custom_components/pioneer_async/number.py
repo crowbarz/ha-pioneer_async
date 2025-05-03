@@ -134,8 +134,8 @@ class PioneerGenericNumber(PioneerNumber):
         self._attr_device_class = code_map.ha_device_class
         self._attr_mode = code_map.ha_number_mode
 
-        translation_key = self.code_map.base_property
-        if property_name := self.code_map.property_name:
+        translation_key = code_map.base_property
+        if property_name := code_map.property_name:
             translation_key += f"_{property_name}"
         self._attr_translation_key = translation_key
 

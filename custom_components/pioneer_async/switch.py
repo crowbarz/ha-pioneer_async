@@ -81,17 +81,21 @@ class PioneerGenericSwitch(PioneerSwitch):
         pioneer_data: PioneerData,
         property_entry: AVRPropertyEntry,
         zone: Zone = Zone.ALL,
+        code_map: CodeBoolMap = None,
+        name: str = None,
     ) -> None:
         """Initialize the Pioneer generic switch entity."""
         super().__init__(pioneer_data, zone=zone)
         self.property_entry = property_entry
-        self.code_map: type[CodeBoolMap] = property_entry.code_map
-        self._attr_name = self.code_map.get_ss_class_name()
-        self._attr_icon = self.code_map.icon
-        self._attr_entity_registry_enabled_default = self.code_map.ha_enable_default
+        if code_map is None:
+            code_map = property_entry.code_map
+        self.code_map = code_map
+        self._attr_name = name or code_map.get_ss_class_name()
+        self._attr_icon = code_map.icon
+        self._attr_entity_registry_enabled_default = code_map.ha_enable_default
 
-        translation_key = self.code_map.base_property
-        if property_name := self.code_map.property_name:
+        translation_key = code_map.base_property
+        if property_name := code_map.property_name:
             translation_key += f"_{property_name}"
         self._attr_translation_key = translation_key
 
