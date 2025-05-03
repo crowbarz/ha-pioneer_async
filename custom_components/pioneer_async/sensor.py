@@ -118,15 +118,6 @@ async def async_setup_entry(
                         promoted_property="resolution",
                         exclude_properties=[],
                     ),
-                    PioneerGenericSensor(
-                        pioneer_data,
-                        zone=zone,
-                        name="Audio Parameters",
-                        icon="mdi:speaker",
-                        base_property="audio",
-                        promoted_property="status",  # TODO: to identify
-                        exclude_properties=[],
-                    ),
                 ]
             )
 
