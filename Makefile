@@ -26,3 +26,6 @@ local: check
 	@echo Pushing dev and main to local for version $(VERSION)
 	git push local dev
 	git push local main
+
+release-log:
+	git --no-pager log main..HEAD --oneline --no-merges --format="%H%n%B%n---"
