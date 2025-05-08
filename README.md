@@ -12,7 +12,7 @@ This integration supports the following features (not all features are supported
 - Select the active input source for each available zone, which are detected from the AVR
 - Set the tuner band and frequency, and select tuner presets
 - Set audio parameters such as listening modes, tone and channel levels
-- Set amp, DSP and video parameters
+- Set most amp, DSP, video and system parameters using entities
 
 ## Installation
 
@@ -161,7 +161,7 @@ Entities representing various features and properties of the AVR are created and
 
 ### Media player entities
 
-`media_player` entities are created for each discovered zone. These entities are used to control the basic functions for the zone: power, volume, mute, and sound mode (referred to as listening mode on the Pioneer AVRs). Other media player actions, such as play and pause, become available when specific sources are selected: tuner, MHL, iPod, Spotify, etc.
+`media_player` entities are created for each discovered zone. These entities are used to control the basic functions for the zone: power, volume, mute, and sound mode (referred to as listening mode on the Pioneer AVRs). Other media player actions, such as play and pause, become available when specific sources are selected: tuner, Bluetooth Audio, MHL, iPod, Spotify, Pandora, Internet Radio, Media Server.
 
 #### `media_player` entity attributes
 
@@ -169,7 +169,7 @@ In addition to the standard `media_player` entity attributes, this integration e
 
 | Entity attribute | Type | Description
 | --- | --- | ---
-| `sources_json` | JSON | JSON mapping of zone source names to source IDs
+| `sources_json` | JSON | JSON mapping of zone source IDs to names. **NOTE:** source ID is shown as **str**
 | `device_volume_db` | float | Current volume of zone (in dB)
 | `device_volume` | int | Current volume of zone (in device units)
 | `device_max_volume` | int | Maximum supported volume of zone (in device units)
@@ -187,7 +187,7 @@ The entities below show the current tuner settings, and can also be used to chan
 
 #### Tuner AM Frequency entity attributes
 
-The Tuner AM Frequency number entity exposes the following additional attributes:
+The Tuner AM Frequency number entity exposes the following additional attribute:
 
 | Entity attribute | Type | Description
 | --- | --- | ---
@@ -203,24 +203,26 @@ The Tone entities show the tone mode and treble and bass levels for a supported 
 | Tone Treble | number | Current tone treble (in dB)
 | Tone Bass | number | Current tone bass (in dB)
 
-### Speaker system entity
+### Channel level entities
 
-The Speaker System select entity shows the currently configured speaker system on the AVR. This can also be changed by selecting another option.
+Entities representing each channel on supported zones can be used to get the current level for the channel, and also to set the level. Channel levels are not supported on HDZone.
 
-Not all speaker system modes are available on all AVR models. The AVR will respond with an error if an unavailable mode is selected.
+To set all channel levels for a zone, use the [`send_command` action](#action-send_command) to send the `set_channel_level` AVR command to the zone with arguments `[ "all", <level> ]`.
 
-| Name | Platform | Description
-| --- | --- | ---
-| Speaker System | select | Currently configured speaker system
+### Amp, DSP and video property entities
 
-### Amp entities
+Entities are available for most amp, DSP and video properties that can be changed via the AVR API. The entity's state reflects the current value as reported by the AVR, and changing the entity will result in the `set` command for the property being sent to the AVR with the new value. The property's current value can also be refreshed from the AVR by updating the entity using the `homeassistant.update_entity` action.
+
+The entities for `Amp Mode`, `Dimmer`, `Network Standby`, `Speaker Mode`, `Speaker System` and enabled by default. Entities for other supported properties can be enabled from the AVR main device page for global device properties, and the AVR zone device page for zone specific properties.
 
 > [!NOTE]
-> The AVR does not report the current dimmer status until it is set. Thus, the dimmer select will not show a value if it has not been set since the integration last connected successfully to the AVR.
+> The AVR does not report the current dimmer status until it is set. Thus, the dimmer select entity will not show a value if it has not been set since the integration last connected successfully to the AVR.
 
-### AVR property entities
+AVR properties that are not available as entities can still be set using the appropriate `set` AVR command via the `send_command` action. All available set commands can be shown using the `list` command on the [`aiopioneer` CLI](https://github.com/crowbarz/aiopioneer/#command-line-interface-cli).
 
-The following AVR properties and property groups are available as entities where supported and reported by your AVR model. These entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
+### AVR property group sensor entities
+
+The following AVR properties and property groups are available as read-only entities where supported and reported by your AVR model. These entities can be used to display the current AVR state in dashboards, as well as be used in automation triggers and/or conditions to perform an action when an AVR property changes.
 
 > [!CAUTION]
 > Property group entities are **beta** and may change in future releases as additional entities are created for individual properties.
@@ -258,47 +260,41 @@ Zone entities are registered to the zone device.
 
 | Property | Platform | Description
 | --- | --- | ---
-| channel_levels | sensor | Surround channel levels
 | Video | sensor | Zone video parameters property group
-| Audio | sensor | Zone audio parameters property group
 
 ## Actions
 
-Actions are used to perform an activity or change parameters on the AVR. They can be called from scripts, automations and UI elements, and can also be triggered via **Developer Tools > Actions**. Standard `media_player` actions are supported where the AVR provides equivalent functionality. Integration specific actions are also available to expose additional activities available on Pioneer AVRs.
+Standard [media control actions](https://www.home-assistant.io/integrations/media_player/) are supported by the `media_player` entity where the AVR provides equivalent functionality.
 
-All of the integration specific actions described below require a target to be specified. The zone device or the `media_player` entity for the zone can be used.
+The `pioneer_async.send_command` custom action is used to send arbitrary commands directly to the AVR. Some commands, notably those that change AVR properties, accept one or more arguments. These can be provided to the AVR command using `args` action data option.
+
+All available AVR commands can be shown using the `list` command on the [`aiopioneer` CLI](https://github.com/crowbarz/aiopioneer/#command-line-interface-cli).
+
+A target entity or device must be supplied for custom actions. Not all zones support all AVR zone specific commands: the AVR will return an error if a command is not supported for a zone. Use the AVR main zone device or entity as the `target` for AVR global commands.
 
 > [!CAUTION]
-> Amp, DSP and video settings can only be changed via the AVR main zone device or entity only. Due to HA selector filtering limitations, other zone entities can be selected on the actions page. The main zone entity should always be used as the target for these actions.
+> The deprecated amp, DSP and video settings actions can only be run on the AVR main zone device or entity only. Due to HA selector filtering limitations, other zone entities can be selected on the actions page. The main zone entity should always be used as the target for these actions.
 
 > [!NOTE]
 > Prior to Home Assistant 2024.8, actions were referred to as service calls. See the [2024.8 release post](https://www.home-assistant.io/blog/2024/08/07/release-20248/#goodbye-service-calls-hello-actions-) for more details on this change in terminology.
 
-### Action `set_channel_levels`
-
-Set AVR level (gain) for an amplifier channel.
-
-| Action data | Type | Default | Description
-| --- | --- | --- | ---
-| channel | str | | Tuner amp channel to modify. See [`services.yaml`](custom_components/pioneer_async/services.yaml) for valid values (required)
-
 ### Action `set_amp_settings`
 
-To be documented.
+Deprecated. Amp settings can be changed via the entities for each individual property, or via the `send_command` action for properties that are not available as entities.
 
 ### Action `set_video_settings`
 
-To be documented.
+Deprecated. Video settings can be changed via the entities for each individual property.
 
 ### Action `set_dsp_settings`
 
-To be documented.
+Deprecated. DSP settings can be changed via the entities for each individual property.
 
 ### Action `media_control`
 
 To be documented.
 
-### Action `send_command` (>= 0.9.1)
+### Action `send_command`
 
 Send a command to the AVR.
 
@@ -310,6 +306,33 @@ Send a command to the AVR.
 | args | list | | List of arguments for the command
 
 ## Breaking changes
+
+### 0.12
+
+- The `dimmer` attribute is no longer available on the `Display` sensor as it has been replaced by the separate `Dimmer` select entity
+- The `channel_levels` sensor and `set_channel_levels` action have been removed. Use the channel level number entities instead to get and set channel levels. To set all channel levels, use the `send_command` action to send the `set_channel_levels` AVR command with arguments `[ "all", <level> ]`
+- The `sources_json` attribute on the integration's `media_player` entities is now a mapping from source ID (as a **str**) to source name, due to a corresponding change in `aiopioneer`
+- The `repeat_count` integration option has been replaced by aiopioneer parameter `retry_count`
+- `parental_lock_password` has been removed from the `System` property group sensor as the value is shown in cleartext
+- The `Audio Parameters` sensor for each zone has been removed, as all zone specific audio properties have individual base properties
+- Integration specific debug options have been removed. Debug logging has been reduced, and remaining debug logging is emitted when debug logging is enabled on the integration page or in `configuration.yaml`
+
+### 0.11
+
+- The config entry version has been increased to 5.2. Older versions of pioneer_async using config entry version 4.x or earlier will not work with the config entries created by this version
+- AVR connection settings entered when the integration instance was first added can no longer be changed through the options flow accessed through the Configure button. Use the Reconfigure option to change these parameters
+- The integration instance name is no longer set in the options flow. To rename an integration instance, use the **Rename*- option in the instance overflow menu
+- `set_panel_lock`, `set_remote_lock` and `set_dimmer` actions have been removed. Use the respective settings in `set_amp_settings` instead
+- `set_amp_settings`, `set_video_settings` and `set_dsp_settings` settings options have been converted to lower case in many cases. Existing actions may need to be updated to reflect the changes
+- The Speaker System sensor entity has been removed. Use the Speaker System select entity to retrieve the current setting as reported by the AVR
+- Cyclic settings options have been removed. Use the non-cyclic options instead
+- Tuner actions `set_tuner_band`, `set_fm_tuner_frequency`, `set_am_tuner_frequency` and `set_tuner_preset` and the tuner property group sensor entity have been removed. Use the new tuner entities instead to set the tuner band, frequency and preset
+- `set_tone_settings` action and the tone property group sensor entity has been removed. Use the new tone entities instead to set tone options
+- The Speaker System sensor entity has been replaced by the Speaker System select entity
+- Some promoted properties on the property group sensors have been changed
+- Responder debugging has been removed as the responder has `been incorporated into the listener task
+- Source ID mappings and zone sources are now stored internally as integers, to match equivalent changes in `aiopioneer`. Existing source mappings are updated during config entry migration
+- Manually added params may need to be updated to account for `aiopioneer` params changes. See the [aiopioneer release notes](https://github.com/crowbarz/aiopioneer/releases/tag/0.9.0) for details of the type changes. Note that due to JSON serialisation limitations, it is not currently possible to store a dict with integer keys. Such dicts will be converted internally to string keys by HA, but will be coerced into int keys before passing to `aiopioneer`
 
 ### 0.10
 
