@@ -310,7 +310,7 @@ Send a command to the AVR.
 ### 0.12
 
 - The `dimmer` attribute is no longer available on the `Display` sensor as it has been replaced by the separate `Dimmer` select entity
-- The `channel_levels` sensor and `set_channel_levels` action have been removed. Use the channel level number entities instead to get and set channel levels. To set all channel levels, use the `send_command` action to send the `set_channel_levels` AVR command with arguments `[ "all", <level> ]`
+- The `channel_level` sensor and `set_channel_levels` action have been removed. Use the channel level number entities instead to get and set channel levels. To set all channel levels, use the `send_command` action to send the `set_channel_level` AVR command with arguments `[ "all", <level> ]`
 - The `sources_json` attribute on the integration's `media_player` entities is now a mapping from source ID (as a **str**) to source name, due to a corresponding change in `aiopioneer`
 - The `repeat_count` integration option has been replaced by aiopioneer parameter `retry_count`
 - `parental_lock_password` has been removed from the `System` property group sensor as the value is shown in cleartext
