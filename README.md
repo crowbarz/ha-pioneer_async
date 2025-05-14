@@ -205,7 +205,7 @@ The Tone entities show the tone mode and treble and bass levels for a supported 
 
 ### Channel level entities
 
-Entities representing each channel on supported zones can be used to get the current level for the channel, and also to set the level. Channel levels are not supported on HDZone.
+Entities representing each channel on supported zones can be used to get the current level for the channel, and also to set the level. Entities for the basic 7 channels are enabled by default, and other channels supported by your AVR can be enabled from the AVR zone device page. Channel levels are not supported on HDZone.
 
 To set all channel levels for a zone, use the [`send_command` action](#action-send_command) to send the `set_channel_level` AVR command to the zone with arguments `[ "all", <level> ]`.
 
