@@ -45,6 +45,7 @@ DEFAULT_PORT = 8102  # Some Pioneer AVRs use 23
 DEFAULT_SCAN_INTERVAL = timedelta(seconds=60)
 DEFAULT_TIMEOUT = 5
 DEFAULT_SOURCES = {}
+DEFAULT_ENABLED_CHANNELS = ["L", "C", "R", "SL", "SR", "SBL", "SBR"]
 
 CONF_SOURCES = "sources"
 CONF_PARAMS = "params"

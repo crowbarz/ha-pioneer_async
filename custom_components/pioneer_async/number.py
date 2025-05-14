@@ -29,7 +29,12 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, PioneerData, ATTR_TUNER_AM_FREQUENCY_STEP
+from .const import (
+    DOMAIN,
+    PioneerData,
+    ATTR_TUNER_AM_FREQUENCY_STEP,
+    DEFAULT_ENABLED_CHANNELS,
+)
 from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
 
@@ -246,6 +251,9 @@ class ChannelLevelNumber(PioneerGenericNumber):
             code_map=ChannelLevel,
             name=f"Channel {channel}",
         )
+        self._attr_entity_registry_enabled_default = False  ## TODO: remove
+        if channel in set(SpeakerChannel.CHANNELS_ALL) & set(DEFAULT_ENABLED_CHANNELS):
+            self._attr_entity_registry_enabled_default = True
         self.channel = channel
 
     @property
