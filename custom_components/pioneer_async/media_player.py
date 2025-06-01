@@ -41,6 +41,7 @@ from .const import (
     ATTR_PREFIX,
     ATTR_SUFFIX,
     ATTR_ARGS,
+    ATTR_WAIT_FOR_RESPONSE,
     ATTR_AMP_SPEAKER_MODE,
     ATTR_AMP_HDMI_OUT,
     ATTR_AMP_HDMI3_OUT,
@@ -119,6 +120,7 @@ PIONEER_SEND_COMMAND_SCHEMA = {
     vol.Optional(ATTR_PREFIX): cv.string,
     vol.Optional(ATTR_SUFFIX): cv.string,
     vol.Optional(ATTR_ARGS): cv.ensure_list,
+    vol.Optional(ATTR_WAIT_FOR_RESPONSE): cv.boolean,
 }
 
 PIONEER_SET_AMP_SETTINGS_SCHEMA = {
@@ -494,16 +496,24 @@ class PioneerZone(
         prefix: str = service_call.data.get(ATTR_PREFIX)
         suffix: str = service_call.data.get(ATTR_SUFFIX)
         args: list = service_call.data.get(ATTR_ARGS, [])
+        wait_for_response: bool = service_call.data.get(ATTR_WAIT_FOR_RESPONSE, [])
         _LOGGER.debug(
-            ">> send_command(%s, command=%s, prefix=%s, suffix=%s, args=%s)",
+            ">> send_command(%s, command=%s, prefix=%s, suffix=%s, args=%s, "
+            "wait_for_response=%s)",
             self.zone,
             command,
             prefix,
             suffix,
             args,
+            wait_for_response,
         )
         resp = await self.pioneer_command(
-            command, *args, zone=self.zone, prefix=prefix, suffix=suffix
+            command,
+            *args,
+            zone=self.zone,
+            prefix=prefix,
+            suffix=suffix,
+            wait_for_response=wait_for_response,
         )
         if service_call.return_response:
             return resp

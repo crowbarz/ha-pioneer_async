@@ -304,6 +304,7 @@ Send a command to the AVR.
 | prefix | string | | Prefix argument for command (deprecated)
 | suffix | string | | Suffix argument for command (deprecated)
 | args | list | | List of arguments for the command
+| wait_for_response | bool | command default | Wait for a response from the AVR after sending the command, if the command expects a response. Set to `false` for commands that normally expect a response to skip waiting for a response
 
 ## Breaking changes
 

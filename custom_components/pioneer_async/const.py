@@ -143,9 +143,7 @@ ATTR_COMMAND = "command"
 ATTR_PREFIX = "prefix"
 ATTR_SUFFIX = "suffix"
 ATTR_ARGS = "args"
-ATTR_ENTITY_ID = "entity_id"
-ATTR_CHANNEL = "channel"
-ATTR_LEVEL = "level"
+ATTR_WAIT_FOR_RESPONSE = "wait_for_response"
 
 ## Amp settings attributes
 ATTR_AMP_SPEAKER_MODE = "speaker_mode"

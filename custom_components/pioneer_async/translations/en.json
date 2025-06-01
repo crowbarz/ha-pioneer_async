@@ -417,6 +417,10 @@
                 "args": {
                     "name": "Arguments",
                     "description": "List of free-form arguments for command."
+                },
+                "wait_for_response": {
+                    "name": "Wait for response",
+                    "description": "Wait for a response from the AVR after sending the command, if the command expects a response."
                 }
             }
         },

@@ -18,6 +18,9 @@ send_command:
     args:
       selector:
         object:
+    wait_for_response:
+      selector:
+        boolean:
 
 set_amp_settings:
   target:
