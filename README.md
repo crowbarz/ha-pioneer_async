@@ -14,7 +14,7 @@ This integration supports the following features (not all features are supported
 - Set audio parameters such as listening modes, tone and channel levels
 - Set most amp, DSP, video and system parameters using entities
 
-> [!NOTE]
+> [!IMPORTANT]
 > Pioneer AVRs released from 2016 onwards use the Onkyo API, and are not supported by this integration. It will be unable to establish a network connection or report `AVR not responding to Pioneer API commands` when used with such AVRs. Use the [Onkyo integration](https://www.home-assistant.io/integrations/onkyo/) instead.
 
 ## Installation
