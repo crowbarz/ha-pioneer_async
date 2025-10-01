@@ -14,6 +14,9 @@ This integration supports the following features (not all features are supported
 - Set audio parameters such as listening modes, tone and channel levels
 - Set most amp, DSP, video and system parameters using entities
 
+> [!NOTE]
+> Pioneer AVRs released from 2016 onwards use the Onkyo API, and are not supported by this integration. It will be unable to establish a network connection or report `AVR not responding to Pioneer API commands` when used with such AVRs. Use the [Onkyo integration](https://www.home-assistant.io/integrations/onkyo/) instead.
+
 ## Installation
 
 This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
@@ -70,7 +73,6 @@ Some steps to try if you are unable to add an instance of the integration for yo
 
 - On many AVRs, the network API is not very robust and can occasionally enter an unresponsive state. This can be fixed by powering off the AVR at the outlet, powering it back on after some time, then waiting until it starts responding on the network again.
 - Some AVRs have a maximum simultaneous connection limit, and will refuse to accept further connection requests once this limit is reached. Each instance of this integration uses one connection to the AVR, and each instance of the Pioneer **iControlAV5** application will use another connection. For example, if **iControlAV5** is open on two phones, then two connections will be in use.
-- Pioneer AVRs released from 2016 onwards use the Onkyo API, and will not work with this integration. This integration will report `AVR not responding to Pioneer API commands` when used with such AVRs. Try the [Onkyo integration](https://www.home-assistant.io/integrations/onkyo/) instead with the AVR.
 
 ## AVR instance options
 
