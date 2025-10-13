@@ -4,7 +4,7 @@
 Home Assistant `media_player` custom integration for Pioneer AVRs.
 Inspired by the [original Pioneer integration](https://www.home-assistant.io/integrations/pioneer/).
 Connects to a network capable AVR that supports the Pioneer API, typically used in pre-2016 Pioneer AVR models.
-Developed and tested on a VSX-930 (with Main Zone and HDZone outputs), and [on other models by the community](https://github.com/crowbarz/ha-pioneer_async/issues/20).
+Developed and tested on a VSX-930 (with Main Zone and HDZone outputs), and [on other models by the community](https://github.com/crowbarz/ha-pioneer_async/issues/37).
 
 This integration supports the following features (not all features are supported by all AVR models):
 
