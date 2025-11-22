@@ -310,6 +310,11 @@ Send a command to the AVR.
 
 ## Breaking changes
 
+### 0.13
+
+- The `SB` output channel in the Audio Parameters global AVR property entity has been renamed to `SBC` to match the equivalent input channel, and the name used for the zone channel entity
+- Zone entities for channels `LH`, `RH`, `LW`, `RW` and `SW1` have been renamed to `FHL`, `FHR`, `FWL`, `FWR` and `SW` respectively to match the channel names shown in the Audio Parameters global AVR property entity
+
 ### 0.12
 
 - The `dimmer` attribute is no longer available on the `Display` sensor as it has been replaced by the separate `Dimmer` select entity
