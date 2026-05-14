@@ -563,7 +563,7 @@ class PioneerAVRConfigFlow(
             )
             ## TODO: update PioneerAVR and abort instead of reloading
 
-        return self.async_update_reload_and_abort(
+        return self.async_update_and_abort(
             entry=self.config_entry, data=data, options=options
         )
 
