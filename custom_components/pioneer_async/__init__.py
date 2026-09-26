@@ -257,7 +257,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
             manufacturer="Pioneer",
             name=f"{name} {zone.full_name}",
             model=zone.full_name,
-            via_device=(DOMAIN, entry.entry_id),
+            via_device_id=device_entry.id,
         )
         coordinator = PioneerAVRZoneCoordinator(hass, pioneer, zone)
         coordinator.set_zone_callback()
