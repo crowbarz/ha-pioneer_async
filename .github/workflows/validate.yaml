@@ -1,4 +1,4 @@
-name: Validate
+name: Run Repository Validation
 
 on:
   push:
@@ -10,10 +10,21 @@ on:
 permissions: {}
 
 jobs:
-  validate-hacs:
+  validate-hassfest:
+    name: Hassfest Validation
     runs-on: "ubuntu-latest"
     steps:
-      - name: HACS validation
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Hassfest validation
+        uses: home-assistant/actions/hassfest@master
+
+  validate-hacs:
+    name: HACS Validation
+    runs-on: "ubuntu-latest"
+    steps:
+      - name: Run HACS validation
         uses: "hacs/action@main"
         with:
           category: "integration"
