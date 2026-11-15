@@ -472,7 +472,7 @@
         },
         "set_video_settings": {
             "name": "Set Video Settings",
-            "desciption": "Set AVR video settings.",
+            "description": "Set AVR video settings.",
             "fields": {
                 "resolution": {
                     "name": "Resolution",
@@ -554,7 +554,7 @@
         },
         "set_dsp_settings": {
             "name": "Set DSP Settings",
-            "desciption": "Set AVR DSP settings.",
+            "description": "Set AVR DSP settings.",
             "fields": {
                 "mcacc_memory_set": {
                     "name": "MCACC Memory Set",
