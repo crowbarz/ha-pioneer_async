@@ -34,7 +34,6 @@
                 },
                 "data_description": {
                     "model": "If empty, AVR model will be queried from AVR on integration start",
-                    "query_sources": "Disable for AVRs that do not support source discovery",
                     "sources": "Add source mappings using the format: \"1:Source Name\"",
                     "scan_interval": "Polling update frequency",
                     "timeout": "Connection/command timeout",
