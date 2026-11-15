@@ -263,7 +263,7 @@ set_dsp_settings:
       domain: media_player
   fields:
     mcacc_memory_set:
-      example:
+      example: 1
       selector:
         number:
           min: 1
@@ -330,7 +330,7 @@ set_dsp_settings:
             - "mid"
             - "max"
     sound_retriever:
-      example:
+      example: false
       selector:
         boolean:
     signal_select:
