@@ -26,7 +26,6 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from .const import DOMAIN, PioneerData
 from .entity_base import PioneerEntityBase, PioneerTunerEntity
 
-
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -125,7 +124,7 @@ class PioneerGenericSelect(PioneerSelect):
     @property
     def options(self) -> list[str]:
         """Return the available set of AVR property options."""
-        return list(self.code_map.code_map.values())
+        return list(self.code_map.values())
 
     async def async_select_option(self, option: str) -> None:
         """Change the selected option for the AVR property."""
