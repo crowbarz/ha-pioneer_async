@@ -354,20 +354,8 @@
             "options": {
                 "off": "off",
                 "minus_20": "-20",
-                "minus_19": "-19",
-                "minus_18": "-18",
-                "minus_17": "-17",
-                "minus_16": "-16",
                 "minus_15": "-15",
-                "minus_14": "-14",
-                "minus_13": "-13",
-                "minus_12": "-12",
-                "minus_11": "-11",
                 "minus_10": "-10",
-                "minus_9": "-9",
-                "minus_8": "-8",
-                "minus_7": "-7",
-                "minus_6": "-6",
                 "minus_5": "-5",
                 "minus_4": "-4",
                 "minus_3": "-3",
@@ -393,6 +381,300 @@
             "options": {
                 "object_base": "object base",
                 "channel_base": "channel base"
+            }
+        }
+    },
+     "entity": {
+        "select": {
+            "tone_status": {
+                "name": "Tone Status",
+                "state": {
+                    "bypass": "bypass",
+                    "on": "on"
+                }
+            },
+            "tuner_band": {
+                "name": "Tuner Band",
+                "state": {
+                    "fm": "FM",
+                    "am": "AM"
+                }
+            },
+            "amp_speaker_mode": {
+                "name": "Speaker Mode",
+                "state": {
+                    "off": "off",
+                    "a": "A",
+                    "b": "B",
+                    "a_b": "A+B"
+                }
+            },
+            "amp_hdmi_out": {
+                "name": "HDMI Out",
+                "state": {
+                    "all": "all",
+                    "hdmi1": "HDMI1",
+                    "hdmi2": "HDMI2"
+                }
+            },
+            "amp_hdmi_audio": {
+                "name": "HDMI Audio",
+                "state": {
+                    "amp": "amp",
+                    "passthrough": "passthrough"
+                }
+            },
+            "amp_pqls": {
+                "name": "PQLS",
+                "state": {
+                    "off": "off",
+                    "auto": "auto"
+                }
+            },
+            "amp_dimmer": {
+                "name": "Dimmer",
+                "state": {
+                    "brightest": "brightest",
+                    "bright": "bright",
+                    "dark": "dark",
+                    "off": "off"
+                }
+            },
+            "amp_mode": {
+                "name": "Amp Mode",
+                "state": {
+                    "on": "on",
+                    "front_off": "front off",
+                    "front_center_off": "front & center off",
+                    "off": "off"
+                }
+            },
+            "amp_panel_lock": {
+                "name": "Panel Lock",
+                "state": {
+                    "off": "off",
+                    "panel_only": "panel only",
+                    "panel_volume": "panel + volumezzz"
+                }
+            },
+            "video_resolution": {
+                "name": "Video Resolution",
+                "state": {
+                    "auto": "auto",
+                    "pure": "pure",
+                    "480_576p": "480/576p",
+                    "720p": "720p",
+                    "1080i": "1080i",
+                    "1080p": "1080p",
+                    "1080_24p": "1080/24p",
+                    "4k": "4K",
+                    "4k_24p": "4K/24p"
+                }
+            },
+            "video_pure_cinema": {
+                "name": "Pure Cinema",
+                "state": {
+                    "auto": "auto",
+                    "on": "on",
+                    "off": "off"
+                }
+            },
+            "video_stream_smoother": {
+                "name": "Stream Smoother",
+                "state": {
+                    "off": "off",
+                    "on": "on",
+                    "auto": "auto"
+                }
+            },
+            "video_advanced_video_adjust": {
+                "name": "Advanced Video Adjust",
+                "state": {
+                    "pdp": "PDP",
+                    "lcd": "LCD",
+                    "fpj": "FPJ",
+                    "professional": "professional",
+                    "memory": "memory"
+                }
+            },
+            "video_aspect": {
+                "name": "Video Aspect",
+                "state": {
+                    "passthrough": "passthrough",
+                    "normal": "normal"
+                }
+            },
+            "dsp_phase_control": {
+                "name": "Phase Control",
+                "state": {
+                    "off": "off",
+                    "on": "on",
+                    "full_band_on": "full band on"
+                }
+            },
+            "dsp_phase_control_plus": {
+                "name": "Phase Control Plus",
+                "state": {
+                    "auto": "auto",
+                    "0": "0",
+                    "1": "1",
+                    "2": "2",
+                    "3": "3",
+                    "4": "4",
+                    "5": "5",
+                    "6": "6",
+                    "7": "7",
+                    "8": "8",
+                    "9": "9",
+                    "10": "10",
+                    "11": "11",
+                    "12": "12",
+                    "13": "13",
+                    "14": "14",
+                    "15": "15",
+                    "16": "16"
+                }
+            },
+            "dsp_virtual_speakers": {
+                "name": "Virtual Speakers",
+                "state": {
+                    "auto": "auto",
+                    "manual": "manual"
+                }
+            },
+            "dsp_virtual_depth": {
+                "name": "Virtual Depth",
+                "state": {
+                    "off": "off",
+                    "min": "min",
+                    "mid": "mid",
+                    "max": "max"
+                }
+            },
+            "dsp_signal_select": {
+                "name": "Signal Select",
+                "state": {
+                    "auto": "auto",
+                    "analog": "analog",
+                    "digital": "digital",
+                    "hdmi": "HDMI"
+                }
+            },
+            "dsp_dialog_enhancement": {
+                "name": "Dialog Enhancement",
+                "state": {
+                    "off": "off",
+                    "flat": "flat",
+                    "plus_1": "+1",
+                    "plus_2": "+2",
+                    "plus_3": "+3",
+                    "plus_4": "+4"
+                }
+            },
+            "dsp_audio_scaler": {
+                "name": "Audio Scaler",
+                "state": {
+                    "auto": "auto",
+                    "manual": "manual"
+                }
+            },
+            "dsp_up_sampling": {
+                "name": "Up Sampling",
+                "state": {
+                    "off": "off",
+                    "2_times": "2 times",
+                    "4_times": "4 times"
+                }
+            },
+            "dsp_digital_filter": {
+                "name": "Digital Filter",
+                "state": {
+                    "slow": "slow",
+                    "sharp": "sharp",
+                    "short": "short"
+                }
+            },
+            "dsp_dual_mono": {
+                "name": "Dual Mono",
+                "state": {
+                    "ch1_ch2": "CH1+CH2",
+                    "ch1": "CH1",
+                    "ch2": "CH2"
+                }
+            },
+            "dsp_dynamic_range": {
+                "name": "Dynamic Range",
+                "state": {
+                    "off": "off",
+                    "auto": "auto",
+                    "mid": "mid",
+                    "max": "max"
+                }
+            },
+            "dsp_lfe_attenuator": {
+                "name": "LFE Attenuator",
+                "state": {
+                    "off": "off",
+                    "minus_20": "-20 dB",
+                    "minus_15": "-15 dB",
+                    "minus_10": "-10 dB",
+                    "minus_5": "-5 dB",
+                    "minus_4": "-4 dB",
+                    "minus_3": "-3 dB",
+                    "minus_2": "-2 dB",
+                    "minus_1": "-1 dB",
+                    "0": "0 dB"
+                }
+            },
+            "dsp_sacd_gain": {
+                "name": "SACD Gain",
+                "state": {
+                    "0": "0",
+                    "6": "6"
+                }
+            },
+            "dsp_height_gain": {
+                "name": "Height Gain",
+                "state": {
+                    "low": "low",
+                    "mid": "mid",
+                    "high": "high"
+                }
+            },
+            "dsp_rendering_mode": {
+                "name": "Rendering Mode",
+                "state": {
+                    "object_base": "object base",
+                    "channel_base": "channel base"
+                }
+            }
+        },
+        "sensor": {
+            "audio_channel_level": {
+                "name": "Audio Channel Level",
+                "state": {
+                    "l": "front left",
+                    "r": "front right",
+                    "c": "center",
+                    "sl": "surround left",
+                    "sr": "surround right",
+                    "sbl": "surround back left",
+                    "sbr": "surround back right",
+                    "sw": "subwoofer",
+                    "lh": "front height left",
+                    "rh": "front height right",
+                    "lw": "front wide left",
+                    "rw": "front wide right",
+                    "tml": "top middle left",
+                    "tmr": "top middle right",
+                    "tfl": "top forward left",
+                    "tfr": "top forward right",
+                    "trl": "top backward left",
+                    "trr": "top backward right",
+                    "sw1": "subwoofer 1",
+                    "sw2": "subwoofer 2",
+                    "all": "all channels"
+                }
             }
         }
     },
