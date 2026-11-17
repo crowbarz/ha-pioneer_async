@@ -173,8 +173,8 @@
         "amp_hdmi_out": {
             "options": {
                 "all": "all",
-                "hdmi_1": "HDMI 1",
-                "hdmi_2": "HDMI 2"
+                "hdmi1": "HDMI1",
+                "hdmi2": "HDMI2"
             }
         },
         "amp_hdmi_audio": {
@@ -199,10 +199,10 @@
         },
         "amp_mode": {
             "options": {
-                "amp_on": "amp on",
-                "amp_front_off": "amp front off",
-                "amp_front_center_off": "amp front & center off",
-                "amp_off": "amp off"
+                "on": "on",
+                "front_off": "front off",
+                "front_center_off": "front & center off",
+                "off": "off"
             }
         },
         "amp_panel_lock": {
