@@ -177,18 +177,19 @@ class TunerBandSelect(PioneerTunerEntity, PioneerSelect):
 
     _attr_name = "Tuner Band"
     _attr_icon = "mdi:radio"
-    _attr_options = [b.value for b in TunerBand]
+    _attr_options = [b.value.lower() for b in TunerBand]
+    _attr_translation_key = "tuner_band"
 
     @property
     def current_option(self) -> str | None:
         """Return the current tuner band."""
         band = self.pioneer.properties.tuner.get("band")
-        return band.value if isinstance(band, TunerBand) else None
+        return band.value.lower() if isinstance(band, TunerBand) else None
 
     async def async_select_option(self, option: str) -> None:
         """Change the tuner band."""
         await self.pioneer_command(
-            self.pioneer.select_tuner_band, band=TunerBand(option)
+            self.pioneer.select_tuner_band, band=TunerBand(option.upper())
         )
 
     async def async_update(self) -> None:
