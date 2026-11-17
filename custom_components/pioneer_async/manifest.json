@@ -1,13 +1,15 @@
 {
   "domain": "pioneer_async",
   "name": "Pioneer AVR",
-  "version": "0.13.0",
+  "categories": [ "media_entertainment.speakers_audio" ],
+  "codeowners": [ "@crowbarz" ],
   "config_flow": true,
+  "dependencies": [],
   "documentation": "https://github.com/crowbarz/ha-pioneer_async",
   "integration_type": "hub",
-  "requirements": [ "aiopioneer==0.11.0" ],
-  "dependencies": [],
-  "codeowners": [ "@crowbarz" ],
   "iot_class": "local_polling",
-  "loggers": ["pioneer_async", "aiopioneer"]
+  "issue_tracker": "https://github.com/crowbarz/ha-pioneer_async/issues",
+  "loggers": ["pioneer_async", "aiopioneer"],
+  "requirements": [ "aiopioneer==0.11.0" ],
+  "version": "0.13.0"
 }

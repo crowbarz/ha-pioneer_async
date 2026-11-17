@@ -19,9 +19,17 @@ This integration supports the following features (not all features are supported
 
 ## Installation
 
-This integration can be installed via HACS by adding this repository as a custom repository. See the [HACS documentation](https://hacs.xyz/docs/faq/custom_repositories/) for the procedure.
+This integration can be installed through the Marketplace (or HACS on versions prior to Home Assistant 2026.11):
 
-Internally, the integration uses the [aiopioneer](https://github.com/crowbarz/aiopioneer) package to interface with Pioneer AVRs. This package is installed automatically by HA on integration startup.
+[![Open your Home Assistant instance and open a repository in the Marketplace.](https://my.home-assistant.io/badges/marketplace_repository.svg)](https://my.home-assistant.io/redirect/marketplace_repository/?owner=crowbarz&repository=ha-pioneer_async&category=media_entertainment.speakers_audio)
+
+Once installed, set up an instance of the integration:
+
+[![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=pioneer_async)
+
+To manually set up the integration, navigate to **Settings > Devices & services > + Add integration > Pioneer AVR**.
+
+The integration uses the [aiopioneer](https://github.com/crowbarz/aiopioneer) package to interface with Pioneer AVRs. This package is installed automatically by HA on integration startup.
 
 > [!NOTE]
 > To install pre-release versions of the integration, follow [these steps](https://www.hacs.xyz/docs/use/repositories/dashboard/#downloading-a-specific-version-of-a-repository).

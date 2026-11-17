@@ -194,7 +194,6 @@ class PioneerAVRConfigFlow(
 
     VERSION = CONFIG_ENTRY_VERSION
     MINOR_VERSION = CONFIG_ENTRY_VERSION_MINOR
-    CONNECTION_CLASS = config_entries.CONN_CLASS_LOCAL_PUSH
 
     def __init__(self):
         """Initialise Pioneer AVR config flow."""
@@ -563,7 +562,7 @@ class PioneerAVRConfigFlow(
             )
             ## TODO: update PioneerAVR and abort instead of reloading
 
-        return self.async_update_reload_and_abort(
+        return self.async_update_and_abort(
             entry=self.config_entry, data=data, options=options
         )
 
@@ -654,9 +653,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
 
             if not errors:
                 self.config |= user_input
-                if self.show_advanced_options:
-                    return await self.async_step_advanced_options()
-                return await self.update_config_entry()
+                return await self.async_step_advanced_options()
         else:
             user_input = self.config
 
@@ -722,7 +719,7 @@ class PioneerOptionsFlow(config_entries.OptionsFlow):
             data_schema=self.add_suggested_values_to_schema(data_schema, user_input),
             errors=errors,
             description_placeholders=description_placeholders,
-            last_step=not self.show_advanced_options,
+            last_step=False,
         )
 
     async def async_step_advanced_options(

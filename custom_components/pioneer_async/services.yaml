@@ -24,9 +24,6 @@ send_command:
 
 set_amp_settings:
   target:
-    device:
-      integration: pioneer_async
-      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player
@@ -38,9 +35,9 @@ set_amp_settings:
           translation_key: amp_speaker_mode
           options:
             - "off"
-            - "A"
-            - "B"
-            - "A+B"
+            - "a"
+            - "b"
+            - "a_b"
     hdmi_out:
       example: "all"
       selector:
@@ -48,8 +45,8 @@ set_amp_settings:
           translation_key: amp_hdmi_out
           options:
             - "all"
-            - "HDMI 1"
-            - "HDMI 2"
+            - "hdmi_1"
+            - "hdmi_2"
     hdmi3_out:
       selector:
         boolean:
@@ -93,10 +90,10 @@ set_amp_settings:
         select:
           translation_key: amp_mode
           options:
-            - "amp on"
-            - "amp front off"
-            - "amp front & center off"
-            - "amp off"
+            - "amp_on"
+            - "amp_front_off"
+            - "amp_front_center_off"
+            - "amp_off"
     panel_lock:
       example: "off"
       selector:
@@ -104,17 +101,14 @@ set_amp_settings:
           translation_key: amp_panel_lock
           options:
             - "off"
-            - "panel only"
-            - "panel + volume"
+            - "panel_only"
+            - "panel_volume"
     remote_lock:
       selector:
         boolean:
 
 set_video_settings:
   target:
-    device:
-      integration: pioneer_async
-      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player
@@ -127,13 +121,13 @@ set_video_settings:
           options:
             - "auto"
             - "pure"
-            - "480/576p"
+            - "480_576p"
             - "720p"
             - "1080i"
             - "1080p"
-            - "1080/24p"
-            - "4K"
-            - "4K/24p"
+            - "1080_24p"
+            - "4k"
+            - "4k_24p"
     converter:
       selector:
         boolean:
@@ -168,9 +162,9 @@ set_video_settings:
         select:
           translation_key: video_advanced_video_adjust
           options:
-            - "PDP"
-            - "LCD"
-            - "FPJ"
+            - "pdp"
+            - "lcd"
+            - "fpj"
             - "professional"
             - "memory"
     ynr:
@@ -264,15 +258,12 @@ set_video_settings:
 
 set_dsp_settings:
   target:
-    device:
-      integration: pioneer_async
-      model: Main Zone
     entity:
       integration: pioneer_async
       domain: media_player
   fields:
     mcacc_memory_set:
-      example:
+      example: 1
       selector:
         number:
           min: 1
@@ -286,7 +277,7 @@ set_dsp_settings:
           options:
             - "off"
             - "on"
-            - "full band on"
+            - "full_band_on"
     phase_control_plus:
       example: "auto"
       selector:
@@ -339,7 +330,7 @@ set_dsp_settings:
             - "mid"
             - "max"
     sound_retriever:
-      example:
+      example: false
       selector:
         boolean:
     signal_select:
@@ -351,7 +342,7 @@ set_dsp_settings:
             - "auto"
             - "analog"
             - "digital"
-            - "HDMI"
+            - "hdmi"
     input_attenuator:
       selector:
         boolean:
@@ -380,10 +371,10 @@ set_dsp_settings:
           options:
             - "off"
             - "flat"
-            - "+1"
-            - "+2"
-            - "+3"
-            - "+4"
+            - "plus_1"
+            - "plus_2"
+            - "plus_3"
+            - "plus_4"
     audio_scaler:
       example: "auto"
       selector:
@@ -402,8 +393,8 @@ set_dsp_settings:
           translation_key: dsp_up_sampling
           options:
             - "off"
-            - "2 times"
-            - "4 times"
+            - "2_times"
+            - "4_times"
     digital_filter:
       example: "slow"
       selector:
@@ -419,9 +410,9 @@ set_dsp_settings:
         select:
           translation_key: dsp_dual_mono
           options:
-            - "CH1+CH2"
-            - "CH1"
-            - "CH2"
+            - "ch1_ch2"
+            - "ch1"
+            - "ch2"
     fixed_pcm:
       selector:
         boolean:
@@ -442,26 +433,26 @@ set_dsp_settings:
           translation_key: dsp_lfe_attenuator
           options:
             - "off"
-            - "-20"
-            - "-19"
-            - "-18"
-            - "-17"
-            - "-16"
-            - "-15"
-            - "-14"
-            - "-13"
-            - "-12"
-            - "-11"
-            - "-10"
-            - "-9"
-            - "-8"
-            - "-7"
-            - "-6"
-            - "-5"
-            - "-4"
-            - "-3"
-            - "-2"
-            - "-1"
+            - "minus_20"
+            - "minus_19"
+            - "minus_18"
+            - "minus_17"
+            - "minus_16"
+            - "minus_15"
+            - "minus_14"
+            - "minus_13"
+            - "minus_12"
+            - "minus_11"
+            - "minus_10"
+            - "minus_9"
+            - "minus_8"
+            - "minus_7"
+            - "minus_6"
+            - "minus_5"
+            - "minus_4"
+            - "minus_3"
+            - "minus_2"
+            - "minus_1"
             - "0"
     sacd_gain:
       example: "0"
@@ -526,8 +517,8 @@ set_dsp_settings:
         select:
           translation_key: dsp_rendering_mode
           options:
-            - "object base"
-            - "channel base"
+            - "object_base"
+            - "channel_base"
 
 # media_control:
 #   description: TODO: implement using standard media functions
